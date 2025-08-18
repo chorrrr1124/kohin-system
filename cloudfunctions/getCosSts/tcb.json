@@ -1,0 +1,21 @@
+{
+  "functions": [
+    {
+      "name": "getCosSts",
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "timeout": 10,
+      "memorySize": 128,
+      "installDependency": true,
+      "description": "获取腾讯云COS临时密钥的云函数",
+      "environment": {
+        "variables": {
+          "TENCENT_SECRET_ID": "YOUR_SECRET_ID",
+        "TENCENT_SECRET_KEY": "YOUR_SECRET_KEY",
+        "COS_BUCKET": "kohin-1327524326",
+        "COS_REGION": "ap-guangzhou"
+        }
+      }
+    }
+  ]
+}

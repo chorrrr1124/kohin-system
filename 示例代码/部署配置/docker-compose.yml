@@ -1,0 +1,173 @@
+version: '3.8'
+
+services:
+  # MongoDB 数据库
+  mongodb:
+    image: mongo:6.0
+    container_name: miniprogram-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: your_password_here
+      MONGO_INITDB_DATABASE: miniprogram_cms
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongodb/init:/docker-entrypoint-initdb.d
+    networks:
+      - miniprogram_network
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: miniprogram-redis
+    restart: unless-stopped
+    command: redis-server --requirepass your_redis_password
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - miniprogram_network
+
+  # 后端 API 服务
+  api-server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: miniprogram-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      MONGODB_URI: mongodb://admin:your_password_here@mongodb:27017/miniprogram_cms?authSource=admin
+      REDIS_URL: redis://:your_redis_password@redis:6379
+      JWT_SECRET: your_jwt_secret_key_here
+      UPLOAD_PATH: /app/uploads
+      MAX_FILE_SIZE: 10485760
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - miniprogram_network
+
+  # Web 管理端
+  web-admin:
+    build:
+      context: ./web-admin
+      dockerfile: Dockerfile
+      args:
+        API_BASE_URL: http://localhost:3000/api
+    container_name: miniprogram-admin
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - api-server
+    networks:
+      - miniprogram_network
+
+  # Nginx 反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: miniprogram-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./ssl:/etc/nginx/ssl
+      - ./uploads:/var/www/uploads
+    depends_on:
+      - api-server
+      - web-admin
+    networks:
+      - miniprogram_network
+
+  # WebSocket 服务 (用于实时通知)
+  websocket-server:
+    build:
+      context: ./websocket
+      dockerfile: Dockerfile
+    container_name: miniprogram-websocket
+    restart: unless-stopped
+    environment:
+      PORT: 8081
+      REDIS_URL: redis://:your_redis_password@redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - miniprogram_network
+
+volumes:
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  miniprogram_network:
+    driver: bridge
+
+# 开发环境覆盖配置
+# 使用方式: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+---
+# docker-compose.dev.yml
+version: '3.8'
+
+services:
+  api-server:
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev
+
+  web-admin:
+    volumes:
+      - ./web-admin:/app
+      - /app/node_modules
+    command: npm run dev
+    ports:
+      - "8080:8080"
+
+  # 开发环境数据库管理工具
+  mongo-express:
+    image: mongo-express
+    container_name: miniprogram-mongo-express
+    restart: unless-stopped
+    ports:
+      - "8082:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: your_password_here
+      ME_CONFIG_MONGODB_URL: mongodb://admin:your_password_here@mongodb:27017/
+    depends_on:
+      - mongodb
+    networks:
+      - miniprogram_network
+
+  # Redis 管理工具
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: miniprogram-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379:0:your_redis_password
+    ports:
+      - "8083:8081"
+    depends_on:
+      - redis
+    networks:
+      - miniprogram_network 

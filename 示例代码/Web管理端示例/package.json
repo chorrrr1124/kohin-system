@@ -1,0 +1,78 @@
+{
+  "name": "miniprogram-layout-admin",
+  "version": "1.0.0",
+  "description": "小程序布局管理系统 - Web管理端",
+  "private": true,
+  "scripts": {
+    "dev": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "build:prod": "vue-cli-service build --mode production",
+    "lint": "vue-cli-service lint",
+    "lint:fix": "vue-cli-service lint --fix",
+    "test:unit": "vue-cli-service test:unit",
+    "test:e2e": "vue-cli-service test:e2e",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.3.4",
+    "vue-router": "^4.2.4",
+    "vuex": "^4.1.0",
+    "element-plus": "^2.3.12",
+    "axios": "^1.5.0",
+    "vue3-draggable": "^1.2.5",
+    "sortablejs": "^1.15.0",
+    "@element-plus/icons-vue": "^2.1.0",
+    "lodash-es": "^4.17.21",
+    "monaco-editor": "^0.41.0",
+    "vue-color": "^2.8.1",
+    "file-saver": "^2.0.5",
+    "jszip": "^3.10.1",
+    "qrcode": "^1.5.3",
+    "highlight.js": "^11.8.0",
+    "marked": "^7.0.4",
+    "dayjs": "^1.11.9",
+    "xlsx": "^0.18.5",
+    "echarts": "^5.4.3",
+    "vue-echarts": "^6.6.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.3.4",
+    "@vue/cli-plugin-eslint": "^5.0.8",
+    "@vue/cli-plugin-router": "^5.0.8",
+    "@vue/cli-plugin-vuex": "^5.0.8",
+    "@vue/cli-service": "^5.0.8",
+    "@vue/eslint-config-prettier": "^8.0.0",
+    "@vue/test-utils": "^2.4.1",
+    "eslint": "^8.46.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-vue": "^9.15.1",
+    "prettier": "^3.0.0",
+    "sass": "^1.64.1",
+    "sass-loader": "^13.3.2",
+    "unplugin-auto-import": "^0.16.6",
+    "unplugin-vue-components": "^0.25.1",
+    "vite": "^4.4.9",
+    "vitest": "^0.34.2",
+    "cypress": "^12.17.3"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "vue3",
+    "element-plus",
+    "miniprogram",
+    "layout-editor",
+    "cms",
+    "admin"
+  ],
+  "author": "Your Team",
+  "license": "MIT"
+} 

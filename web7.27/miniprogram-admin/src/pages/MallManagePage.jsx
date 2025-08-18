@@ -1,0 +1,588 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Plus, 
+  Upload, 
+  Edit, 
+  Trash2, 
+  Eye, 
+  EyeOff, 
+  Calendar, 
+  Tag, 
+  Gift, 
+  Image as ImageIcon,
+  ShoppingBag,
+  Settings,
+  Clock,
+  DollarSign,
+  Store,
+  Home
+} from 'lucide-react'
+import { app, ensureLogin } from '../utils/cloudbase'
+
+const MallManagePage = () => {
+  const [activeTab, setActiveTab] = useState('banners')
+  const [banners, setBanners] = useState([])
+  const [coupons, setCoupons] = useState([])
+  const [categories, setCategories] = useState([])
+  const [homepageConfig, setHomepageConfig] = useState({
+    title: '夏日消暑·就喝「丘大叔」',
+    subtitle: 'Lemon tea for Uncle Q',
+    giftNote: '【赠6元代金券×1】',
+    validityNote: '*自购买之日起3年内有效，可转赠可自用',
+    prices: [
+      { price: 30, originalPrice: 30 },
+      { price: 86, originalPrice: 100 },
+      { price: 66, originalPrice: 66 },
+      { price: 168, originalPrice: 200 }
+    ]
+  })
+  const [loading, setLoading] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [modalType, setModalType] = useState('')
+  const [editingItem, setEditingItem] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    loadData()
+  }, [activeTab])
+
+  const loadData = async () => {
+    setLoading(true)
+    try {
+      switch (activeTab) {
+        case 'homepage':
+          await loadHomepageConfig()
+          break
+        case 'banners':
+          await loadBanners()
+          break
+        case 'coupons':
+          await loadCoupons()
+          break
+        case 'categories':
+          await loadCategories()
+          break
+      }
+    } catch (error) {
+      console.error('加载数据失败:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadHomepageConfig = async () => {
+    try {
+      await ensureLogin()
+      const db = app.database()
+      
+      const result = await db.collection('homepage_config')
+        .where({ type: 'promo' })
+        .orderBy('updateTime', 'desc')
+        .limit(1)
+        .get()
+
+      if (result.data.length > 0) {
+        setHomepageConfig(result.data[0].config)
+      }
+    } catch (error) {
+      console.error('加载首页配置失败:', error)
+      // 使用默认配置
+    }
+  }
+
+  const saveHomepageConfig = async () => {
+    if (submitting) return
+    
+    try {
+      setSubmitting(true)
+      await ensureLogin()
+      const db = app.database()
+      
+      // 检查是否已存在配置
+      const existing = await db.collection('homepage_config')
+        .where({ type: 'promo' })
+        .get()
+
+      if (existing.data.length > 0) {
+        // 更新现有配置
+        await db.collection('homepage_config')
+          .doc(existing.data[0]._id)
+          .update({
+            config: homepageConfig,
+            updateTime: new Date()
+          })
+      } else {
+        // 创建新配置
+        await db.collection('homepage_config').add({
+          type: 'promo',
+          config: homepageConfig,
+          createTime: new Date(),
+          updateTime: new Date()
+        })
+      }
+
+      alert('首页配置保存成功！')
+    } catch (error) {
+      console.error('保存首页配置失败:', error)
+      alert('保存失败，请重试')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const loadBanners = async () => {
+    // 这里调用云开发API获取轮播图数据
+    try {
+      // 模拟数据，实际项目中替换为真实API调用
+      const mockData = [
+        {
+          _id: '1',
+          title: '新品上市',
+          imageUrl: '/images/banner1.jpg',
+          linkType: 'page',
+          linkUrl: '/pages/products/products',
+          status: 'active',
+          sort: 1,
+          startTime: '2024-01-01',
+          endTime: '2024-12-31',
+          createTime: '2024-01-01'
+        }
+      ]
+      setBanners(mockData)
+    } catch (error) {
+      console.error('加载轮播图失败:', error)
+    }
+  }
+
+  const loadCoupons = async () => {
+    try {
+      const mockData = [
+        {
+          _id: '1',
+          name: '新用户专享',
+          amount: 10,
+          type: 'discount',
+          minAmount: 100,
+          maxCount: 1000,
+          usedCount: 150,
+          status: 'active',
+          validUntil: '2024-12-31',
+          createTime: '2024-01-01'
+        }
+      ]
+      setCoupons(mockData)
+    } catch (error) {
+      console.error('加载优惠券失败:', error)
+    }
+  }
+
+  const loadCategories = async () => {
+    try {
+      const mockData = [
+        {
+          _id: '1',
+          name: '热销商品',
+          icon: '/images/category/hot.png',
+          type: 'hot',
+          sort: 1,
+          status: 'active'
+        }
+      ]
+      setCategories(mockData)
+    } catch (error) {
+      console.error('加载分类失败:', error)
+    }
+  }
+
+  const handleAdd = () => {
+    setEditingItem(null)
+    setModalType(activeTab)
+    setShowModal(true)
+  }
+
+  const handleEdit = (item) => {
+    setEditingItem(item)
+    setModalType(activeTab)
+    setShowModal(true)
+  }
+
+  const handleDelete = async (id) => {
+    if (!confirm('确定要删除吗？')) return
+    
+    try {
+      // 这里调用删除API
+      console.log('删除项目:', id)
+      loadData()
+    } catch (error) {
+      console.error('删除失败:', error)
+    }
+  }
+
+  const handleStatusToggle = async (id, currentStatus) => {
+    try {
+      const newStatus = currentStatus === 'active' ? 'inactive' : 'active'
+      // 这里调用状态切换API
+      console.log('切换状态:', id, newStatus)
+      loadData()
+    } catch (error) {
+      console.error('状态切换失败:', error)
+    }
+  }
+
+  const renderBannerList = () => (
+    <div className="space-y-4">
+      {banners.map((banner) => (
+        <div key={banner._id} className="bg-white p-6 rounded-lg shadow-md">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-20 h-12 bg-gray-200 rounded-lg overflow-hidden">
+                <img 
+                  src={banner.imageUrl} 
+                  alt={banner.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">{banner.title}</h3>
+                <p className="text-sm text-gray-500">
+                  排序: {banner.sort} | 链接类型: {banner.linkType}
+                </p>
+                <p className="text-sm text-gray-500">
+                  有效期: {banner.startTime} 至 {banner.endTime}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => handleStatusToggle(banner._id, banner.status)}
+                className={`p-2 rounded-lg ${
+                  banner.status === 'active' 
+                    ? 'text-green-600 bg-green-50 hover:bg-green-100' 
+                    : 'text-gray-400 bg-gray-50 hover:bg-gray-100'
+                }`}
+              >
+                {banner.status === 'active' ? <Eye size={16} /> : <EyeOff size={16} />}
+              </button>
+              <button
+                onClick={() => handleEdit(banner)}
+                className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100"
+              >
+                <Edit size={16} />
+              </button>
+              <button
+                onClick={() => handleDelete(banner._id)}
+                className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+
+  const renderCouponList = () => (
+    <div className="space-y-4">
+      {coupons.map((coupon) => (
+        <div key={coupon._id} className="bg-white p-6 rounded-lg shadow-md">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center space-x-3 mb-2">
+                <Gift size={20} />
+                <h3 className="font-semibold text-gray-900">{coupon.name}</h3>
+                <span className={`px-2 py-1 rounded-full text-xs ${
+                  coupon.status === 'active' 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {coupon.status === 'active' ? '生效中' : '已停用'}
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
+                <div>
+                  <span className="font-medium">优惠金额:</span>
+                  <span className="ml-1 text-red-600 font-semibold">¥{coupon.amount}</span>
+                </div>
+                <div>
+                  <span className="font-medium">使用门槛:</span>
+                  <span className="ml-1">满¥{coupon.minAmount}</span>
+                </div>
+                <div>
+                  <span className="font-medium">使用情况:</span>
+                  <span className="ml-1">{coupon.usedCount}/{coupon.maxCount}</span>
+                </div>
+                <div>
+                  <span className="font-medium">有效期至:</span>
+                  <span className="ml-1">{coupon.validUntil}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => handleStatusToggle(coupon._id, coupon.status)}
+                className={`p-2 rounded-lg ${
+                  coupon.status === 'active' 
+                    ? 'text-green-600 bg-green-50 hover:bg-green-100' 
+                    : 'text-gray-400 bg-gray-50 hover:bg-gray-100'
+                }`}
+              >
+                {coupon.status === 'active' ? <Eye size={16} /> : <EyeOff size={16} />}
+              </button>
+              <button
+                onClick={() => handleEdit(coupon)}
+                className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100"
+              >
+                <Edit size={16} />
+              </button>
+              <button
+                onClick={() => handleDelete(coupon._id)}
+                className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+
+  const renderCategoryList = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {categories.map((category) => (
+        <div key={category._id} className="bg-white p-6 rounded-lg shadow-md">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden">
+                <img 
+                  src={category.icon} 
+                  alt={category.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">{category.name}</h3>
+                <p className="text-sm text-gray-500">类型: {category.type}</p>
+              </div>
+            </div>
+            
+            <span className={`px-2 py-1 rounded-full text-xs ${
+              category.status === 'active' 
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-gray-100 text-gray-800'
+            }`}>
+              {category.status === 'active' ? '显示' : '隐藏'}
+            </span>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-500">排序: {category.sort}</span>
+            
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => handleStatusToggle(category._id, category.status)}
+                className={`p-1 rounded ${
+                  category.status === 'active' 
+                    ? 'text-green-600 hover:bg-green-50' 
+                    : 'text-gray-400 hover:bg-gray-50'
+                }`}
+              >
+                {category.status === 'active' ? <Eye size={14} /> : <EyeOff size={14} />}
+              </button>
+              <button
+                onClick={() => handleEdit(category)}
+                className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+              >
+                <Edit size={14} />
+              </button>
+              <button
+                onClick={() => handleDelete(category._id)}
+                className="p-1 text-red-600 hover:bg-red-50 rounded"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+
+  const tabs = [
+    { key: 'banners', label: '轮播图管理', icon: ShoppingBag },
+    { key: 'coupons', label: '优惠券管理', icon: DollarSign },
+    { key: 'categories', label: '分类管理', icon: Store }
+  ]
+
+  return (
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">商城装修管理</h1>
+        <p className="text-gray-600">管理商城的轮播图、优惠券、分类等装修内容</p>
+      </div>
+
+      {/* 标签页 */}
+      <div className="bg-white rounded-lg shadow-sm mb-6">
+        <div className="flex border-b border-gray-200">
+          {tabs.map((tab) => {
+            const Icon = tab.icon
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center space-x-2 px-6 py-4 font-medium transition-colors ${
+                  activeTab === tab.key
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Icon size={18} />
+                <span>{tab.label}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {tabs.find(t => t.key === activeTab)?.label}
+            </h2>
+            <button
+              onClick={handleAdd}
+              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus size={18} />
+              <span>添加{activeTab === 'banners' ? '轮播图' : activeTab === 'coupons' ? '优惠券' : '分类'}</span>
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+                    ) : (
+            <div>
+              {activeTab === 'banners' && renderBannerList()}
+              {activeTab === 'coupons' && renderCouponList()}
+              {activeTab === 'categories' && renderCategoryList()}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 模态框 */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">
+              {editingItem ? '编辑' : '添加'}
+              {modalType === 'banners' ? '轮播图' : modalType === 'coupons' ? '优惠券' : '分类'}
+            </h3>
+            
+            <div className="space-y-4">
+              {modalType === 'banners' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">标题</label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="请输入轮播图标题"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">图片</label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <Upload className="mx-auto text-gray-400 mb-2" size={24} />
+                      <p className="text-sm text-gray-500">点击上传图片</p>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">链接类型</label>
+                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value="page">页面</option>
+                      <option value="product">商品</option>
+                    </select>
+                  </div>
+                </>
+              )}
+              
+              {modalType === 'coupons' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">优惠券名称</label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="请输入优惠券名称"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">优惠金额</label>
+                      <input
+                        type="number"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">使用门槛</label>
+                      <input
+                        type="number"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+              
+              {modalType === 'categories' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">分类名称</label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="请输入分类名称"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">分类图标</label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <Upload className="mx-auto text-gray-400 mb-2" size={24} />
+                      <p className="text-sm text-gray-500">点击上传图标</p>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                {editingItem ? '保存' : '创建'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default MallManagePage

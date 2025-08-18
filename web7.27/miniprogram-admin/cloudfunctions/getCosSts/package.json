@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "miniprogram-admin": "file:../.."
+  }
+}
