@@ -1,0 +1,116 @@
+<!--pages/customers/customerDetail/customerDetail.wxml-->
+<view class="page">
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
+  
+  <!-- 客户详情 -->
+  <block wx:else>
+    <view class="header">
+      <view class="customer-name">{{customer.name}}</view>
+      <view class="customer-meta">
+        <view class="customer-type">{{customer.type}}</view>
+        <view class="customer-source" wx:if="{{customer.source}}">来源：{{customer.source}}</view>
+      </view>
+    </view>
+    
+    <view class="content">
+      <!-- 联系人信息部分 -->
+      <view class="info-section">
+        <view class="section-title">联系人信息</view>
+        <block wx:if="{{customer.contacts && customer.contacts.length > 0}}">
+          <view class="contact-tab" wx:for="{{customer.contacts}}" wx:key="index">
+            <view class="contact-header">联系人 {{index + 1}}</view>
+            <view class="info-item">
+              <view class="label">姓名：</view>
+              <view class="value">{{item.name}}</view>
+            </view>
+            <view class="info-item">
+              <view class="label">电话：</view>
+              <view class="value">
+                {{item.phone}}
+              </view>
+            </view>
+            <view class="info-item" wx:if="{{item.province || item.city || item.district || item.addressDetail || item.address}}">
+              <view class="label">收货地址：</view>
+              <view class="value">{{(item.province || '') + (item.city || '') + (item.district || '') + (item.addressDetail || item.address || '')}}</view>
+            </view>
+          </view>
+        </block>
+        <view class="empty-tip" wx:else>暂无联系人信息</view>
+      </view>
+      
+      <view class="info-section">
+        <view class="section-title">基本信息</view>
+        <view class="info-item">
+          <view class="label">创建时间：</view>
+          <view class="value">{{customer.createDate || '暂无'}}</view>
+        </view>
+      </view>
+      
+      <view class="info-section" wx:if="{{customer.remark}}">
+        <view class="section-title">备注信息</view>
+        <view class="remark">{{customer.remark}}</view>
+      </view>
+      
+      <!-- 合并历史记录部分 -->
+      <view class="info-section" wx:if="{{mergeHistory && mergeHistory.length > 0}}">
+        <view class="section-title" bindtap="toggleMergeHistory">
+          合并历史记录
+          <text class="toggle-icon">{{showMergeHistory ? '▼' : '▶'}}</text>
+        </view>
+        <view class="merge-history" wx:if="{{showMergeHistory}}">
+          <view class="merge-item" wx:for="{{mergeHistory}}" wx:key="index">
+            <view class="merge-date">合并日期: {{item.mergeDate}}</view>
+            <view class="merged-customers">
+              <view class="merged-customer" wx:for="{{item.mergedCustomers}}" wx:for-item="customer" wx:key="customerId">
+                <text>{{customer.customerName}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <view class="info-section">
+        <view class="section-title-row">
+        <view class="section-title">订单历史</view>
+          <view class="more-link" wx:if="{{allOrders.length > 5}}" bindtap="viewMoreOrders">更多 ></view>
+        </view>
+        <block wx:if="{{displayOrders.length > 0}}">
+          <view class="order-item" wx:for="{{displayOrders}}" wx:key="_id" bindtap="viewOrder" data-id="{{item._id || item.id}}">
+            <!-- 添加调试信息，帮助排查问题 -->
+            <view class="debug-info" style="display:none;">订单ID: {{item._id || item.id}}</view>
+            <view class="order-info">
+              <view class="order-id">订单号：{{item.id || item._id}}</view>
+              <view class="order-date">下单时间：{{item.date}}</view>
+              <view class="order-amount">
+                金额：
+                <block wx:if="{{item.isPrepaidProduct || item.paymentMethod === 'prepaid' || item.paymentMethod === 'prestore'}}">
+                  ¥0.00 (预存扣除)
+                </block>
+                <block wx:else>
+                  ¥{{item.total}}
+                </block>
+              </view>
+            </view>
+            <view class="order-status">
+              <text class="status-tag status-{{item.status}}">{{orderStatusText[item.status] || item.status}}</text>
+            </view>
+          </view>
+        </block>
+        <view class="empty-tip" wx:else>暂无订单记录</view>
+      </view>
+    </view>
+    
+    <!-- 底部操作栏 -->
+    <view class="footer-actions">
+      <view class="action-button" bindtap="editCustomer">
+        <text class="action-icon">✎</text>
+        <text>编辑</text>
+      </view>
+      <view class="action-button" bindtap="deleteCustomer">
+        <text class="action-icon">✕</text>
+        <text>删除</text>
+      </view>
+    </view>
+  </block>
+</view>

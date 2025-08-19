@@ -1,0 +1,66 @@
+<!-- components/floating-user-card/floating-user-card.wxml -->
+<view class="floating-user-card">
+  <!-- 用户信息区域 -->
+  <view class="user-info-section">
+    <!-- 左侧：问候语 -->
+    <view class="user-left">
+      <view class="user-greeting">
+        <text class="greeting-text">Hi, {{userInfo.nickName || '张程僖'}}</text>
+        <view class="vip-badge-card" wx:if="{{userInfo.vipLevel}}">
+          <text class="vip-text">VIP{{userInfo.vipLevel || '6'}}</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 右侧：数据统计 -->
+    <view class="user-stats">
+      <view class="stat-item">
+        <text class="stat-label">积分商城</text>
+        <text class="stat-value">{{userInfo.points || '288'}}</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-label">余额</text>
+        <text class="stat-value">{{userInfo.balance || '0'}}</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-label">优惠券</text>
+        <text class="stat-value">{{userInfo.coupons || '0'}}张</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 服务选择区域 -->
+  <view class="service-section">
+    <view class="service-option" bindtap="onServiceTap" data-type="pickup">
+      <view class="service-icon">🛒</view>
+      <view class="service-info">
+        <text class="service-title">自取</text>
+        <text class="service-desc">提前下单免排队</text>
+      </view>
+    </view>
+    <view class="service-divider"></view>
+    <view class="service-option" bindtap="onServiceTap" data-type="delivery">
+      <view class="service-icon">🚀</view>
+      <view class="service-info">
+        <text class="service-title">外卖</text>
+        <text class="service-desc">实付满45元免配送费</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能按钮区域 -->
+  <view class="function-buttons">
+    <view class="function-btn" bindtap="onFunctionTap" data-type="gift">
+      <text class="function-text">添加有礼</text>
+    </view>
+    <view class="function-btn" bindtap="onFunctionTap" data-type="group">
+      <text class="function-text">团单优惠</text>
+    </view>
+    <view class="function-btn" bindtap="onFunctionTap" data-type="card">
+      <text class="function-text">心意礼卡</text>
+    </view>
+    <view class="function-btn" bindtap="onFunctionTap" data-type="exchange">
+      <text class="function-text">团购兑换</text>
+    </view>
+  </view>
+</view> 

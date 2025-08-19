@@ -1,0 +1,148 @@
+<view class="container">
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
+  
+  <!-- 多条记录列表模式 -->
+  <block wx:if="{{records.length > 0}}">
+    <!-- 客户信息 -->
+    <view class="section">
+      <view class="section-title">客户信息</view>
+      <view class="info-row">
+        <text class="label">客户姓名：</text>
+        <text class="value">{{record.customerName}}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">联系电话：</text>
+        <text class="value">{{record.customerPhone}}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">客户地址：</text>
+        <text class="value">{{record.customerAddress || '暂无地址信息'}}</text>
+      </view>
+    </view>
+    
+    <!-- 汇总信息 -->
+    <view class="section" wx:if="{{record.totalQuantity}}">
+      <view class="section-title">产品汇总</view>
+      <view class="info-row">
+        <text class="label">预存产品：</text>
+        <text class="value">{{record.productName}}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">总数量：</text>
+        <text class="value">{{record.totalQuantity}}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">总剩余：</text>
+        <text class="value">{{record.totalBalance}}</text>
+      </view>
+    </view>
+    
+    <!-- 记录列表 -->
+    <view class="section">
+      <view class="section-title">预存记录列表</view>
+      <view class="records-list">
+        <view class="record-item" wx:for="{{records}}" wx:key="_id" bindtap="viewSingleRecord" data-index="{{index}}">
+          <view class="record-content">
+            <view class="record-date">预存时间：{{item.createTime}}</view>
+            <block wx:if="{{item.type === 'product'}}">
+              <view class="record-info">产品：{{item.productName}} / 数量：{{item.quantity}} / 剩余：{{item.balance}}</view>
+            </block>
+            <block wx:else>
+              <view class="record-info">金额：¥{{item.amount}} / 剩余：¥{{item.balance}}</view>
+            </block>
+            <view class="record-remark" wx:if="{{item.remark}}">备注：{{item.remark}}</view>
+          </view>
+          <!-- 删除按钮 -->
+          <view class="delete-record-btn" catchtap="deleteSingleRecord" data-id="{{item._id}}" data-index="{{index}}">
+            <text class="delete-record-icon">🗑</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+  
+  <!-- 单条记录详情模式 -->
+  <block wx:elif="{{record}}">
+    <!-- 客户信息 -->
+    <view class="section">
+      <view class="section-title">客户信息</view>
+      <view class="info-row">
+        <text class="label">客户姓名：</text>
+        <text class="value">{{record.customerName}}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">联系电话：</text>
+        <text class="value">{{record.customerPhone}}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">客户地址：</text>
+        <text class="value">{{record.customerAddress || '暂无地址信息'}}</text>
+      </view>
+    </view>
+
+    <!-- 预存信息 -->
+    <view class="section">
+      <view class="section-header">
+        <view class="section-title">预存信息</view>
+        <view class="delete-single-btn" catchtap="deleteSingleRecordDirect" data-id="{{record._id}}">
+          <text class="delete-single-icon">🗑</text>
+        </view>
+      </view>
+      <block wx:if="{{record.type === 'cash'}}">
+        <view class="info-row">
+          <text class="label">预存金额：</text>
+          <text class="value">¥{{record.amount}}</text>
+        </view>
+        <view class="info-row">
+          <text class="label">剩余金额：</text>
+          <text class="value">¥{{record.balance}}</text>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="info-row">
+          <text class="label">预存产品：</text>
+          <text class="value">{{record.productName}}</text>
+        </view>
+        <view class="info-row">
+          <text class="label">预存数量：</text>
+          <text class="value">{{record.quantity}}</text>
+        </view>
+        <view class="info-row">
+          <text class="label">剩余数量：</text>
+          <text class="value">{{record.balance}}</text>
+        </view>
+      </block>
+      <view class="info-row">
+        <text class="label">预存时间：</text>
+        <text class="value">{{record.createTime}}</text>
+      </view>
+    </view>
+
+    <!-- 使用记录 -->
+    <view class="section">
+      <view class="section-title">使用记录</view>
+      <block wx:if="{{record.usageRecords && record.usageRecords.length > 0}}">
+        <view class="usage-list">
+          <view class="usage-item" wx:for="{{record.usageRecords}}" wx:key="index">
+            <view>日期时间：{{item.date || '-'}}</view>
+            <view>产品名称：{{item.productName || record.productName || '-'}}</view>
+            <view>消耗数量：{{item.quantity || 0}}</view>
+            <view wx:if="{{item.receiver}}">收货人：{{item.receiver}}</view>
+            <view wx:if="{{item.phone}}">收货电话：{{item.phone}}</view>
+            <view wx:if="{{item.address}}">收货地址：{{item.address.detail || item.address}}</view>
+            <view>
+              订单编号：<text class="order-link" data-id="{{item.orderId}}" bindtap="goOrderDetail">{{item.orderNo || item.orderId}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+      <view class="empty-tip" wx:else>暂无使用记录</view>
+    </view>
+
+    <!-- 备注 -->
+    <view class="section" wx:if="{{record.remark}}">
+      <view class="section-title">备注</view>
+      <view class="remark">{{record.remark}}</view>
+    </view>
+  </block>
+</view> 

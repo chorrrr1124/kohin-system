@@ -1,0 +1,17 @@
+/* components/icon/icon.wxss */
+.icon-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconfont {
+  font-size: inherit;
+  line-height: 1;
+} 

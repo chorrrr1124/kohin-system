@@ -1,0 +1,227 @@
+/* components/floating-user-card/floating-user-card.wxss */
+
+.floating-user-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 24rpx;
+  padding: 30rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  width: 100%;
+  box-sizing: border-box;
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 用户信息区域 */
+.user-info-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30rpx;
+  padding-top: 8rpx;
+}
+
+/* 左侧用户区域 */
+.user-left {
+  display: flex;
+  align-items: flex-start;
+}
+
+
+
+.user-greeting {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  justify-content: flex-start;
+}
+
+.greeting-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.2;
+  margin-bottom: 2rpx;
+}
+
+.vip-badge-card {
+  background: #28a745;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  align-self: flex-start;
+  margin-top: 2rpx;
+}
+
+.vip-text {
+  color: #FFF;
+  font-size: 20rpx;
+  font-weight: bold;
+}
+
+/* 右侧数据统计 */
+.user-stats {
+  display: flex;
+  gap: 45rpx;
+  align-items: flex-start;
+  margin-top: 0;
+}
+
+.stat-item {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60rpx;
+  justify-content: flex-start;
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: #666;
+  line-height: 1.1;
+  white-space: nowrap;
+  height: 24rpx;
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.stat-value {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  line-height: 1.1;
+  height: 36rpx;
+  display: flex;
+  align-items: center;
+}
+
+/* 服务选择区域 */
+.service-section {
+  background: rgba(255, 255, 255, 0.8);
+  margin-bottom: 30rpx;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  border: 1rpx solid rgba(255, 255, 255, 0.6);
+}
+
+.service-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  transition: transform 0.2s ease;
+}
+
+.service-option:active {
+  transform: scale(0.98);
+}
+
+.service-icon {
+  font-size: 48rpx;
+  width: 80rpx;
+  text-align: center;
+  filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.1));
+}
+
+.service-info {
+  flex: 1;
+}
+
+.service-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.service-desc {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.service-divider {
+  width: 2rpx;
+  height: 80rpx;
+  background: linear-gradient(180deg, transparent, #E0E0E0, transparent);
+  margin: 0 30rpx;
+}
+
+/* 功能按钮区域 */
+.function-buttons {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 20rpx;
+  padding: 20rpx;
+  display: flex;
+  justify-content: space-between;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  border: 1rpx solid rgba(255, 255, 255, 0.6);
+}
+
+.function-btn {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 10rpx;
+  border-radius: 16rpx;
+  transition: all 0.2s ease;
+}
+
+.function-btn:active {
+  background: rgba(76, 175, 80, 0.1);
+  transform: scale(0.95);
+}
+
+.function-text {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+/* 响应式设计 */
+@media (max-width: 750rpx) {
+  .user-stats {
+    gap: 25rpx;
+  }
+  
+  .stat-label {
+    font-size: 22rpx;
+  }
+  
+  .stat-value {
+    font-size: 26rpx;
+  }
+  
+  .service-icon {
+    font-size: 40rpx;
+    width: 60rpx;
+  }
+  
+  .service-title {
+    font-size: 32rpx;
+  }
+  
+  .function-text {
+    font-size: 24rpx;
+  }
+}
+
+/* 悬浮效果增强 */
+.floating-user-card:hover {
+  box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.2);
+  transform: translateY(-4rpx);
+  transition: all 0.3s ease;
+} 

@@ -1,0 +1,271 @@
+/* pages/orders/orderDetail/orderDetail.wxss */
+
+.page {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f6f6f6;
+  padding-bottom: 120rpx;
+}
+
+.loading {
+  text-align: center;
+  padding: 60rpx 0;
+  color: #999;
+}
+
+.header {
+  background-color: #0066FF;
+  color: #fff;
+  padding: 40rpx 30rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-id {
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.order-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-tag {
+  display: inline-block;
+  font-size: 24rpx;
+  padding: 4rpx 16rpx;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 16rpx;
+}
+
+.content {
+  padding: 20rpx;
+}
+
+.info-section {
+  background-color: #fff;
+  border-radius: 10rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 28rpx;
+  color: #666;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  margin-bottom: 20rpx;
+  font-weight: bold;
+}
+
+.info-item {
+  display: flex;
+  margin-bottom: 16rpx;
+}
+
+.label {
+  width: 180rpx;
+  color: #666;
+  font-size: 28rpx;
+}
+
+.value {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.value.link {
+  color: #0066FF;
+}
+
+.value.phone {
+  color: #0066FF;
+  display: flex;
+  align-items: center;
+}
+
+.phone-icon {
+  margin-left: 10rpx;
+  font-size: 32rpx;
+}
+
+.remark {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* 商品列表样式 */
+.product-list {
+  margin-bottom: 20rpx;
+}
+
+.product-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.product-item:last-child {
+  border-bottom: none;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-name {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 6rpx;
+}
+
+.product-price {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.product-quantity {
+  font-size: 28rpx;
+  color: #333;
+  margin: 0 20rpx;
+}
+
+.product-subtotal {
+  font-size: 28rpx;
+  color: #ff4d4f;
+  font-weight: bold;
+}
+
+.order-total {
+  text-align: right;
+  padding-top: 20rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.total-price {
+  font-weight: bold;
+  color: #ff4d4f;
+  font-size: 36rpx;
+  margin-left: 10rpx;
+}
+
+/* 状态标签颜色 */
+.status-pending {
+  background-color: #fff2e8;
+  color: #fa8c16;
+}
+
+.status-processing {
+  background-color: #e6f7ff;
+  color: #1890ff;
+}
+
+.status-shipped {
+  background-color: #f6ffed;
+  color: #52c41a;
+}
+
+.status-completed {
+  background-color: #f0f0f0;
+  color: #595959;
+}
+
+/* 底部操作栏 */
+.footer-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background-color: #fff;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
+  padding: 10rpx 0;
+  min-height: 120rpx;
+}
+
+.action-button {
+  flex: 1;
+  height: 100rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 22rpx;
+  color: #666;
+  line-height: 1.2;
+  padding: 8rpx 4rpx;
+  box-sizing: border-box;
+}
+
+.action-icon {
+  font-size: 36rpx;
+  margin-bottom: 6rpx;
+}
+
+.action-button:first-child {
+  color: #0066FF;
+}
+
+.action-button:last-child {
+  color: #333;
+}
+
+/* 按钮样式 */
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15rpx;
+  padding: 20rpx;
+  background-color: #fff;
+}
+
+.action-buttons button {
+  flex: 1;
+  min-width: 140rpx;
+  height: 88rpx;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.primary-btn {
+  background-color: #0066FF;
+  color: #fff;
+}
+
+.secondary-btn {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.danger-btn {
+  background-color: #ff9800;
+  color: #fff;
+}
+
+.action-btn {
+  background-color: #4CAF50;
+  color: #fff;
+}
+
+.delete-btn {
+  background-color: #ff4757;
+  color: #fff;
+  flex: 0 0 140rpx;
+  min-width: 140rpx;
+} 

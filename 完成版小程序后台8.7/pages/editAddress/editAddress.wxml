@@ -1,0 +1,47 @@
+<!-- pages/editAddress/editAddress.wxml -->
+<view class="container">
+  <view class="header">
+    <view class="title">{{isEdit ? '编辑' : '新增'}}收货地址</view>
+  </view>
+  
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-icon">⟳</view>
+    <view class="loading-text">加载中...</view>
+  </view>
+  
+  <!-- 地址表单 -->
+  <view class="address-form" wx:else>
+    <view class="form-item">
+      <view class="label">收货人</view>
+      <input class="input" value="{{address.name}}" placeholder="请输入收货人姓名" bindinput="inputName" />
+    </view>
+    
+    <view class="form-item">
+      <view class="label">联系电话</view>
+      <input class="input" value="{{address.phone}}" type="number" maxlength="11" placeholder="请输入手机号码" bindinput="inputPhone" />
+    </view>
+    
+    <view class="form-item">
+      <view class="label">所在地区</view>
+      <picker mode="region" bindchange="bindRegionChange" value="{{region}}">
+        <view class="picker {{region[0] ? '' : 'placeholder'}}">
+          {{region[0] ? region[0] + region[1] + region[2] : '请选择所在地区'}}
+        </view>
+      </picker>
+    </view>
+    
+    <view class="form-item">
+      <view class="label">详细地址</view>
+      <textarea class="textarea" value="{{address.detail}}" placeholder="请输入详细地址，如街道、门牌号、小区、楼栋号、单元室等" bindinput="inputDetail" />
+    </view>
+    
+    <view class="form-item switch-item">
+      <view class="label">设为默认地址</view>
+      <switch checked="{{address.isDefault}}" color="#007aff" bindchange="switchDefaultAddress" />
+    </view>
+  </view>
+  
+  <!-- 底部按钮 -->
+  <view class="bottom-btn" bindtap="saveAddress">保存地址</view>
+</view> 

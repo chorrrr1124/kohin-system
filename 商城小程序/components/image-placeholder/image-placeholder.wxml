@@ -1,0 +1,27 @@
+<!-- components/image-placeholder/image-placeholder.wxml -->
+<view class="image-placeholder {{customClass}}" style="{{customStyle}}">
+  <!-- 如果有图片源则显示图片 -->
+  <image 
+    wx:if="{{processedSrc && !imageError}}" 
+    src="{{processedSrc}}" 
+    class="placeholder-image" 
+    mode="{{mode || 'aspectFill'}}"
+    lazy-load="{{lazyLoad}}"
+    binderror="onImageError"
+    bindload="onImageLoad"
+  />
+  
+  <!-- 占位符容器 -->
+  <view wx:else class="placeholder-container {{type}}">
+    <view class="placeholder-icon">
+      <text wx:if="{{type === 'product'}}" class="icon-text">📦</text>
+      <text wx:elif="{{type === 'avatar'}}" class="icon-text">👤</text>
+      <text wx:elif="{{type === 'banner'}}" class="icon-text">🖼️</text>
+      <text wx:elif="{{type === 'category'}}" class="icon-text">📋</text>
+      <text wx:else class="icon-text">🖼️</text>
+    </view>
+    <view class="placeholder-text" wx:if="{{showText}}">
+      <text>{{text || '暂无图片'}}</text>
+    </view>
+  </view>
+</view> 

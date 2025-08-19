@@ -1,0 +1,9 @@
+{
+  "name": "cleanupImageUrls",
+  "version": "1.0.0",
+  "description": "清理数据库中的外部图片URL",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+} 

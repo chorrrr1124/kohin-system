@@ -1,0 +1,53 @@
+<!-- pages/productCalendar/dayDetail.wxml -->
+<view class="detail-container">
+  <view class="header">
+    <view class="title">{{productName}}</view>
+    <view class="date">{{formattedDate}}</view>
+    
+    <!-- 统计卡片 -->
+    <view class="stats-card">
+      <view class="stats-item">
+        <view class="stats-label">入库</view>
+        <view class="stats-value in">{{stats.in}}</view>
+      </view>
+      <view class="stats-item">
+        <view class="stats-label">出库</view>
+        <view class="stats-value out">{{stats.out}}</view>
+      </view>
+      <view class="stats-item">
+        <view class="stats-label">净变化</view>
+        <view class="stats-value {{stats.total >= 0 ? 'in' : 'out'}}">{{stats.total}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 记录列表 -->
+  <view class="records-list">
+    <view class="list-title">详细记录 ({{records.length}})</view>
+    
+    <view class="loading-container" wx:if="{{loading}}">
+      <view class="loading-text">加载中...</view>
+    </view>
+    
+    <view class="empty-tip" wx:elif="{{records.length === 0}}">
+      当天没有出入库记录
+    </view>
+    
+    <view class="record-items" wx:else>
+      <view class="record-item" wx:for="{{records}}" wx:key="_id">
+        <view class="record-time">{{item.formattedTime}}</view>
+        <view class="record-content">
+          <view class="record-type {{item.type}}">{{item.type === 'in' ? '入库' : '出库'}}</view>
+          <view class="record-quantity">{{item.quantity}}个</view>
+        </view>
+        <view class="record-desc" wx:if="{{item.orderNote || item.customerInfo}}">
+          <text wx:if="{{item.orderNote}}">{{item.orderNote}}</text>
+          <text wx:if="{{item.customerInfo}}"> · {{item.customerInfo}}</text>
+        </view>
+        <view class="record-operator" wx:if="{{item.operator}}">
+          操作人：{{item.operator}}
+        </view>
+      </view>
+    </view>
+  </view>
+</view> 

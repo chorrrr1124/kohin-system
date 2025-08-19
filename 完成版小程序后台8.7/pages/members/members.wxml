@@ -1,0 +1,119 @@
+<!-- pages/members/members.wxml -->
+<view class="container">
+  <view class="section-title">客户预存记录</view>
+  
+  <!-- 搜索和添加记录 -->
+  <view class="action-bar">
+    <view class="search-box">
+      <input 
+        type="text" 
+        placeholder="搜索客户姓名或手机号" 
+        value="{{searchValue}}" 
+        bindinput="searchRecords"
+        confirm-type="search"
+      />
+    </view>
+    <view class="add-btn" bindtap="addRecord" hover-class="btn-hover">
+      <text class="add-icon">+</text>
+    </view>
+
+    <!-- 刷新按钮 -->
+    <view class="refresh-btn" bindtap="refreshRecords" hover-class="btn-hover">
+      <text class="refresh-icon">⟳</text>
+    </view>
+  </view>
+  
+
+  
+  <!-- 分组后的预存记录列表 -->
+  <view class="record-list" wx:if="{{!loading}}">
+    <view class="debug-info" wx:if="{{groupedRecords.length > 0}}">
+      <text>找到 {{groupedRecords.length}} 条分组记录</text>
+    </view>
+    <block wx:for="{{groupedRecords}}" wx:key="customerPhone">
+      <view class="record-item" 
+            bindtap="viewCustomerRecords" 
+            data-phone="{{item.customerPhone}}">
+        
+        <view class="record-content">
+        <view class="record-header">
+          <view class="customer-info">
+            <text class="customer-name">{{item.customerName}}</text>
+            <text class="customer-phone">{{item.customerPhone}}</text>
+          </view>
+          <view class="record-time">
+            <text class="time-label">最近预存：</text>
+            <text>{{item.latestTime}}</text>
+          </view>
+        </view>
+        
+
+          
+          <!-- 调试信息（开发时可显示） -->
+          <!-- <view class="debug-info">
+            <text>类型: {{item.hasMultipleTypes ? '混合' : (item.cashAmount > 0 ? 'cash' : 'product')}} | 记录数: {{item.records.length}}</text>
+          </view> -->
+          
+          <!-- 现金预存信息 -->
+          <block wx:if="{{item.cashAmount > 0}}">
+            <view class="prestore-section cash-section">
+              <view class="section-header">
+                <text class="section-title">💰 金额预存</text>
+              </view>
+              <view class="info-row">
+                <text class="label">预存金额：</text>
+                <text class="value amount-value">¥{{item.cashAmount}}</text>
+              </view>
+              <view class="info-row">
+                <text class="label">记录数：</text>
+                <text class="value">{{item.cashRecords.length}}条</text>
+              </view>
+            </view>
+          </block>
+          
+          <!-- 产品预存信息 -->
+          <block wx:if="{{item.productSummaryArray.length > 0}}">
+            <block wx:for="{{item.productSummaryArray}}" wx:for-item="product" wx:key="productName">
+              <view class="prestore-section product-section">
+                <view class="section-header">
+                  <text class="section-title">📦 {{product.productName}}</text>
+                </view>
+                <view class="info-row">
+                  <text class="label">总数量：</text>
+                  <text class="value quantity-value">{{product.totalQuantity}}</text>
+                </view>
+                <view class="info-row">
+                  <text class="label">总剩余：</text>
+                  <text class="value balance-value">{{product.totalBalance}}</text>
+                </view>
+                <view class="info-row">
+                  <text class="label">记录数：</text>
+                  <text class="value">{{product.recordCount}}条</text>
+                </view>
+              </view>
+            </block>
+          </block>
+          <view class="records-count">
+            <text>共{{item.records.length}}条记录 ></text>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+  
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+  
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && groupedRecords.length === 0}}">
+    <view class="empty-icon">📋</view>
+    <view class="empty-title">暂无预存记录</view>
+    <view class="empty-desc">点击右上角"+"按钮添加客户预存记录</view>
+    <view class="empty-action">
+      <view class="empty-btn" bindtap="addRecord">立即添加</view>
+    </view>
+  </view>
+  
+
+</view>

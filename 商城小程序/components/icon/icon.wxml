@@ -1,0 +1,63 @@
+<!-- components/icon/icon.wxml -->
+<view class="icon-container {{customClass}}" style="{{customStyle}}">
+  <view wx:if="{{type === 'shopping-cart'}}" class="icon">
+    <text class="iconfont">🛒</text>
+  </view>
+  <view wx:elif="{{type === 'search'}}" class="icon">
+    <text class="iconfont">🔍</text>
+  </view>
+  <view wx:elif="{{type === 'heart'}}" class="icon">
+    <text class="iconfont">❤️</text>
+  </view>
+  <view wx:elif="{{type === 'star'}}" class="icon">
+    <text class="iconfont">⭐</text>
+  </view>
+  <view wx:elif="{{type === 'user'}}" class="icon">
+    <text class="iconfont">👤</text>
+  </view>
+  <view wx:elif="{{type === 'home'}}" class="icon">
+    <text class="iconfont">🏠</text>
+  </view>
+  <view wx:elif="{{type === 'category'}}" class="icon">
+    <text class="iconfont">📋</text>
+  </view>
+  <view wx:elif="{{type === 'coupon'}}" class="icon">
+    <text class="iconfont">🎫</text>
+  </view>
+  <view wx:elif="{{type === 'gift'}}" class="icon">
+    <text class="iconfont">🎁</text>
+  </view>
+  <view wx:elif="{{type === 'location'}}" class="icon">
+    <text class="iconfont">📍</text>
+  </view>
+  <view wx:elif="{{type === 'phone'}}" class="icon">
+    <text class="iconfont">📞</text>
+  </view>
+  <view wx:elif="{{type === 'message'}}" class="icon">
+    <text class="iconfont">💬</text>
+  </view>
+  <view wx:elif="{{type === 'share'}}" class="icon">
+    <text class="iconfont">📤</text>
+  </view>
+  <view wx:elif="{{type === 'arrow-right'}}" class="icon">
+    <text class="iconfont">➡️</text>
+  </view>
+  <view wx:elif="{{type === 'arrow-left'}}" class="icon">
+    <text class="iconfont">⬅️</text>
+  </view>
+  <view wx:elif="{{type === 'close'}}" class="icon">
+    <text class="iconfont">❌</text>
+  </view>
+  <view wx:elif="{{type === 'check'}}" class="icon">
+    <text class="iconfont">✅</text>
+  </view>
+  <view wx:elif="{{type === 'add'}}" class="icon">
+    <text class="iconfont">➕</text>
+  </view>
+  <view wx:elif="{{type === 'minus'}}" class="icon">
+    <text class="iconfont">➖</text>
+  </view>
+  <view wx:else class="icon">
+    <text class="iconfont">{{type}}</text>
+  </view>
+</view> 

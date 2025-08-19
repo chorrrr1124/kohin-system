@@ -1,0 +1,84 @@
+<!-- pages/calendar/calendar.wxml -->
+<view class="calendar-container">
+  <view class="header">
+    <view class="month-title">
+      <view class="prev-btn" bindtap="prevMonth">◀</view>
+      <view class="title">{{year}}年{{month}}月</view>
+      <view class="next-btn" bindtap="nextMonth">▶</view>
+    </view>
+    
+    <view class="legend-row">
+      <view class="legend-item in">
+        <view class="dot"></view>
+        <text>入库</text>
+      </view>
+      <view class="legend-item out">
+        <view class="dot"></view>
+        <text>出库</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 星期头部 -->
+  <view class="weekday-row">
+    <view class="weekday-cell">周日</view>
+    <view class="weekday-cell">周一</view>
+    <view class="weekday-cell">周二</view>
+    <view class="weekday-cell">周三</view>
+    <view class="weekday-cell">周四</view>
+    <view class="weekday-cell">周五</view>
+    <view class="weekday-cell">周六</view>
+  </view>
+
+  <!-- 日历主体 -->
+  <view class="calendar-grid">
+    <block wx:for="{{days}}" wx:key="index">
+      <view class="day-cell {{item.isCurrentMonth ? '' : 'other-month'}} {{item.isToday ? 'today' : ''}}" 
+            bindtap="viewDayDetail" 
+            data-date="{{item.fullDate}}">
+        <view class="day-number {{item.isToday ? 'today-number' : ''}}">{{item.day}}</view>
+        
+        <!-- 节假日显示 -->
+        <view wx:if="{{item.holiday}}" class="holiday-name">{{item.holiday}}</view>
+        
+        <!-- 出入库记录显示 -->
+        <block wx:if="{{item.records}}">
+          <view class="record-bar in" wx:if="{{item.records.in > 0}}"></view>
+          <view class="record-bar out" wx:if="{{item.records.out > 0}}"></view>
+          <view class="record-dot" wx:if="{{item.records.records.length > 0}}"></view>
+        </block>
+      </view>
+    </block>
+  </view>
+
+  <view class="tips">
+    <text>点击日期可查看详细出入库信息</text>
+    <navigator url="/pages/records/records" class="nav-link">查看全部出入库记录 ></navigator>
+  </view>
+
+  <!-- 自定义弹窗组件 -->
+  <custom-modal 
+    show="{{showModal}}" 
+    title="{{modalTitle}}" 
+    content="{{modalContent}}" 
+    show-cancel="{{showCancel}}"
+    bind:confirm="onModalConfirm"
+    bind:cancel="onModalCancel"
+    bind:close="onModalClose"
+  ></custom-modal>
+
+  <!-- 可滚动弹窗组件 -->
+  <scrollable-modal
+    show="{{showScrollableModal}}"
+    title="{{scrollableModalTitle}}"
+    content="{{scrollableModalContent}}"
+    maxHeight="{{1000}}"
+    showCancel="{{scrollableModalShowCancel}}"
+    confirmText="{{scrollableModalConfirmText}}"
+    enablePagination="{{scrollableModalEnablePagination}}"
+    pageData="{{scrollableModalPageData}}"
+    pageSize="{{scrollableModalPageSize}}"
+    bind:confirm="onScrollableModalConfirm"
+    bind:close="onScrollableModalClose"
+  ></scrollable-modal>
+</view>

@@ -1,0 +1,264 @@
+/* pages/members/recordDetail/recordDetail.wxss */
+
+.container {
+  padding: 30rpx;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.loading {
+  text-align: center;
+  padding: 30rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.section {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.section-header .section-title {
+  margin-bottom: 0;
+}
+
+/* 单条记录删除按钮样式 */
+.delete-single-btn {
+  width: 60rpx;
+  height: 60rpx;
+  background: linear-gradient(135deg, #ff4d4f, #ff7875);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(255, 77, 79, 0.3);
+  transition: all 0.3s ease;
+}
+
+.delete-single-btn:active {
+  transform: scale(0.9);
+  box-shadow: 0 2rpx 8rpx rgba(255, 77, 79, 0.4);
+}
+
+.delete-single-icon {
+  font-size: 28rpx;
+  color: white;
+  line-height: 1;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+  font-size: 28rpx;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.label {
+  color: #666;
+  width: 160rpx;
+  flex-shrink: 0;
+}
+
+.value {
+  color: #333;
+  flex: 1;
+}
+
+.value.phone {
+  color: #0066FF;
+}
+
+/* 记录列表样式 */
+.records-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.record-item {
+  background: #f8f8f8;
+  border-radius: 8rpx;
+  padding: 20rpx;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.record-content {
+  flex: 1;
+  margin-right: 20rpx;
+}
+
+/* 删除按钮样式 */
+.delete-record-btn {
+  width: 60rpx;
+  height: 60rpx;
+  background: linear-gradient(135deg, #ff4d4f, #ff7875);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(255, 77, 79, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.delete-record-btn:active {
+  transform: scale(0.9);
+  box-shadow: 0 2rpx 8rpx rgba(255, 77, 79, 0.4);
+}
+
+.delete-record-icon {
+  font-size: 28rpx;
+  color: white;
+  line-height: 1;
+}
+
+.record-date {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+}
+
+.record-info {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.record-remark {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 使用记录样式 */
+.usage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.usage-item {
+  font-size: 22rpx;
+  color: #333;
+  margin-bottom: 18rpx;
+  background: #fafbfc;
+  border-radius: 8rpx;
+  padding: 18rpx 20rpx;
+  box-shadow: 0 1rpx 2rpx rgba(0,0,0,0.03);
+}
+.usage-item view {
+  font-size: 22rpx;
+  margin-bottom: 4rpx;
+}
+.usage-date {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+  font-weight: 500;
+}
+
+.usage-amount {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 8rpx;
+  font-weight: bold;
+}
+
+.usage-remark {
+  font-size: 26rpx;
+  color: #999;
+  margin-bottom: 8rpx;
+}
+
+.usage-type {
+  font-size: 24rpx;
+  color: #0066FF;
+  margin-bottom: 8rpx;
+}
+
+.usage-order {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.order-id {
+  color: #0066FF;
+  text-decoration: underline;
+}
+
+.order-link {
+  font-size: 22rpx;
+  color: #007aff;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 500;
+}
+.order-link:active {
+  color: #005bb5;
+}
+
+.empty-tip {
+  text-align: center;
+  padding: 30rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.remark {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.6;
+}
+
+.footer-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  padding: 20rpx;
+  display: flex;
+  justify-content: space-around;
+  box-shadow: 0 -2rpx 6rpx rgba(0, 0, 0, 0.1);
+}
+
+.action-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.action-icon {
+  font-size: 40rpx;
+  margin-bottom: 6rpx;
+} 

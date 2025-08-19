@@ -1,0 +1,206 @@
+<!-- pages/cart/cart.wxml -->
+<view class="container">
+  <view class="section-title">购物车</view>
+  
+  <!-- 购物车为空时显示 -->
+  <view class="empty-cart" wx:if="{{isEmpty}}">
+    <view class="empty-icon">🛒</view>
+    <view class="empty-text">购物车还是空的</view>
+    <view class="go-shop-btn" bindtap="goBackToShop">去选购商品</view>
+  </view>
+  
+  <!-- 购物车有商品时显示 -->
+  <view class="cart-content" wx:else>
+    <!-- 商品列表 -->
+    <view class="cart-items">
+      <view class="cart-item" wx:for="{{cartItems}}" wx:key="id">
+        <view class="item-info">
+          <view class="item-name">{{item.name}}</view>
+          <view class="item-price">¥{{item.price}}</view>
+        </view>
+        
+        <!-- 添加产品详细信息 -->
+        <view class="item-details">
+          <view class="detail-item" wx:if="{{item.brand}}">品牌: {{item.brand || '无'}}</view>
+          <view class="detail-item" wx:if="{{item.specification}}">规格: {{item.specification || '无'}}</view>
+          <view class="detail-item">库存: {{item.stock || 0}}</view>
+        </view>
+        
+        <view class="item-actions">
+          <view class="quantity-control">
+            <view class="quantity-btn minus" bindtap="decreaseQuantity" data-index="{{index}}">-</view>
+            <view class="quantity-number">{{item.quantity}}</view>
+            <view class="quantity-btn plus" bindtap="increaseQuantity" data-index="{{index}}">+</view>
+          </view>
+          <view class="delete-btn" bindtap="removeItem" data-index="{{index}}">删除</view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 客户信息 -->
+    <view class="customer-section">
+      <view class="section-subtitle">客户信息</view>
+      <view class="info-item customer-select-btn" bindtap="selectCustomer">
+        <view class="value {{!selectedCustomer ? 'placeholder' : ''}}">
+          <block wx:if="{{selectedCustomer}}">
+            {{selectedCustomer.name}}
+            <block wx:if="{{selectedCustomer.phone}}"> - {{selectedCustomer.phone}}</block>
+            <block wx:elif="{{selectedCustomer.contacts && selectedCustomer.contacts.length > 0 && selectedCustomer.contacts[0].phone}}"> - {{selectedCustomer.contacts[0].phone}}</block>
+          </block>
+          <block wx:else>点击选择客户</block>
+          <text class="arrow">></text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 收货地址 -->
+    <view class="address-section" wx:if="{{selectedCustomer}}">
+      <view class="section-subtitle">收货地址</view>
+      <view class="info-item" bindtap="selectAddress">
+        <view class="label">收货地址</view>
+        <view class="value {{!selectedAddress ? 'placeholder' : ''}}">
+          <block wx:if="{{selectedAddress}}">
+            <view>{{selectedAddress.name}} {{selectedAddress.phone}}</view>
+            <view>{{selectedAddress.province}}{{selectedAddress.city}}{{selectedAddress.district}}{{selectedAddress.detail}}</view>
+          </block>
+          <block wx:else>
+            点击选择收货地址
+            <text class="arrow">></text>
+          </block>
+        </view>
+      </view>
+
+    </view>
+    
+    <!-- 支付方式 -->
+    <view class="payment-section" wx:if="{{selectedCustomer}}">
+      <view class="section-subtitle">支付方式</view>
+      <view class="payment-methods">
+        <view 
+          class="payment-method {{paymentMethod === 'cash' ? 'selected' : ''}}" 
+          bindtap="selectPaymentMethod" 
+          data-method="cash"
+        >现金支付</view>
+        <view 
+          class="payment-method {{paymentMethod === 'wechat' ? 'selected' : ''}}" 
+          bindtap="selectPaymentMethod" 
+          data-method="wechat"
+        >微信支付</view>
+        <view 
+          class="payment-method {{paymentMethod === 'prepaid' ? 'selected' : ''}}" 
+          bindtap="selectPaymentMethod" 
+          data-method="prepaid"
+        >预存抵扣</view>
+        <view 
+          class="payment-method {{paymentMethod === 'prestore' ? 'selected' : ''}}" 
+          bindtap="selectPaymentMethod" 
+          data-method="prestore"
+        >预存</view>
+      </view>
+    </view>
+    
+    <!-- 底部结算栏 -->
+    <view class="cart-footer">
+      <view class="cart-total">
+        <text>总计: </text>
+        <text class="total-price">¥{{totalPrice}}</text>
+      </view>
+      
+      <view class="action-buttons">
+        <view class="clear-btn" bindtap="clearCart">清空</view>
+        <view class="checkout-btn" bindtap="submitOrder">结算</view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 客户选择弹窗 -->
+  <view class="customer-modal {{showCustomerModal ? 'active' : ''}}" wx:if="{{showCustomerModal}}">
+    <view class="modal-mask" bindtap="closeCustomerModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <view class="modal-title">客户管理</view>
+        <view class="close-btn" bindtap="closeCustomerModal">×</view>
+      </view>
+      
+      <view class="search-bar">
+        <input 
+          type="text" 
+          placeholder="搜索客户姓名或电话" 
+          value="{{searchValue}}"
+          bindinput="searchCustomers"
+          confirm-type="search"
+        />
+      </view>
+      
+      <!-- 添加新建客户按钮 -->
+      <view class="add-customer-btn" bindtap="navigateToAddCustomer">
+        <text class="add-icon">+</text>
+        <text>新建客户</text>
+      </view>
+      
+      <view class="customer-list">
+        <block wx:if="{{loadingCustomers}}">
+          <view class="loading">加载中...</view>
+        </block>
+        <block wx:elif="{{filteredCustomers.length === 0}}">
+          <view class="empty-tip">未找到客户</view>
+        </block>
+        <block wx:else>
+          <view class="customer-item" wx:for="{{filteredCustomers}}" wx:key="_id" bindtap="selectCustomerItem" data-id="{{item._id}}">
+            <view class="customer-info">
+              <view class="customer-name">{{item.name}}</view>
+              <view class="customer-phone">{{item.phone || (item.contacts && item.contacts.length > 0 ? item.contacts[0].phone : '')}}</view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 地址选择弹窗 -->
+  <view class="address-modal {{showAddressModal ? 'active' : ''}}" wx:if="{{showAddressModal}}">
+    <view class="modal-mask" bindtap="closeAddressModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <view class="modal-title">收货地址</view>
+        <view class="close-btn" bindtap="closeAddressModal">×</view>
+      </view>
+      
+      <!-- 地址列表 -->
+      <view class="address-list">
+        <block wx:if="{{allAddresses.length === 0}}">
+          <view class="empty-tip">暂无收货地址</view>
+        </block>
+        <block wx:else>
+          <view class="address-item {{item.isDefault ? 'default' : ''}}" 
+                wx:for="{{allAddresses}}" 
+                wx:key="_id" 
+                bindtap="selectAddressItem" 
+                data-index="{{index}}">
+            <!-- 临时联系人标识 -->
+            <view class="address-badge" wx:if="{{item.fromContact}}">联系人</view>
+            <view class="address-badge" wx:elif="{{item.isTemporary}}">临时</view>
+            <!-- 默认地址标识 -->
+            <view class="default-badge" wx:if="{{item.isDefault}}">默认</view>
+            
+            <view class="address-info">
+              <view class="address-contact">
+                <text class="address-name">{{item.name}}</text>
+                <text class="address-phone">{{item.phone}}</text>
+              </view>
+              <view class="address-detail">
+                {{(item.province || '') + (item.city || '') + (item.district || '') + (item.detail || item.address || '')}}
+              </view>
+            </view>
+          </view>
+        </block>
+      </view>
+      
+      <!-- 添加新地址按钮 -->
+      <view class="add-address-btn" bindtap="addNewAddress">
+        <text class="add-icon">+</text>
+        <text>新增收货地址</text>
+      </view>
+    </view>
+  </view>
+</view>

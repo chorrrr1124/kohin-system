@@ -1,0 +1,215 @@
+/* 弹窗遮罩 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+/* 弹窗容器 */
+.modal-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 92%;
+  max-width: 580px;
+  background-color: white;
+  border-radius: 10px;
+  z-index: 1001;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 弹窗头部 */
+.modal-header {
+  position: relative;
+  padding: 15px 50px 15px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  background-color: #f8f9fa;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 关闭按钮 */
+.close-btn {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  border-radius: 50%;
+  font-size: 16px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background-color: #e9ecef;
+  color: #333;
+}
+
+/* 弹窗内容 */
+.modal-content {
+  max-height: 60vh;
+  padding: 2px 4px;
+  padding-bottom: 2px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.text-content {
+  font-size: 21px;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* 分页内容区域 */
+.pagination-content {
+  padding-bottom: 0px;
+}
+
+/* 记录项样式 - 更紧凑的布局 */
+.record-item {
+  background-color: #fafafa;
+  border-radius: 3px;
+  margin-bottom: 1px;
+  padding: 3px 6px;
+  position: relative;
+  min-height: 24px;
+}
+
+.record-item:last-child {
+  margin-bottom: 0;
+}
+
+/* 时间行 - 绝对定位到右上角 */
+.record-time-row {
+  position: absolute;
+  top: 3px;
+  right: 6px;
+}
+
+.record-time {
+  font-size: 12px;
+  color: #999;
+  background-color: #f0f0f0;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-weight: normal;
+  line-height: 1;
+}
+
+/* 主要信息行 - 左侧布局 */
+.record-main {
+  margin-bottom: 0px;
+  padding-right: 50px;
+}
+
+.record-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 图标颜色区分 */
+.record-icon {
+  font-size: 14px;
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.record-icon.icon-in {
+  color: #28a745;
+}
+
+.record-icon.icon-out {
+  color: #dc3545;
+}
+
+.record-product {
+  font-size: 15px;
+  font-weight: bold;
+  color: #333;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* 详情信息行 - 内联显示 */
+.record-details {
+  display: inline-block;
+  margin-left: 18px;
+  margin-top: -1px;
+}
+
+/* 操作文字颜色区分 */
+.record-action {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  margin-right: 6px;
+}
+
+.record-action.action-in {
+  color: #28a745;
+}
+
+.record-action.action-out {
+  color: #dc3545;
+}
+
+/* 备注样式 */
+.record-note {
+  font-size: 11px;
+  color: #999;
+  line-height: 1;
+}
+
+/* 分页控制 */
+.pagination-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 20px;
+  border-top: 1px solid #f0f0f0;
+  background-color: #f8f9fa;
+  gap: 15px;
+  flex-shrink: 0;
+}
+
+.page-btn {
+  padding: 6px 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #333;
+}
+
+.page-btn[disabled] {
+  background-color: #f5f5f5;
+  color: #ccc;
+  border-color: #ddd;
+}
+
+.page-info {
+  font-size: 14px;
+  color: #666;
+} 

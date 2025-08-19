@@ -1,0 +1,94 @@
+<!--pages/shopProductManage/shopProductManage.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="title">商城产品管理</view>
+    <view class="stats">
+      <view class="stat-item">总产品: {{stats.total}}</view>
+      <view class="stat-item">低库存: {{stats.lowStock}}</view>
+    </view>
+  </view>
+  
+  <!-- 主体布局 -->
+  <view class="main-layout">
+    <!-- 左侧分类选择器 -->
+    <view class="sidebar">
+      <view class="sidebar-title">全部类</view>
+      <view 
+        wx:for="{{categories}}" 
+        wx:key="index" 
+        class="sidebar-item {{currentCategory === item ? 'active' : ''}}"
+        bindtap="switchCategory"
+        data-category="{{item}}"
+      >
+        {{item}}
+      </view>
+  </view>
+  
+    <!-- 右侧内容区域 -->
+    <view class="content-area">
+  <!-- 品牌选择器 -->
+  <view class="brand-selector" wx:if="{{brands.length > 0}}">
+    <scroll-view scroll-x="true" class="brand-scroll">
+      <view 
+        wx:for="{{brands}}" 
+        wx:key="index" 
+        class="brand-item {{currentBrand === item ? 'active' : ''}}"
+        bindtap="switchBrand"
+        data-brand="{{item}}"
+      >
+        {{item}}
+      </view>
+    </scroll-view>
+  </view>
+  
+  <!-- 产品列表 -->
+  <view class="product-list">
+    <view class="product-item" wx:for="{{products}}" wx:key="id">
+          <image class="product-image" src="{{item.imagePath || '/images/placeholder.png'}}" mode="aspectFill"></image>
+      <view class="product-info" bindtap="viewProductDetail" data-index="{{index}}">
+        <view class="product-name">{{item.name}}</view>
+            <view class="product-details">
+              <text class="product-brand">品牌: {{item.brand || '无品牌'}}</text>
+              <text class="product-spec">规格: {{item.specification || '无'}}</text>
+              <text class="product-stock {{item.stock <= 10 ? 'low-stock' : 'normal-stock'}}">库存: {{item.stock}}个</text>
+        </view>
+      </view>
+      <view class="product-actions">
+            <view class="action-btn-container">
+              <button size="mini" class="edit-btn" bindtap="editProductInfo" data-index="{{index}}">编辑</button>
+            </view>
+            <view class="action-btn-container">
+              <button size="mini" class="toggle-btn {{item.onSale ? 'btn-online' : 'btn-offline'}}" bindtap="toggleProductStatus" data-index="{{index}}">
+                {{item.onSale ? '下架' : '上架'}}
+              </button>
+            </view>
+      </view>
+    </view>
+    
+    <!-- 无产品时显示 -->
+    <view class="no-products" wx:if="{{products.length === 0}}">
+      暂无产品数据
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
+    <button class="btn-add" bindtap="navigateToAddProduct">+ 添加产品</button>
+    <button class="btn-back" bindtap="navigateBackToShop">返回商城</button>
+  </view>
+</view>
+
+<!-- 自定义弹窗组件 -->
+<custom-modal 
+  show="{{showModal}}"
+  title="{{modalTitle}}"
+  content="{{modalContent}}"
+  showCancel="{{modalShowCancel}}"
+  cancelText="{{modalCancelText}}"
+  confirmText="{{modalConfirmText}}"
+  bind:confirm="onModalConfirm"
+  bind:cancel="onModalCancel"
+  bind:close="onModalClose"
+></custom-modal>

@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "custom-modal": "/components/custom-modal/custom-modal",
+    "scrollable-modal": "/components/scrollable-modal/scrollable-modal"
+  }
+} 

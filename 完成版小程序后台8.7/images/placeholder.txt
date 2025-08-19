@@ -1,0 +1,12 @@
+此目录用于存放小程序图标和图片资源。
+
+需要添加以下图标：
+- inventory.png - 库存图标
+- inventory-active.png - 库存激活图标
+- record.png - 记录图标
+- record-active.png - 记录激活图标
+- admin.png - 管理图标
+- admin-active.png - 管理激活图标
+- placeholder.png - 产品默认图片
+
+请将相应的图标文件放置在此目录下。

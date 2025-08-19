@@ -1,0 +1,108 @@
+<!--pages/orders/orderDetail/orderDetail.wxml-->
+<view class="page">
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
+  
+  <!-- 订单详情 -->
+  <block wx:else>
+    <view class="header">
+      <view class="order-id">订单号：{{order.id}}</view>
+      <view class="order-status">
+        <text class="status-tag status-{{order.status}}">
+          {{orderStatusText[order.status] || order.status}}
+        </text>
+      </view>
+    </view>
+    
+    <view class="content">
+      <!-- 基本信息 -->
+      <view class="info-section">
+        <view class="section-title">基本信息</view>
+        <view class="info-item">
+          <view class="label">下单时间：</view>
+          <view class="value">{{order.date || '暂无'}}</view>
+        </view>
+        <view class="info-item">
+          <view class="label">客户：</view>
+          <view class="value">{{order.customer || '暂无'}}</view>
+        </view>
+        <view class="info-item" wx:if="{{order.customerId}}">
+          <view class="label">客户ID：</view>
+          <view class="value link" bindtap="viewCustomer">{{order.customerId}}</view>
+        </view>
+      </view>
+      
+      <!-- 商品列表 -->
+      <view class="info-section">
+        <view class="section-title">商品列表</view>
+        <view class="product-list">
+          <view class="product-item" wx:for="{{order.items}}" wx:key="index">
+            <view class="product-info">
+              <view class="product-name">{{item.name}}</view>
+              <view class="product-price">¥{{item.price}}</view>
+            </view>
+            <view class="product-quantity">x{{item.quantity}}</view>
+            <view class="product-subtotal">¥{{item.price * item.quantity}}</view>
+          </view>
+        </view>
+        <view class="order-total">
+          <text>总计：</text>
+          <text class="total-price">
+            <block wx:if="{{order.isPrepaidProduct || order.paymentMethod === 'prepaid' || order.paymentMethod === 'prestore'}}">
+              ¥0.00 (预存扣除)
+            </block>
+            <block wx:else>
+              ¥{{order.total}}
+            </block>
+          </text>
+        </view>
+      </view>
+      
+      <!-- 收货信息 -->
+      <view class="info-section" wx:if="{{order.address}}">
+        <view class="section-title">收货信息</view>
+        <view class="info-item">
+          <view class="label">收货人：</view>
+          <view class="value">{{order.address.name}}</view>
+        </view>
+        <view class="info-item">
+          <view class="label">联系电话：</view>
+          <view class="value">
+            {{order.address.phone}}
+            <text class="phone-icon">☎</text>
+          </view>
+        </view>
+        <view class="info-item">
+          <view class="label">收货地址：</view>
+          <view class="value">{{order.address.detail}}</view>
+        </view>
+      </view>
+      
+      <!-- 备注信息 -->
+      <view class="info-section" wx:if="{{order.remark}}">
+        <view class="section-title">备注信息</view>
+        <view class="remark">{{order.remark}}</view>
+      </view>
+    </view>
+    
+    <!-- 底部操作栏 -->
+    <view class="footer-actions">
+      <view class="action-buttons">
+        <button class="primary-btn" bindtap="updateOrderStatus" wx:if="{{order.status !== 'completed'}}">{{order.status === 'pending' ? '标记为待发货' : (order.status === 'pending_shipment' ? '标记为已发货' : (order.status === 'shipped' ? '标记为已完成' : ''))}}</button>
+        <button class="secondary-btn" bindtap="editOrder">编辑订单</button>
+        <!-- 添加直接扣减预存数量的按钮 -->
+        <button class="danger-btn" bindtap="directDeductPrepaid" wx:if="{{order.isPrepaidProduct && order.status === 'shipped'}}">直接扣减预存</button>
+        <button 
+          class="action-btn" 
+          bindtap="processOrder" 
+          wx:if="{{order.status !== 'completed'}}"
+        >
+          {{order.status === 'pending' ? '确认付款' : 
+            order.status === 'pending_shipment' ? '发货' : 
+            order.status === 'shipped' ? '确认完成' : ''}}
+        </button>
+        <button class="delete-btn" bindtap="deleteOrder">删除订单</button>
+      </view>
+    </view>
+  </block>
+</view> 

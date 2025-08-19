@@ -1,0 +1,86 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/index/index",
+    "pages/admin/admin",
+    "pages/admin/products/products",
+    "pages/admin/addProduct/addProduct",
+    "pages/admin/homepageSettings/homepageSettings",
+    "pages/records/records",
+    "pages/totalStock/totalStock",
+    "pages/lowStock/lowStock",
+    "pages/productIn/productIn",
+    "pages/productRecords/productRecords",
+    "pages/productCalendar/productCalendar",
+    "pages/productCalendar/dayDetail",
+    "pages/shop/shop",
+    "pages/cart/cart",
+    "pages/shopProductManage/shopProductManage",
+    "pages/customers/customers",
+    "pages/customers/addCustomer/addCustomer",
+    "pages/customers/customerDetail/customerDetail",
+    "pages/customers/editCustomer/editCustomer",
+    "pages/customers/customerOrders/customerOrders",
+    "pages/orders/orders",
+    "pages/orders/addOrder/addOrder",
+    "pages/orders/orderDetail/orderDetail",
+    "pages/order/submit/submit",
+    "pages/members/members",
+    "pages/members/addRecord/addRecord",
+    "pages/members/editRecord/editRecord",
+    "pages/members/recordDetail/recordDetail",
+    "pages/calendar/calendar",
+    "pages/categoryDetail/categoryDetail",
+    "pages/addressList/addressList",
+    "pages/editAddress/editAddress",
+    "pages/address/addressList/addressList",
+    "pages/address/editAddress/editAddress"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#0066FF",
+    "navigationBarTitleText": "产品库存管理",
+    "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#0066FF",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "库存管理",
+        "iconPath": "images/inventory.png",
+        "selectedIconPath": "images/inventory-active.png"
+      },
+      {
+        "pagePath": "pages/shop/shop",
+        "text": "商城下单",
+        "iconPath": "images/record.png",
+        "selectedIconPath": "images/record-active.png"
+      },
+      {
+        "pagePath": "pages/orders/orders",
+        "text": "订单管理",
+        "iconPath": "images/record.png",
+        "selectedIconPath": "images/record-active.png"
+      },
+      {
+        "pagePath": "pages/members/members",
+        "text": "预存记录",
+        "iconPath": "images/admin.png",
+        "selectedIconPath": "images/admin-active.png"
+      },
+      {
+        "pagePath": "pages/customers/customers",
+        "text": "客户管理",
+        "iconPath": "images/admin.png",
+        "selectedIconPath": "images/admin-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

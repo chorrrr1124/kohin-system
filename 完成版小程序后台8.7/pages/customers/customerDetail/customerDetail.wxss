@@ -1,0 +1,268 @@
+/* pages/customers/customerDetail/customerDetail.wxss */
+
+.page {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f6f6f6;
+  padding-bottom: 120rpx;
+}
+
+.loading, .empty-tip {
+  text-align: center;
+  color: #999;
+  padding: 40rpx 0;
+  font-size: 28rpx;
+}
+
+/* 头部信息 */
+.header {
+  background-color: #0066FF;
+  padding: 40rpx 30rpx;
+  color: white;
+}
+
+.customer-name {
+  font-size: 40rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.customer-meta {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.customer-type {
+  font-size: 24rpx;
+  opacity: 0.8;
+  background-color: rgba(255, 255, 255, 0.2);
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  margin-right: 16rpx;
+}
+
+.customer-source {
+  font-size: 24rpx;
+}
+
+/* 内容区域 */
+.content {
+  padding: 20rpx;
+}
+
+.info-section {
+  background-color: #fff;
+  border-radius: 10rpx;
+  margin-bottom: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  padding: 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  color: #333;
+}
+
+.section-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15rpx;
+}
+
+.more-link {
+  font-size: 24rpx;
+  color: #576b95;
+  padding: 0 10rpx;
+}
+
+.info-item {
+  display: flex;
+  padding: 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.label {
+  width: 160rpx;
+  color: #666;
+  font-size: 28rpx;
+}
+
+.value {
+  flex: 1;
+  color: #333;
+  font-size: 28rpx;
+}
+
+.value.phone {
+  color: #0066FF;
+  display: flex;
+  align-items: center;
+}
+
+.value.phone .phone-icon {
+  margin-left: 10rpx;
+  font-size: 32rpx;
+}
+
+.remark {
+  padding: 20rpx;
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* 订单列表 */
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.order-info {
+  flex: 1;
+}
+
+.order-id, .order-date, .order-amount {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 6rpx;
+}
+
+.order-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-tag {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+}
+
+.status-pending {
+  background-color: #fff2e8;
+  color: #fa8c16;
+}
+
+.status-processing {
+  background-color: #e6f7ff;
+  color: #1890ff;
+}
+
+.status-shipped {
+  background-color: #f6ffed;
+  color: #52c41a;
+}
+
+.status-completed {
+  background-color: #f0f0f0;
+  color: #595959;
+}
+
+/* 合并历史记录样式 */
+.section-title .toggle-icon {
+  font-size: 24rpx;
+  margin-left: 10rpx;
+  color: #999;
+}
+
+.merge-history {
+  padding: 20rpx 0;
+}
+
+.merge-item {
+  background-color: #f9f9f9;
+  border-radius: 8rpx;
+  padding: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.merge-date {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+.merged-customers {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.merged-customer {
+  background-color: #e6f7ff;
+  border: 1px solid #91d5ff;
+  border-radius: 4rpx;
+  padding: 6rpx 12rpx;
+  margin-right: 10rpx;
+  margin-bottom: 10rpx;
+  font-size: 24rpx;
+  color: #1890ff;
+}
+
+/* 底部操作栏 */
+.footer-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background-color: #fff;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.action-button {
+  flex: 1;
+  height: 100rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.action-button .action-icon {
+  font-size: 40rpx;
+  margin-bottom: 4rpx;
+}
+
+.action-button:first-child {
+  color: #0066FF;
+}
+
+.action-button:last-child {
+  color: #ff4d4f;
+}
+
+/* 新增多联系人样式 */
+.contact-tab {
+  border-bottom: 1rpx dashed #eee;
+  margin-bottom: 20rpx;
+  padding-bottom: 20rpx;
+}
+
+.contact-tab:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.contact-header {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 16rpx;
+  background-color: #f9f9f9;
+  padding: 10rpx 16rpx;
+  border-radius: 6rpx;
+}

@@ -1,0 +1,111 @@
+<!-- pages/shop/shop.wxml -->
+<view class="container">
+  <view class="section-title">商城产品</view>
+  
+  <!-- 搜索栏 -->
+  <view class="action-bar">
+    <view class="search-box">
+      <input type="text" placeholder="搜索产品名称、品牌、规格" confirm-type="search" 
+             bindinput="onSearchInput" 
+             bindconfirm="onSearchConfirm"
+             value="{{searchKeyword}}" />
+    </view>
+    <view class="add-btn" bindtap="goToProductManage">
+      <text>商城产品信息管理</text>
+    </view>
+  </view>
+
+  <!-- 品牌筛选选项卡 -->
+  <view class="brand-tabs">
+    <scroll-view scroll-x="true" class="brand-scroll">
+      <view class="brand-tab-container">
+        <view 
+          wx:for="{{brands}}" 
+          wx:key="*this" 
+          class="brand-tab {{currentBrand === item ? 'active' : ''}}"
+          bindtap="switchBrand"
+          data-brand="{{item}}"
+        >
+          {{item}}
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+  
+  <!-- 侧边栏和内容区域 -->
+  <view class="main-container">
+    <!-- 侧边栏分类 -->
+    <view class="sidebar">
+      <view 
+        wx:for="{{categories}}" 
+        wx:key="*this" 
+        class="sidebar-item {{currentCategory === item ? 'active' : ''}}"
+        bindtap="switchCategory"
+        data-category="{{item}}"
+      >
+        {{item}}
+      </view>
+    </view>
+
+    <!-- 主内容区域 -->
+    <view class="main-content">
+      <view class="product-list" wx:if="{{!loading}}">
+        <block wx:for="{{products}}" wx:key="id">
+          <view class="product-item" bindtap="goToDetail" data-id="{{item._id || item.id}}">
+            <image class="product-image" src="{{item.image || '/images/placeholder.png'}}" mode="aspectFill"></image>
+            <view class="product-info">
+              <view class="product-name">{{item.name}}</view>
+              <view class="product-meta">
+                <view class="meta-item" wx:if="{{item.brand && item.brand !== '无'}}">品牌: {{item.brand}}</view>
+                <view class="meta-item">类型: {{item.type || '无'}}</view>
+                <view class="meta-item">规格: {{item.specification || '无'}}</view>
+                <view class="meta-item">库存: {{item.stock || 0}}</view>
+              </view>
+              <view class="product-bottom">
+                <view class="product-price">{{item.price ? '¥'+item.price : '暂无价格'}}</view>
+                <view class="quantity-controls" wx:if="{{item.cartQuantity > 0}}">
+                  <button class="quantity-btn minus-btn" catchtap="decreaseQuantity" data-id="{{item._id || item.id}}">-</button>
+                  <text class="quantity-text">{{item.cartQuantity}}</text>
+                  <button class="quantity-btn plus-btn" catchtap="increaseQuantity" data-id="{{item._id || item.id}}">+</button>
+                </view>
+                <view wx:else class="add-cart-container">
+                  <button class="add-cart" catchtap="addToCart" data-id="{{item._id || item.id}}">+</button>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+      </view>
+      
+      <view class="loading" wx:if="{{loading}}">
+        <text>加载中...</text>
+      </view>
+      
+      <view class="empty-tip" wx:if="{{!loading && products.length === 0}}">
+        <text>当前分类暂无商品</text>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 悬浮购物车按钮 -->
+<view class="floating-cart-btn" bindtap="goToCart">
+  <text>购物车</text>
+  <!-- 购物车数量徽标 -->
+  <view class="cart-badge" wx:if="{{cartItemCount > 0}}">
+    <text>{{cartItemCount}}</text>
+  </view>
+</view>
+
+<!-- 自定义弹窗组件 -->
+<custom-modal 
+  show="{{showModal}}"
+  title="{{modalTitle}}"
+  content="{{modalContent}}"
+  showCancel="{{modalShowCancel}}"
+  cancelText="{{modalCancelText}}"
+  confirmText="{{modalConfirmText}}"
+  bind:confirm="onModalConfirm"
+  bind:cancel="onModalCancel"
+  bind:close="onModalClose"
+></custom-modal>

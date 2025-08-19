@@ -1,0 +1,82 @@
+<!--pages/customers/customers.wxml-->
+<view class="page">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-container">
+      <icon type="search" size="14" color="#999"></icon>
+      <input 
+        type="text" 
+        placeholder="搜索客户名称、联系人或电话" 
+        value="{{searchValue}}"
+        bindinput="searchCustomers"
+        confirm-type="search"
+      />
+    </view>
+
+  </view>
+
+  <!-- 客户类型筛选 -->
+  <view class="filter-tabs">
+    <view class="{{currentType === 'all' ? 'active' : ''}}" data-type="all" bindtap="filterByType">全部</view>
+    <view class="{{currentType === '预存客户' ? 'active' : ''}}" data-type="预存客户" bindtap="filterByType">预存客户</view>
+    <view class="{{currentType === '零售客户' ? 'active' : ''}}" data-type="零售客户" bindtap="filterByType">零售客户</view>
+  </view>
+
+  <!-- 客户列表 -->
+  <view class="customer-list">
+    <block wx:if="{{loading}}">
+      <view class="loading">加载中...</view>
+    </block>
+    <block wx:elif="{{filteredCustomers.length === 0}}">
+      <view class="empty-tip">暂无客户数据</view>
+    </block>
+    <block wx:else>
+      <view class="customer-item" 
+            wx:for="{{filteredCustomers}}" 
+            wx:key="_id" 
+            bindtap="viewCustomerDetail" 
+            data-id="{{item._id}}">
+        
+        <view class="customer-info">
+          <view class="customer-header">
+            <view class="customer-name">{{item.name}}</view>
+          </view>
+          <view class="customer-meta">
+            <text class="customer-type">{{item.type}}</text>
+            <text class="date-label">建立时间: {{item.createDate}}</text>
+          </view>
+          <view class="customer-contact">
+            <!-- 联系人显示逻辑 -->
+          <view wx:if="{{item.contacts && item.contacts.length > 0 && item.contacts[0].name}}">
+            联系人: {{item.contacts[0].name}}
+          </view>
+          <view wx:elif="{{item.contact}}">联系人: {{item.contact}}</view>
+          <view wx:else>联系人: 未设置</view>
+          </view>
+          <view class="customer-phone">
+            <!-- 电话显示逻辑：优先显示phone字段，否则显示contacts[0].phone -->
+            <view wx:if="{{item.phone}}">电话: {{item.phone}}</view>
+            <view wx:elif="{{item.contacts && item.contacts.length > 0 && item.contacts[0] && item.contacts[0].phone}}">
+              电话: {{item.contacts[0].phone}}
+            </view>
+            <view wx:else>电话: 未设置</view>
+          </view>
+          <view class="customer-address" wx:if="{{item.contacts && item.contacts.length > 0 && item.contacts[0].address}}">地址: {{item.contacts[0].address}}</view>
+          <view class="customer-last-order" wx:if="{{item.lastOrder}}">
+            <text>最近订单: {{item.lastOrder}}</text>
+          </view>
+        </view>
+        <view class="customer-actions">
+          <view class="action-button edit" catchtap="editCustomer" data-id="{{item._id}}">
+            <text>✎</text>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+  
+  <!-- 浮动添加按钮 -->
+  <view class="floating-add-button" bindtap="addCustomer">
+    <text class="add-icon">+</text>
+  </view>
+</view>

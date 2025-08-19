@@ -1,0 +1,31 @@
+<view class="page">
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
+  
+  <!-- 订单列表 -->
+  <block wx:else>
+    <view class="orders-list">
+      <block wx:if="{{orders.length > 0}}">
+        <view class="order-item" wx:for="{{orders}}" wx:key="_id" bindtap="viewOrder" data-id="{{item._id || item.id}}">
+          <view class="order-info">
+            <view class="order-id">订单号：{{item.id || item._id}}</view>
+            <view class="order-date">下单时间：{{item.date}}</view>
+            <view class="order-amount">
+              金额：
+              <block wx:if="{{item.isPrepaidProduct || item.paymentMethod === 'prepaid' || item.paymentMethod === 'prestore'}}">
+                ¥0.00 (预存扣除)
+              </block>
+              <block wx:else>
+                ¥{{item.total}}
+              </block>
+            </view>
+          </view>
+          <view class="order-status">
+            <text class="status-tag status-{{item.status}}">{{orderStatusText[item.status] || item.status}}</text>
+          </view>
+        </view>
+      </block>
+      <view class="empty-tip" wx:if="{{orders.length === 0}}">暂无订单记录</view>
+    </view>
+  </block>
+</view> 

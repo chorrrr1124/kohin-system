@@ -1,0 +1,144 @@
+/* pages/customers/addCustomer/addCustomer.wxss */
+
+.container {
+  min-height: 100vh;
+  background-color: #f6f6f6;
+  padding-bottom: 120rpx;
+}
+
+.section {
+  background-color: #fff;
+  margin-bottom: 20rpx;
+  border-radius: 10rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  font-size: 30rpx;
+  color: #333;
+  padding: 30rpx 30rpx 10rpx;
+  font-weight: bold;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.form-item {
+  padding: 25rpx 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.label {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.required:after {
+  content: '*';
+  color: #ff4d4f;
+  margin-left: 4rpx;
+}
+
+.input {
+  width: 100%;
+  height: 80rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.textarea {
+  width: 100%;
+  height: 150rpx;
+  font-size: 28rpx;
+  color: #333;
+  padding: 10rpx 0;
+}
+
+.picker {
+  height: 80rpx;
+  line-height: 80rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.placeholder {
+  color: #999;
+}
+
+.helper-text {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1.4;
+}
+
+.contact-item {
+  background-color: #fff;
+  margin-bottom: 5rpx;
+}
+
+.contact-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.contact-header text {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.delete-btn {
+  color: #ff4d4f;
+  font-size: 26rpx;
+}
+
+.add-contact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 90rpx;
+  background-color: #fff;
+  border-top: 1rpx solid #f0f0f0;
+  color: #0066FF;
+  font-size: 28rpx;
+}
+
+.add-icon {
+  font-size: 30rpx;
+  margin-right: 8rpx;
+}
+
+.button-group {
+  display: flex;
+  padding: 30rpx;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.btn {
+  flex: 1;
+  height: 90rpx;
+  line-height: 90rpx;
+  text-align: center;
+  border-radius: 45rpx;
+  font-size: 30rpx;
+  font-weight: bold;
+}
+
+.btn-cancel {
+  background-color: #f0f0f0;
+  color: #666;
+  margin-right: 20rpx;
+}
+
+.btn-primary {
+  background-color: #0066FF;
+  color: #fff;
+} 

@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "产品出入库日历",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "scrollable-modal": "/components/scrollable-modal/scrollable-modal"
+  }
+} 

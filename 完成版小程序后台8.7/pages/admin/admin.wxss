@@ -1,0 +1,352 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f5f5f5;
+}
+
+/* 头部区域 */
+.header-container {
+  background-color: #f5f5f5;
+  padding: 20rpx;
+  flex-shrink: 0;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  padding: 20rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid #eee;
+  margin-bottom: 0;
+  border-radius: 12rpx 12rpx 0 0;
+}
+
+.nav-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 30rpx;
+  padding: 10rpx 20rpx;
+  background-color: #fff;
+  margin-bottom: 10rpx;
+}
+
+.nav-button {
+  color: #0066FF;
+  font-size: 28rpx;
+  padding: 10rpx 20rpx;
+  border: 1rpx solid #0066FF;
+  border-radius: 30rpx;
+  text-align: center;
+}
+
+.logout-button {
+  color: #ff4757 !important;
+  border-color: #ff4757 !important;
+}
+
+.logout-button:active {
+  background-color: #ff4757;
+  color: #fff !important;
+}
+
+.last-out-time {
+  font-size: 24rpx;
+  color: #999;
+  padding: 0 20rpx 10rpx;
+  background-color: #fff;
+  margin-bottom: 20rpx;
+  border-radius: 0 0 12rpx 12rpx;
+}
+
+/* 统计和操作区域 */
+.fixed-stats-container {
+  background-color: #f5f5f5;
+  padding: 0 20rpx;
+  flex-shrink: 0;
+}
+
+.stats-container {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.stats-card {
+  flex: 1;
+  background-color: #fff;
+  border-radius: 10rpx;
+  padding: 20rpx;
+  margin: 0 10rpx;
+  text-align: center;
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+}
+
+.stats-number {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.stats-label {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 15rpx;
+  margin-bottom: 20rpx;
+}
+
+.action-button {
+  flex: 1;
+  background-color: #fff;
+  border-radius: 12rpx;
+  padding: 20rpx 10rpx;
+  text-align: center;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  min-height: 80rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.action-button:active {
+  transform: scale(0.95);
+}
+
+.action-button.add-product {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+}
+
+.action-button.add-product .action-label {
+  color: white;
+}
+
+.action-icon {
+  font-size: 32rpx;
+  margin-bottom: 8rpx;
+  line-height: 1;
+}
+
+.action-label {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1;
+  font-weight: 500;
+}
+
+/* 搜索和选项卡区域 */
+.fixed-search-container {
+  background-color: #fff;
+  flex-shrink: 0;
+  border-radius: 12rpx 12rpx 0 0;
+  margin: 0 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.search-container {
+  padding: 20rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid #f0f0f0;
+  border-radius: 12rpx 12rpx 0 0;
+}
+
+.search-input {
+  width: 100%;
+  height: 70rpx;
+  padding: 0 20rpx;
+  background-color: #f8f8f8;
+  border-radius: 35rpx;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+  border: 2rpx solid transparent;
+}
+
+.search-input:focus {
+  border-color: #0066FF;
+  background-color: #fff;
+}
+
+.brand-tabs {
+  white-space: nowrap;
+  padding: 20rpx 0;
+  background-color: #fff;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.brand-tab {
+  display: inline-block;
+  padding: 10rpx 30rpx;
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+}
+
+.brand-tab.active {
+  color: #0066FF;
+  font-weight: bold;
+}
+
+.brand-tab.active::after {
+  content: '';
+  position: absolute;
+  left: 30rpx;
+  right: 30rpx;
+  bottom: 0;
+  height: 4rpx;
+  background-color: #0066FF;
+}
+
+/* 主容器区域 */
+.main-container {
+  display: flex;
+  flex: 1;
+  background-color: #fff;
+  border-radius: 0 0 12rpx 12rpx;
+  overflow: hidden;
+  margin: 0 20rpx 20rpx 20rpx;
+  min-height: 0;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.sidebar {
+  width: 150rpx;
+  background-color: #f8f8f8;
+  overflow-y: scroll;
+  flex-shrink: 0;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6rpx;
+  display: block;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 3rpx;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background-color: #999;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background-color: #f0f0f0;
+}
+
+.sidebar-item {
+  padding: 30rpx 20rpx;
+  font-size: 28rpx;
+  color: #666;
+  text-align: center;
+  border-bottom: 1rpx solid #eee;
+}
+
+.sidebar-item.active {
+  color: #0066FF;
+  font-weight: bold;
+  background-color: #fff;
+  position: relative;
+}
+
+.sidebar-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 8rpx;
+  height: 100%;
+  background-color: #0066FF;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: scroll;
+  min-height: 0;
+}
+
+.main-content::-webkit-scrollbar {
+  width: 8rpx;
+  display: block;
+}
+
+.main-content::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4rpx;
+}
+
+.main-content::-webkit-scrollbar-thumb:hover {
+  background-color: #999;
+}
+
+.main-content::-webkit-scrollbar-track {
+  background-color: #f0f0f0;
+}
+
+.product-list {
+  background-color: #fff;
+}
+
+.product-item {
+  padding: 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.product-image {
+  width: 120rpx;
+  height: 120rpx;
+  margin-right: 20rpx;
+  background-color: #f0f0f0;
+  border-radius: 8rpx;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-name {
+  font-size: 30rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.product-meta {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 6rpx;
+}
+
+.product-stock {
+  font-size: 26rpx;
+}
+
+.low-stock {
+  color: #ff4d4f;
+}
+
+.admin-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10rpx;
+}
+
+.empty-tip {
+  text-align: center;
+  color: #999;
+  padding: 40rpx 0;
+}
+
+/* 通用样式 */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}

@@ -1,0 +1,64 @@
+<!-- pages/records/records.wxml -->
+<view class="page">
+  <view class="section-title">出入库记录</view>
+  <view class="nav-buttons">
+    <navigator url="/pages/index/index" class="nav-button" open-type="reLaunch">库存管理</navigator>
+    <navigator url="/pages/admin/admin" class="nav-button" open-type="navigate">后台管理</navigator>
+  </view>
+  
+  <!-- 分类选项卡 -->
+  <view class="category-tabs">
+    <view 
+      class="category-tab {{recordType === 'out' ? 'active' : ''}}"
+      bindtap="switchRecordType"
+      data-type="out"
+    >
+      出库记录
+    </view>
+    <view 
+      class="category-tab {{recordType === 'in' ? 'active' : ''}}"
+      bindtap="switchRecordType"
+      data-type="in"
+    >
+      入库记录
+    </view>
+    <view 
+      class="category-tab {{recordType === 'all' ? 'active' : ''}}"
+      bindtap="switchRecordType"
+      data-type="all"
+    >
+      全部记录
+    </view>
+  </view>
+  
+  <!-- 记录列表 -->
+  <view class="record-list">
+    <block wx:if="{{records.length > 0}}">
+      <view 
+        class="record-item" 
+        wx:for="{{records}}" 
+        wx:key="id"
+        bindtap="viewRecordDetail"
+        data-index="{{index}}"
+      >
+        <view class="record-header flex-row">
+          <view class="record-product">{{item.productName || '未知产品'}}</view>
+          <view class="record-time">{{item.formattedTime}}</view>
+        </view>
+        <view class="record-quantity">{{recordType === 'out' || item.type === 'out' ? '出库' : '入库'}}数量: {{item.quantity}}个</view>
+        <!-- 添加订单信息和客户信息 -->
+        <view class="record-extra" wx:if="{{item.orderId || item.orderNote || item.customerInfo}}">
+          <text wx:if="{{item.orderNote}}">{{item.orderNote}}</text>
+          <text wx:elif="{{item.orderId}}">订单: {{item.orderId}}</text>
+          <text wx:if="{{item.customerInfo}}" class="customer-info">客户: {{item.customerInfo}}</text>
+        </view>
+      </view>
+    </block>
+    <view wx:else class="empty-tip">暂无{{recordType === 'out' ? '出库' : (recordType === 'in' ? '入库' : '')}}记录</view>
+  </view>
+
+  <!-- 提示信息 -->
+  <view class="tip-section" wx:if="{{records.length > 0}}">
+    <text class="tip-text">点击记录可查看详情</text>
+  </view>
+</view>

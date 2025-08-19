@@ -1,0 +1,202 @@
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  padding: 20rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid #eee;
+  margin-bottom: 20rpx;
+}
+
+.form-group {
+  padding: 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  background-color: #fff;
+}
+
+.form-label {
+  font-size: 28rpx;
+  margin-bottom: 10rpx;
+  color: #333;
+}
+
+.form-input {
+  width: 100%;
+  height: 80rpx;
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  box-sizing: border-box;
+  font-size: 28rpx;
+}
+
+.form-textarea {
+  width: 100%;
+  height: 200rpx;
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  padding: 20rpx;
+  box-sizing: border-box;
+  font-size: 28rpx;
+}
+
+.form-buttons {
+  padding: 40rpx 20rpx 80rpx 20rpx; /* 增加底部内边距 */
+  display: flex;
+  flex-direction: row; /* 改为水平排列 */
+  gap: 20rpx; /* 按钮间距 */
+  background-color: #fff; /* 添加背景色 */
+  position: relative; /* 为可能的固定定位做准备 */
+}
+
+/* 可选：固定底部按钮容器（取消注释下面代码即可启用）*/
+/*
+.form-buttons {
+  position: fixed !important;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border-top: 1rpx solid #f0f0f0;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  padding: 20rpx 20rpx 40rpx 20rpx;
+  margin: 0;
+}
+
+.page {
+  padding-bottom: 200rpx;
+}
+*/
+
+/* 保存按钮 - 绿色 */
+.btn-save {
+  flex: 1; /* 占据一半空间 */
+  margin: 0;
+  height: 64rpx !important; /* 减小高度 */
+  font-size: 28rpx !important; /* 减小字体 */
+  font-weight: 400 !important; /* 正常字重 */
+  border-radius: 4rpx !important; /* 小圆角 */
+  min-height: 64rpx !important; /* 确保最小高度 */
+  padding: 0 20rpx !important; /* 减小内边距 */
+  background-color: #52c41a !important; /* 绿色背景 */
+  border-color: #52c41a !important; /* 绿色边框 */
+  color: #fff !important; /* 白色文字 */
+  box-shadow: none !important; /* 移除阴影 */
+  transition: all 0.2s ease; /* 添加过渡动画 */
+  line-height: 64rpx !important; /* 设置行高 */
+}
+
+/* 取消按钮 - 蓝色 */
+.btn-cancel {
+  flex: 1; /* 占据一半空间 */
+  margin: 0;
+  height: 64rpx !important; /* 减小高度 */
+  font-size: 28rpx !important; /* 减小字体 */
+  font-weight: 400 !important; /* 正常字重 */
+  border-radius: 4rpx !important; /* 小圆角 */
+  min-height: 64rpx !important; /* 确保最小高度 */
+  padding: 0 20rpx !important; /* 减小内边距 */
+  background-color: #1890ff !important; /* 蓝色背景 */
+  border-color: #1890ff !important; /* 蓝色边框 */
+  color: #fff !important; /* 白色文字 */
+  box-shadow: none !important; /* 移除阴影 */
+  transition: all 0.2s ease; /* 添加过渡动画 */
+  line-height: 64rpx !important; /* 设置行高 */
+}
+
+/* 保存按钮悬停和按压效果 */
+.btn-save:hover {
+  background-color: #73d13d !important;
+}
+
+.btn-save:active {
+  background-color: #389e0d !important;
+  transform: scale(0.98);
+}
+
+/* 取消按钮悬停和按压效果 */
+.btn-cancel:hover {
+  background-color: #40a9ff !important;
+}
+
+.btn-cancel:active {
+  background-color: #096dd9 !important;
+  transform: scale(0.98);
+}
+
+
+
+/* 图片上传样式 */
+.image-upload-container {
+  display: flex;
+  padding: 10rpx 0;
+}
+
+.image-picker {
+  width: 200rpx;
+  height: 200rpx;
+  border: 1rpx dashed #ddd;
+  border-radius: 8rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f9f9f9;
+}
+
+.image-picker-icon {
+  font-size: 60rpx;
+  color: #999;
+  margin-bottom: 10rpx;
+}
+
+.image-picker-text {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.image-preview {
+  width: 200rpx;
+  height: 200rpx;
+  position: relative;
+  margin-right: 20rpx;
+}
+
+.image-preview image {
+  width: 100%;
+  height: 100%;
+  border-radius: 8rpx;
+}
+
+.image-delete {
+  position: absolute;
+  top: -15rpx;
+  right: -15rpx;
+  width: 40rpx;
+  height: 40rpx;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 28rpx;
+}
+
+/* 保存按钮呼吸灯效果 */
+@keyframes saveButtonBreathing {
+  0% {
+    box-shadow: 0 4rpx 12rpx rgba(82, 196, 26, 0.3);
+  }
+  50% {
+    box-shadow: 0 4rpx 12rpx rgba(82, 196, 26, 0.5);
+  }
+  100% {
+    box-shadow: 0 4rpx 12rpx rgba(82, 196, 26, 0.3);
+  }
+}
+
+/* 为保存按钮添加呼吸灯效果 */
+.btn-save {
+  animation: saveButtonBreathing 3s ease-in-out infinite;
+}

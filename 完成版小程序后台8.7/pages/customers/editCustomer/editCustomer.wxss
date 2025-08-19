@@ -1,0 +1,210 @@
+/* pages/customers/editCustomer/editCustomer.wxss */
+
+.container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding-bottom: 120rpx;
+}
+
+.form-section {
+  padding: 20rpx;
+}
+
+.form-group {
+  background-color: #fff;
+  border-radius: 12rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.form-label {
+  font-size: 30rpx;
+  color: #333;
+  margin-bottom: 15rpx;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.required {
+  color: #ff3b30;
+  margin-left: 4rpx;
+}
+
+.form-input, 
+.form-picker {
+  width: 100%;
+  background-color: #f8f9fa;
+  border-radius: 8rpx;
+  padding: 25rpx;
+  font-size: 30rpx;
+  color: #333;
+  border: 1rpx solid #e9ecef;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  text-align: left;
+  line-height: 1.6;
+  min-height: 80rpx;
+  display: flex;
+  align-items: center;
+}
+
+.form-textarea {
+  width: 100%;
+  background-color: #f8f9fa;
+  border-radius: 8rpx;
+  padding: 25rpx;
+  font-size: 30rpx;
+  color: #333;
+  border: 1rpx solid #e9ecef;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  text-align: left;
+  line-height: 1.6;
+  min-height: 80rpx;
+  display: flex;
+  align-items: flex-start;
+}
+
+.form-input:focus, 
+.form-textarea:focus {
+  background-color: #fff;
+  border-color: #007aff;
+  box-shadow: 0 0 0 4rpx rgba(0, 122, 255, 0.1);
+}
+
+.form-textarea {
+  height: 150rpx;
+  resize: none;
+  line-height: 1.5;
+}
+
+.form-picker {
+  display: flex;
+  align-items: center;
+  min-height: 80rpx;
+  justify-content: flex-start;
+}
+
+.placeholder {
+  color: #999;
+}
+
+.section-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 34rpx;
+  font-weight: bold;
+  padding: 25rpx 30rpx;
+  margin: 30rpx 20rpx 20rpx;
+  border-radius: 12rpx;
+  text-align: left;
+  box-shadow: 0 4rpx 15rpx rgba(102, 126, 234, 0.3);
+}
+
+.contact-section {
+  margin: 0 20rpx 30rpx;
+  position: relative;
+}
+
+.contact-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+  padding-left: 10rpx;
+  border-left: 4rpx solid #007aff;
+}
+
+.delete-contact-btn {
+  background-color: #ff3b30;
+  color: white;
+  text-align: center;
+  border-radius: 8rpx;
+  padding: 15rpx;
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  transition: all 0.3s ease;
+}
+
+.delete-contact-btn:active {
+  background-color: #d70015;
+  transform: scale(0.98);
+}
+
+.add-contact-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f8ff;
+  border: 2rpx dashed #007aff;
+  border-radius: 12rpx;
+  padding: 30rpx;
+  margin: 20rpx;
+  font-size: 32rpx;
+  color: #007aff;
+  transition: all 0.3s ease;
+}
+
+.add-contact-btn:active {
+  background-color: #e6f3ff;
+  transform: scale(0.98);
+}
+
+.add-icon {
+  font-size: 36rpx;
+  margin-right: 10rpx;
+  font-weight: bold;
+}
+
+.bottom-actions {
+  position: fixed;
+  bottom: -20rpx;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 20rpx;
+  padding: 20rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background-color: #fff;
+  box-shadow: 0 -2rpx 20rpx rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.btn-cancel, 
+.btn-save {
+  flex: 1;
+  height: 80rpx;
+  border-radius: 12rpx;
+  font-size: 34rpx;
+  font-weight: 600;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.btn-cancel {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  border: 2rpx solid #dee2e6;
+}
+
+.btn-cancel:active {
+  background-color: #e9ecef;
+  transform: scale(0.98);
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #007aff 0%, #0056d3 100%);
+  color: white;
+  box-shadow: 0 4rpx 15rpx rgba(0, 122, 255, 0.4);
+}
+
+.btn-save:active {
+  transform: scale(0.98);
+  box-shadow: 0 2rpx 10rpx rgba(0, 122, 255, 0.4);
+} 

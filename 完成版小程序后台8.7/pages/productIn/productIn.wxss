@@ -1,0 +1,151 @@
+/* pages/productIn/productIn.wxss */
+.page {
+  padding: 20rpx;
+}
+
+.section-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 0;
+  text-align: center;
+}
+
+.last-out-time {
+  font-size: 24rpx;
+  color: #999;
+  padding: 0 20rpx 10rpx;
+  background-color: #fff;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.main-container {
+  display: flex;
+  height: calc(100vh - 240rpx);
+  background-color: #fff;
+}
+
+.sidebar {
+  width: 150rpx;
+  background-color: #f8f8f8;
+  overflow-y: auto;
+}
+
+.sidebar-item {
+  padding: 30rpx 20rpx;
+  font-size: 28rpx;
+  color: #666;
+  text-align: center;
+  border-bottom: 1rpx solid #eee;
+}
+
+.sidebar-item.active {
+  color: #0066FF;
+  font-weight: bold;
+  background-color: #fff;
+  position: relative;
+}
+
+.sidebar-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 8rpx;
+  height: 100%;
+  background-color: #0066FF;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.brand-tabs {
+  white-space: nowrap;
+  padding: 20rpx 0;
+  background-color: #fff;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.brand-tab {
+  display: inline-block;
+  padding: 10rpx 30rpx;
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+}
+
+.brand-tab.active {
+  color: #0066FF;
+  font-weight: bold;
+}
+
+.brand-tab.active::after {
+  content: '';
+  position: absolute;
+  left: 30rpx;
+  right: 30rpx;
+  bottom: 0;
+  height: 4rpx;
+  background-color: #0066FF;
+}
+
+.product-list {
+  margin-top: 20rpx;
+}
+
+.product-item {
+  display: flex;
+  padding: 20rpx;
+  border-bottom: 1rpx solid #eee;
+  align-items: center;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.product-image {
+  width: 120rpx;
+  height: 120rpx;
+  margin-right: 20rpx;
+  background-color: #f5f5f5;
+  border-radius: 8rpx;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.product-meta {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 6rpx;
+}
+
+.product-stock {
+  font-size: 26rpx;
+  color: #333;
+}
+
+.admin-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10rpx;
+}
+
+.empty-tip {
+  text-align: center;
+  padding: 40rpx;
+  color: #999;
+  font-size: 28rpx;
+}

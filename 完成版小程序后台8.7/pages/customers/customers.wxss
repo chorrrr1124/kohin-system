@@ -1,0 +1,364 @@
+/* pages/customers/customers.wxss */
+
+/* 页面容器 */
+.page {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f6f6f6;
+  padding-bottom: 120rpx;
+}
+
+/* 搜索栏 */
+.search-bar {
+  display: flex;
+  padding: 24rpx;
+  background-color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+  align-items: center;
+}
+
+.search-container {
+  flex: 1;
+  height: 72rpx;
+  background-color: #f0f0f0;
+  border-radius: 36rpx;
+  padding: 0 20rpx;
+  display: flex;
+  align-items: center;
+}
+
+.search-container icon {
+  margin-right: 10rpx;
+}
+
+.search-container input {
+  flex: 1;
+  height: 100%;
+  font-size: 28rpx;
+}
+
+/* 浮动添加按钮 - 圆形样式 */
+.floating-add-button {
+  position: fixed;
+  bottom: 40rpx;
+  right: 40rpx;
+  width: 120rpx;
+  height: 120rpx;
+  background-color: #0066FF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(0, 102, 255, 0.3);
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.floating-add-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 4rpx 12rpx rgba(0, 102, 255, 0.4);
+}
+
+.floating-add-button .add-icon {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: white;
+  line-height: 1;
+}
+
+/* 删除按钮 */
+.delete-button {
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 16rpx;
+  color: #FF3B30;
+  background-color: #f5f5f5;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
+}
+
+.delete-icon {
+  font-size: 40rpx;
+  font-weight: bold;
+  line-height: 1;
+  margin-top: -2rpx;
+}
+
+/* 筛选栏 */
+.filter-tabs {
+  display: flex;
+  background-color: #fff;
+  padding: 15rpx 20rpx;
+  border-bottom: 1rpx solid #eee;
+  font-size: 28rpx;
+  justify-content: space-around;
+}
+
+.filter-tabs view {
+  padding: 15rpx 30rpx;
+  color: #666;
+  position: relative;
+  border-radius: 30rpx;
+  transition: all 0.3s;
+}
+
+.filter-tabs view.active {
+  color: #fff;
+  font-weight: bold;
+  background-color: #0066FF;
+}
+
+.filter-tabs view.active::after {
+  content: none;
+}
+
+/* 客户列表 */
+.customer-list {
+  padding: 20rpx;
+}
+
+.loading, .empty-tip {
+  text-align: center;
+  color: #999;
+  padding: 40rpx 0;
+  font-size: 28rpx;
+}
+
+.customer-item {
+  margin-bottom: 20rpx;
+  background-color: #fff;
+  border-radius: 10rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+  padding: 20rpx;
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* 选中客户项样式 */
+.customer-item.selected {
+  background-color: #e6f2ff;
+  border: 2rpx solid #0066FF;
+  box-shadow: 0 4rpx 12rpx rgba(0, 102, 255, 0.2);
+  transform: translateY(-2rpx);
+}
+
+/* 选择指示器 */
+.select-indicator {
+  position: absolute;
+  left: 15rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  border-radius: 50%;
+  background-color: #fff;
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
+  border: 1rpx solid #ddd;
+}
+
+.select-indicator.active {
+  background-color: #fff;
+  border: 1rpx solid #0066FF;
+}
+
+.select-indicator.inactive {
+  background-color: #f5f5f5;
+  border: 1rpx solid #ddd;
+  opacity: 0.8;
+}
+
+.normal-indicator {
+  width: 30rpx;
+  height: 30rpx;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  border: 1rpx solid #ddd;
+}
+
+.select-indicator icon {
+  display: block;
+}
+
+/* 删除模式下的客户信息样式调整 */
+.customer-info {
+  flex: 1;
+}
+
+.customer-info.with-indicator {
+  padding-left: 60rpx; /* 为选择指示器留出空间 */
+}
+
+.customer-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+  color: #333;
+}
+
+.customer-meta {
+  display: flex;
+  font-size: 24rpx;
+  margin-bottom: 10rpx;
+  color: #666;
+}
+
+.customer-type {
+  padding: 4rpx 12rpx;
+  background-color: #e9f5ff;
+  color: #0066FF;
+  border-radius: 6rpx;
+  margin-right: 20rpx;
+}
+
+.date-label {
+  color: #999;
+}
+
+.customer-contact, .customer-address {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 6rpx;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.customer-contact text {
+  margin-right: 30rpx;
+}
+
+.customer-phone {
+  font-size: 26rpx;
+  color: #666;
+  margin-top: 8rpx;
+  margin-bottom: 6rpx;
+}
+
+.customer-last-order {
+  font-size: 26rpx;
+  color: #999;
+  margin-top: 10rpx;
+}
+
+/* 操作按钮 */
+.customer-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.action-button {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20rpx;
+  font-size: 34rpx;
+}
+
+.action-button .iconfont {
+  font-size: 32rpx;
+}
+
+.action-button.edit {
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+.action-button.call {
+  background-color: #e9f5ff;
+  color: #0066FF;
+}
+
+/* 底部操作栏 */
+.footer-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  display: flex;
+  padding: 20rpx 30rpx;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.footer-button {
+  flex: 1;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  border-radius: 40rpx;
+  margin: 0 15rpx;
+}
+
+.footer-button.cancel {
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+.footer-button.select-all {
+  background-color: #e6f2ff;
+  color: #0066FF;
+  border: 1rpx solid #0066FF;
+}
+
+.footer-button.delete {
+  background-color: #FF3B30;
+  color: #fff;
+}
+
+/* 删除模式提示栏 */
+.delete-mode-bar {
+  padding: 24rpx;
+  background-color: #e6f2ff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1rpx solid #0066FF;
+}
+
+.delete-mode-title {
+  font-size: 30rpx;
+  color: #0066FF;
+  font-weight: bold;
+  margin-bottom: 6rpx;
+}
+
+.delete-mode-tip {
+  font-size: 24rpx;
+  color: #666;
+}
+
+/* 客户头部样式 */
+.customer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+/* 已选择标签 */
+.selected-tag {
+  font-size: 22rpx;
+  color: #fff;
+  background-color: #0066FF;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  font-weight: bold;
+}

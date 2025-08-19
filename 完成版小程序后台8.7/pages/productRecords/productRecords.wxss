@@ -1,0 +1,220 @@
+/* pages/productRecords/productRecords.wxss */
+
+.page {
+  padding: 20rpx;
+}
+
+.section-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+/* 月份导航 */
+.month-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding: 10rpx 0;
+}
+
+.month-title {
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.nav-btn {
+  background-color: #0066FF;
+  color: white;
+  padding: 10rpx 20rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
+
+/* 记录类型切换 */
+.category-tabs {
+  display: flex;
+  margin-bottom: 20rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.category-tab {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 28rpx;
+  position: relative;
+}
+
+.category-tab.active {
+  color: #0066FF;
+  font-weight: bold;
+}
+
+.category-tab.active:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  width: 50%;
+  height: 6rpx;
+  background-color: #0066FF;
+  border-radius: 3rpx;
+}
+
+/* 统计信息 */
+.stats-container {
+  margin-bottom: 20rpx;
+  padding: 10rpx 0;
+}
+
+.stats-title {
+  font-size: 28rpx;
+  color: #666;
+}
+
+/* 日历样式 */
+.calendar-header {
+  display: flex;
+  background-color: #f8f8f8;
+  padding: 10rpx 0;
+  border-bottom: 1rpx solid #eee;
+}
+
+.weekday {
+  flex: 1;
+  text-align: center;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.calendar-body {
+  display: flex;
+  flex-wrap: wrap;
+  border-left: 1rpx solid #eee;
+  border-top: 1rpx solid #eee;
+}
+
+.calendar-day {
+  width: calc(100% / 7);
+  height: 160rpx;
+  box-sizing: border-box;
+  border-right: 1rpx solid #eee;
+  border-bottom: 1rpx solid #eee;
+  padding: 10rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.empty {
+  background-color: #f8f8f8;
+}
+
+.today {
+  background-color: rgba(0, 102, 255, 0.05);
+}
+
+.day-number {
+  font-size: 28rpx;
+  margin-bottom: 10rpx;
+}
+
+.today .day-number {
+  color: #0066FF;
+  font-weight: bold;
+}
+
+.record-indicator {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 5rpx;
+}
+
+.record-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  margin-right: 5rpx;
+  margin-bottom: 5rpx;
+}
+
+.in-record {
+  background-color: #4CAF50; /* 绿色表示入库 */
+}
+
+.out-record {
+  background-color: #FF5722; /* 橙色表示出库 */
+}
+
+.record-count {
+  font-size: 22rpx;
+  color: #666;
+  margin-left: 5rpx;
+}
+
+.record-preview {
+  font-size: 22rpx;
+  color: #666;
+  margin-top: 5rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.more-indicator {
+  font-size: 20rpx;
+  color: #999;
+}
+
+/* 弹窗内记录详情样式 */
+.record-detail-item {
+  padding: 15rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.record-detail-item:last-child {
+  border-bottom: none;
+}
+
+.record-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.record-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+}
+
+.record-title {
+  flex: 1;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.record-time {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.record-info {
+  margin-bottom: 5rpx;
+}
+
+.record-operation {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.record-note {
+  margin-top: 8rpx;
+}
+
+.record-note text {
+  font-size: 24rpx;
+  color: #999;
+}

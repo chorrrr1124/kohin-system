@@ -1,0 +1,40 @@
+<!-- components/gradient-carousel/gradient-carousel.wxml -->
+<view class="carousel-container" style="height: {{height}}">
+  <!-- 背景图片容器 - 淡入淡出效果 -->
+  <view class="background-container">
+    <view 
+      wx:for="{{images}}" 
+      wx:key="index" 
+      wx:for-index="idx"
+      class="background-item {{idx === currentIndex ? 'active' : ''}}"
+      style="z-index: {{idx === currentIndex ? 2 : 1}};"
+    >
+      <image 
+        src="{{item.url || item.imageUrl || '/images/default-banner.jpg'}}" 
+        class="carousel-bg-image" 
+        mode="aspectFill"
+        bindload="onImageLoad"
+        binderror="onImageError"
+        data-index="{{idx}}"
+      />
+      <!-- 渐变覆盖层 -->
+      <view class="gradient-overlay" style="background: {{item.gradient || defaultGradient}}"></view>
+    </view>
+  </view>
+  
+  <!-- 轮播图内容插槽 -->
+  <view class="carousel-content">
+    <slot></slot>
+  </view>
+  
+  <!-- 自定义指示器（可选） -->
+  <view class="custom-indicators" wx:if="{{showIndicators && images.length > 1}}">
+    <view 
+      wx:for="{{images}}" 
+      wx:key="index" 
+      class="indicator-dot {{currentIndex === index ? 'active' : ''}}"
+      bindtap="onIndicatorTap"
+      data-index="{{index}}"
+    ></view>
+  </view>
+</view> 

@@ -1,0 +1,45 @@
+<view class="modal" wx:if="{{show}}" catchtouchmove="preventTouchMove">
+  <view class="modal-mask" bindtap="onClose"></view>
+  <view class="modal-container" style="max-height: {{maxHeight}}px;">
+    <view class="modal-header">
+      <text class="modal-title">{{title}}</text>
+      <view class="close-btn" bindtap="onClose">✕</view>
+    </view>
+    <scroll-view class="modal-content" scroll-y="true">
+      <view wx:if="{{content}}" class="text-content">{{content}}</view>
+      
+      <!-- 分页内容 -->
+      <view wx:if="{{enablePagination && pageData.length > 0}}" class="pagination-content">
+        <view wx:for="{{currentPageItems}}" wx:key="index" class="record-item">
+          <!-- 时间行 -->
+          <view class="record-time-row">
+            <text class="record-time">{{item.time}}</text>
+          </view>
+          <!-- 主要信息行 -->
+          <view class="record-main">
+            <view class="record-left">
+              <text class="record-icon {{item.action === '入库' || item.typeText === '入库' ? 'icon-in' : 'icon-out'}}">
+                {{item.action === '入库' || item.typeText === '入库' ? '📥' : '📤'}}
+              </text>
+              <text class="record-product">{{item.productName}}</text>
+            </view>
+          </view>
+          <!-- 操作详情行 -->
+          <view class="record-details">
+            <text class="record-action {{item.action === '入库' || item.typeText === '入库' ? 'action-in' : 'action-out'}}">
+              📦 {{item.action || item.typeText}} {{item.quantity}}个
+            </text>
+            <text wx:if="{{item.orderNote}}" class="record-note">📋 {{item.orderNote}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+    
+    <!-- 分页控制移到底部 -->
+    <view wx:if="{{enablePagination && totalPages > 1}}" class="pagination-footer">
+      <button class="page-btn" disabled="{{currentPage === 1}}" bindtap="onPrevPage">上一页</button>
+      <text class="page-info">{{currentPage}}/{{totalPages}}</text>
+      <button class="page-btn" disabled="{{currentPage === totalPages}}" bindtap="onNextPage">下一页</button>
+    </view>
+  </view>
+</view> 

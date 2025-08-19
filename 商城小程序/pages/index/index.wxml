@@ -1,0 +1,101 @@
+<!--pages/index/index.wxml-->
+<view class="page-container">
+  <!-- 渐变轮播图区域 -->
+  <view class="carousel-section" style="height: 100vh;">
+    <gradient-carousel 
+      id="main-carousel"
+      images="{{carouselImages}}" 
+      height="100vh"
+      autoplay="{{false}}"
+      interval="{{10000}}"
+      duration="{{1200}}"
+      circular="{{true}}"
+      showIndicators="{{false}}"
+      bindchange="onCarouselChange"
+      bindloaded="onCarouselLoaded"
+    >
+      <!-- 轮播图内容 -->
+      <view class="carousel-content-overlay" style="padding-top: {{statusBarHeight}}px;">
+        <!-- 顶部导航区域 -->
+        <view class="promo-header">
+        </view>
+        
+        <!-- 主推广轮播图区域 -->
+        <view class="floating-promo-carousel">
+          <t-swiper
+            id="promo-swiper"
+            list="{{promoSwiperImages}}"
+            height="{{400}}"
+            autoplay="{{true}}"
+            interval="{{10000}}"
+            duration="{{300}}"
+            loop="{{true}}"
+            navigation="{{false}}"
+            pagination-position="none"
+            class="promo-swiper"
+            current="{{promoSwiperCurrent}}"
+            bind:change="onPromoSwiperChange"
+          />
+        </view>
+        
+        <!-- 悬浮用户信息卡片 -->
+        <view class="floating-card-container">
+          <floating-user-card 
+            userInfo="{{userInfo}}"
+            bindserviceSelect="onServiceSelect"
+            bindfunctionSelect="onFunctionSelect"
+          />
+        </view>
+      </view>
+    </gradient-carousel>
+  </view>
+
+  <!-- 主要内容区域 -->
+  <view class="main-content">
+    <!-- 推荐商品 -->
+    <view class="recommend-section" wx:if="{{recommendProducts.length > 0}}">
+      <view class="section-title">
+        <text class="title-text">为你推荐</text>
+      </view>
+      
+      <view class="product-grid">
+        <block wx:for="{{recommendProducts}}" wx:key="_id" wx:for-index="index">
+          <view 
+            class="product-card" 
+            bindtap="onProductTap" 
+            data-id="{{item._id}}"
+            wx:if="{{index < 6}}"
+          >
+            <image 
+              src="{{item.image}}" 
+              class="product-image"
+              mode="aspectFill"
+              binderror="onImageError"
+              data-index="{{index}}"
+            />
+            <view class="product-info">
+              <text class="product-name">{{item.name}}</text>
+              <view class="product-footer">
+                <view class="price-container">
+                  <text class="product-price">￥{{item.price}}</text>
+                </view>
+                <view class="add-cart-btn" catchtap="onAddToCart" data-item="{{item}}">
+                  <text>+</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+  </view>
+  
+
+  
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+  
+
+</view>

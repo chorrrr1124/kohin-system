@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "产品出入库记录",
+  "usingComponents": {
+    "scrollable-modal": "/components/scrollable-modal/scrollable-modal"
+  }
+}

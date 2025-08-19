@@ -1,0 +1,126 @@
+<!--pages/cart/cart.wxml-->
+<view class="mall-container">
+  <!-- 顶部搜索栏 -->
+  <view class="search-header">
+    <view class="search-left">
+      <image class="logo-icon" src="/images/placeholder.png"></image>
+      <text class="app-name">一起拼单</text>
+    </view>
+    <view class="search-box">
+      <image class="search-icon" src="/images/placeholder.png"></image>
+      <input class="search-input" placeholder="搜索商品" />
+    </view>
+    <view class="header-right">
+      <image class="menu-icon" src="/images/placeholder.png"></image>
+      <image class="scan-icon" src="/images/placeholder.png"></image>
+    </view>
+  </view>
+
+  <!-- 店铺信息 -->
+  <view class="store-info">
+    <view class="store-header">
+      <text class="store-name">东莞庄分店</text>
+      <image class="arrow-icon" src="/images/placeholder.png"></image>
+    </view>
+    <view class="store-details">
+      <image class="location-icon" src="/images/placeholder.png"></image>
+      <text class="store-distance">距您2.4km</text>
+      <text class="store-status">前方15杯制作中</text>
+    </view>
+    <view class="delivery-options">
+      <view class="delivery-btn active">自取</view>
+      <view class="delivery-btn">外卖</view>
+    </view>
+    <view class="store-expand">
+      <text class="store-expand-text">门店详细信息</text>
+      <text class="expand-action">点击查看</text>
+      <image class="expand-arrow" src="/images/placeholder.png"></image>
+    </view>
+  </view>
+
+  <!-- 优惠卡片 -->
+  <view class="promotion-card">
+    <view class="promotion-content">
+      <view class="promotion-text">
+        <text class="promotion-title">超值畅饮次卡</text>
+        <text class="promotion-subtitle">(凭着福利·限时放送)</text>
+        <button class="promotion-btn">立即解锁</button>
+      </view>
+      <view class="promotion-prices">
+        <view class="price-item">
+          <text class="price">88元=5次卡</text>
+          <text class="price-desc">[立省17]</text>
+        </view>
+        <view class="price-item">
+          <text class="price">168元=10次卡</text>
+          <text class="price-desc">[立省42]</text>
+        </view>
+      </view>
+    </view>
+    <image class="promotion-image" src="/images/placeholder.png"></image>
+  </view>
+
+  <!-- 分类导航 -->
+  <view class="category-nav">
+    <view class="category-tabs">
+      <view class="category-tab active">
+        <text class="tab-text">经典菜单</text>
+        <view class="tab-indicator"></view>
+      </view>
+      <view class="category-tab">
+        <image class="tab-icon" src="/images/placeholder.png"></image>
+        <text class="tab-text">爆款套餐</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 侧边分类菜单 -->
+  <view class="content-wrapper">
+    <view class="side-menu">
+      <view wx:for="{{categories}}" wx:key="id" class="menu-item {{selectedCategory === item.id ? 'active' : ''}}" bindtap="onSelectCategory" data-id="{{item.id}}">
+        <view class="menu-badge" wx:if="{{item.isNew}}">NEW</view>
+        <image class="menu-icon" src="{{item.icon}}"></image>
+        <text class="menu-text">{{item.name}}</text>
+      </view>
+    </view>
+
+    <!-- 商品区域 -->
+    <view class="products-area">
+      <!-- VIP专享横幅 -->
+      <view class="vip-banner">
+        <view class="vip-content">
+          <text class="vip-tag">Vip 会员专享</text>
+          <text class="vip-text">每周三会员日</text>
+          <text class="vip-offer">【第2杯半价】</text>
+          <button class="vip-btn">点击下单</button>
+        </view>
+        <image class="vip-image" src="/images/placeholder.png"></image>
+      </view>
+
+      <!-- 商品列表 -->
+      <view class="products-list">
+        <view class="section-title">新品抢先喝</view>
+        <view wx:for="{{products}}" wx:key="id" class="product-item">
+          <image class="product-image" src="{{item.image}}"></image>
+          <view class="product-info">
+            <text class="product-name">{{item.name}}</text>
+            <text class="product-desc">{{item.description}}</text>
+            <view class="product-footer">
+              <text class="product-price">¥{{item.price}}</text>
+              <button class="add-to-cart-btn" bindtap="onAddToCart" data-id="{{item.id}}">选规格</button>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部购物车提示 -->
+  <view class="cart-footer" wx:if="{{cartCount > 0}}">
+    <view class="cart-info">
+      <text class="cart-badge">{{cartCount}}张可用</text>
+      <image class="cart-icon" src="/images/placeholder.png"></image>
+      <text class="cart-text">暂无商品，请先选购</text>
+    </view>
+  </view>
+</view>

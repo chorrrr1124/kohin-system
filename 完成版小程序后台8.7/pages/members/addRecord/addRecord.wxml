@@ -1,0 +1,176 @@
+<!-- pages/members/addRecord/addRecord.wxml -->
+<view class="container">
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
+  <view wx:else class="form-container">
+    <!-- 客户信息 -->
+    <view class="section">
+      <view class="section-title">客户信息</view>
+      
+      <!-- 客户搜索 -->
+      <view class="form-item">
+        <view class="label required">选择客户</view>
+        <view class="search-box">
+          <input 
+            class="search-input" 
+            placeholder="搜索客户名称或电话" 
+            value="{{searchKey}}"
+            bindinput="searchCustomer"
+            bindfocus="searchCustomer"/>
+        </view>
+        
+        <!-- 客户列表 -->
+        <view class="customer-list {{showCustomerList ? 'show' : ''}}" wx:if="{{showCustomerList}}">
+          <view class="mask" bindtap="hideCustomerList"></view>
+          <scroll-view scroll-y class="list-content">
+            <view wx:if="{{filteredCustomers.length === 0}}" class="no-result">
+              未找到相关客户
+            </view>
+            <view 
+              wx:for="{{filteredCustomers}}" 
+              wx:key="_id" 
+              class="customer-item"
+              bindtap="selectCustomer"
+              data-index="{{index}}">
+              <view class="customer-name">{{item.name}}</view>
+              <view class="customer-phone">{{item.phone || (item.contacts && item.contacts[0] && item.contacts[0].phone) || '未设置电话'}}</view>
+            </view>
+            
+            <!-- 新建客户按钮 始终显示 -->
+            <view class="new-customer-btn" bindtap="showNewCustomerForm">
+              <text class="add-icon">+</text> 新建客户
+            </view>
+          </scroll-view>
+        </view>
+      </view>
+      
+      <!-- 显示所选客户信息 -->
+      <view class="customer-info" wx:if="{{record.customerId}}">
+        <view class="info-item">
+          <text class="info-label">联系电话：</text>
+          <text>{{record.customerPhone}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 预存信息 -->
+    <view class="section">
+      <view class="section-title">预存信息</view>
+      
+      <!-- 预存类型 -->
+      <view class="form-item">
+        <view class="label required">预存类型</view>
+        <radio-group class="radio-group" bindchange="onTypeChange">
+          <label class="radio">
+            <radio value="money" checked="{{record.type === 'money'}}"/>金额预存
+          </label>
+          <label class="radio">
+            <radio value="product" checked="{{record.type === 'product'}}"/>产品预存
+          </label>
+        </radio-group>
+      </view>
+      
+      <!-- 金额预存 -->
+      <block wx:if="{{record.type === 'money'}}">
+        <view class="form-item">
+          <view class="label required">预存金额</view>
+          <input class="input" type="digit" name="amount" value="{{record.amount}}" placeholder="请输入预存金额"/>
+        </view>
+      </block>
+      
+      <!-- 产品预存 -->
+      <block wx:else>
+        <view class="form-item">
+          <view class="label required">预存产品</view>
+          <picker bindchange="onProductChange" value="{{productIndex}}" range="{{products}}">
+            <view class="picker {{productIndex !== null ? '' : 'placeholder'}}">
+              {{productIndex !== null ? products[productIndex] : '请选择产品'}}
+            </view>
+          </picker>
+        </view>
+        
+        <view class="form-item">
+          <view class="label required">预存数量</view>
+          <input class="input" type="number" name="quantity" value="{{record.quantity}}" placeholder="请输入预存数量"/>
+        </view>
+      </block>
+    </view>
+
+    <!-- 备注 -->
+    <view class="section">
+      <view class="section-title">备注</view>
+      <view class="form-item">
+        <textarea class="textarea" name="remark" value="{{record.remark}}" placeholder="请输入备注信息"/>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="button-group">
+      <button class="btn btn-cancel" bindtap="cancelAdd">取消</button>
+      <button class="btn btn-primary" bindtap="submitForm">保存</button>
+    </view>
+  </view>
+  
+  <!-- 新建客户弹窗 -->
+  <view class="customer-modal" wx:if="{{showNewCustomerForm}}">
+    <view class="modal-content">
+      <view class="modal-header">
+        <view class="modal-title">新建客户</view>
+        <view class="close-btn" bindtap="hideNewCustomerForm">×</view>
+      </view>
+      
+      <view class="new-customer-form">
+        <!-- 客户名称 -->
+        <view class="form-item">
+          <view class="label required">客户名称</view>
+          <input class="input" value="{{newCustomer.name}}" placeholder="请输入客户名称" bindinput="inputNewCustomerName"/>
+        </view>
+        
+        <!-- 客户性质 -->
+        <view class="form-item">
+          <view class="label required">客户性质</view>
+          <picker bindchange="onNatureChange" value="{{natureIndex}}" range="{{natureTypes}}">
+            <view class="picker {{natureIndex !== null ? '' : 'placeholder'}}">
+              {{natureIndex !== null ? natureTypes[natureIndex] : '请选择客户性质'}}
+            </view>
+          </picker>
+        </view>
+        
+        <!-- 客户来源 -->
+        <view class="form-item">
+          <view class="label required">客户来源</view>
+          <picker bindchange="onSourceChange" value="{{sourceIndex}}" range="{{sourcesTypes}}">
+            <view class="picker {{sourceIndex !== null ? '' : 'placeholder'}}">
+              {{sourceIndex !== null ? sourcesTypes[sourceIndex] : '请选择客户来源'}}
+            </view>
+          </picker>
+        </view>
+        
+        <!-- 联系人信息 -->
+        <view class="form-item">
+          <view class="label required">联系人姓名</view>
+          <input class="input" value="{{newCustomerContact.name}}" placeholder="请输入联系人姓名" bindinput="inputNewCustomerContactName"/>
+        </view>
+        
+        <view class="form-item">
+          <view class="label required">联系电话</view>
+          <input class="input" type="number" value="{{newCustomerContact.phone}}" maxlength="11" placeholder="请输入联系电话" bindinput="inputNewCustomerContactPhone"/>
+        </view>
+        
+        <view class="form-item">
+          <view class="label">联系地址</view>
+          <input class="input" value="{{newCustomerContact.address}}" placeholder="请输入联系地址" bindinput="inputNewCustomerContactAddress"/>
+        </view>
+        
+        <view class="form-item">
+          <view class="label">备注</view>
+          <textarea class="textarea" value="{{newCustomer.remark}}" placeholder="请输入备注信息" bindinput="inputNewCustomerRemark"/>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="cancel-btn" bindtap="hideNewCustomerForm">取消</button>
+        <button class="save-btn" bindtap="saveNewCustomer">保存</button>
+      </view>
+    </view>
+  </view>
+</view> 

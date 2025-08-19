@@ -1,0 +1,125 @@
+<!-- pages/admin/admin.wxml -->
+<view class="page">
+  <!-- 固定头部区域 -->
+  <view class="header-container">
+    <view class="section-title">后台管理</view>
+    <view class="nav-buttons">
+      <navigator url="/pages/index/index" class="nav-button" open-type="reLaunch">库存管理</navigator>
+      <navigator url="/pages/records/records" class="nav-button" open-type="navigate">出入库记录</navigator>
+      <view class="nav-button logout-button" bindtap="logout">退出登录</view>
+    </view>
+    <view class="last-out-time" wx:if="{{lastOutTime}}">上次出库时间：{{lastOutTime}}</view>
+  </view>
+
+  <!-- 固定统计和操作区域 -->
+  <view class="fixed-stats-container">
+    <!-- 统计信息卡片 -->
+    <view class="stats-container flex-row">
+      <view class="stats-card" bindtap="navigateToTotalStock">
+        <view class="stats-number">{{stats.total}}个</view>
+        <view class="stats-label">SKU</view>
+      </view>
+      <view class="stats-card" bindtap="navigateToLowStock">
+        <view class="stats-number">{{stats.lowStock}}个</view>
+        <view class="stats-label">低库存</view>
+      </view>
+      <view class="stats-card" bindtap="navigateToCalendar">
+        <view class="stats-number">{{stats.categoryCount}}个</view>
+        <view class="stats-label">出入库日历</view>
+      </view>
+    </view>
+
+    <!-- 出入库管理和添加产品按钮 -->
+    <view class="action-buttons">
+      <view class="action-button" bindtap="navigateToProductIn">
+        <view class="action-icon">📥</view>
+        <view class="action-label">产品入库</view>
+      </view>
+      <view class="action-button add-product" bindtap="navigateToAddProduct">
+        <view class="action-icon">➕</view>
+        <view class="action-label">添加产品</view>
+      </view>
+      <view class="action-button homepage-settings" bindtap="navigateToHomepageSettings">
+        <view class="action-icon">🏠</view>
+        <view class="action-label">首页设置</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 固定搜索和选项卡区域 -->
+  <view class="fixed-search-container">
+    <!-- 搜索栏 -->
+    <view class="search-container">
+      <input class="search-input" placeholder="搜索产品名称、品牌或规格" bindinput="onSearchInput" value="{{searchKeyword}}" />
+    </view>
+    
+    <!-- 品牌分类选项卡 -->
+    <scroll-view scroll-x="true" class="brand-tabs" wx:if="{{brands.length > 0}}">
+      <view 
+        wx:for="{{brands}}" 
+        wx:key="*this" 
+        class="brand-tab {{currentBrand === item ? 'active' : ''}}"
+        bindtap="switchBrand"
+        data-brand="{{item}}"
+      >
+        {{item}}
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 主容器区域 -->
+  <view class="main-container">
+    <!-- 侧边栏分类 -->
+    <view class="sidebar">
+      <view 
+        wx:for="{{categories}}" 
+        wx:key="*this" 
+        class="sidebar-item {{currentCategory === item ? 'active' : ''}}"
+        bindtap="switchCategory"
+        data-category="{{item}}"
+      >
+        {{item}}
+      </view>
+    </view>
+
+    <!-- 主内容区域 -->
+    <view class="main-content">
+      <!-- 产品列表 -->
+      <view class="product-list">
+        <block wx:if="{{products.length > 0}}">
+          <view 
+            class="product-item flex-row" 
+            wx:for="{{products}}" 
+            wx:key="id"
+            bindtap="viewProductDetail"
+            data-index="{{index}}"
+          >
+            <image class="product-image" src="{{item.imagePath || '/images/placeholder.png'}}"></image>
+            <view class="product-info">
+              <view class="product-name">{{item.name}}</view>
+              <view class="product-meta" wx:if="{{item.brand}}">品牌：{{item.brand}}</view>
+              <view class="product-meta" wx:if="{{item.specification}}">规格：{{item.specification}}</view>
+              <view class="product-stock {{item.stock <= 10 ? 'low-stock' : ''}}">库存：{{item.stock}}个</view>
+            </view>
+            <view class="admin-actions">
+              <button size="mini" type="primary" catchtap="editProduct" data-index="{{index}}">编辑</button>
+              <button size="mini" type="warn" catchtap="deleteProduct" data-index="{{index}}">删除</button>
+            </view>
+          </view>
+        </block>
+        <view wx:else class="empty-tip">暂无产品，请添加产品</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 自定义弹窗组件 -->
+  <custom-modal 
+    show="{{showModal}}" 
+    title="{{modalTitle}}" 
+    content="{{modalContent}}" 
+    show-cancel="{{showCancel}}"
+    bind:confirm="onModalConfirm"
+    bind:cancel="onModalCancel"
+    bind:close="onModalClose"
+  ></custom-modal>
+</view>

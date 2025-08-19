@@ -1,0 +1,14 @@
+{
+  "usingComponents": {
+    "image-placeholder": "/components/image-placeholder/image-placeholder",
+    "gradient-carousel": "/components/gradient-carousel/gradient-carousel",
+    "floating-user-card": "/components/floating-user-card/floating-user-card",
+    "t-swiper": "tdesign-miniprogram/swiper/swiper",
+    "login-modal": "/components/login-modal/login-modal"
+  },
+  "navigationBarTitleText": "优品商城",
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#f5f5f5",
+  "backgroundTextStyle": "dark"
+} 

@@ -1,0 +1,74 @@
+<view class="orders-page">
+  <!-- 订单状态tab -->
+  <view class="tabs-container">
+    <view class="tab-list">
+      <view 
+        class="tab-item {{activeTab === index ? 'active' : ''}}"
+        wx:for="{{tabs}}" 
+        wx:key="index"
+        bindtap="onTabChange"
+        data-index="{{index}}">
+        {{item}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 订单列表 -->
+  <view class="orders-list">
+    <block wx:if="{{displayOrders.length > 0}}">
+      <view class="order-item" wx:for="{{displayOrders}}" wx:key="orderId">
+        <view class="order-header">
+          <text class="order-id">订单号：{{item.orderId}}</text>
+          <text class="order-status">{{item.status === 'pending' ? '待付款' : item.status === 'paid' ? '待发货' : item.status === 'shipped' ? '待收货' : item.status === 'completed' ? '已完成' : '已取消'}}</text>
+        </view>
+        
+        <view class="order-products">
+          <view class="product-item" wx:for="{{item.products}}" wx:key="id" wx:for-item="product">
+            <image-placeholder type="product" custom-class="product-image" src="{{product.image}}" mode="aspectFill"></image-placeholder>
+            <view class="product-info">
+              <text class="product-name">{{product.name}}</text>
+              <text class="product-price">¥{{product.price}} x {{product.quantity}}</text>
+            </view>
+          </view>
+        </view>
+        
+        <view class="order-footer">
+          <view class="order-info">
+            <text class="order-time">下单时间：{{item.formattedTime}}</text>
+            <text class="order-total">总计：¥{{item.totalPrice}}</text>
+          </view>
+          
+          <view class="order-actions">
+            <button 
+              class="action-btn detail-btn" 
+              bindtap="viewOrderDetail"
+              data-order-id="{{item.orderId}}">
+              查看详情
+            </button>
+            
+            <button 
+              class="action-btn cancel-btn" 
+              wx:if="{{item.status === 'pending'}}"
+              bindtap="cancelOrder"
+              data-order-id="{{item.orderId}}">
+              取消订单
+            </button>
+            
+            <button 
+              class="action-btn confirm-btn" 
+              wx:if="{{item.status === 'shipped'}}"
+              bindtap="confirmReceive"
+              data-order-id="{{item.orderId}}">
+              确认收货
+            </button>
+          </view>
+        </view>
+      </view>
+    </block>
+    
+    <view class="empty-state" wx:else>
+      <text class="empty-text">暂无订单</text>
+      <button class="go-shopping-btn" bindtap="goShopping">去购物</button>
+    </view>
+  </view>
+</view>

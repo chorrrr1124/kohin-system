@@ -1,0 +1,289 @@
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+@import "iconfont.wxss";
+
+.page {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f6f6f6;
+}
+
+.card {
+  margin: 15rpx;
+  border-radius: 10rpx;
+  background-color: #fff;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.text-primary {
+  color: #0066FF;
+}
+
+.text-secondary {
+  color: #666;
+}
+
+.text-danger {
+  color: #ff4d4f;
+}
+
+.btn-primary {
+  background-color: #0066FF;
+  color: white;
+}
+
+.btn-default {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  padding: 20rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.empty-tip {
+  text-align: center;
+  color: #999;
+  padding: 40rpx 0;
+}
+
+.product-item {
+  padding: 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.product-image {
+  width: 120rpx;
+  height: 120rpx;
+  margin-right: 20rpx;
+  background-color: #f0f0f0;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-name {
+  font-size: 30rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.product-meta {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 6rpx;
+}
+
+.product-stock {
+  font-size: 26rpx;
+}
+
+.low-stock {
+  color: #ff4d4f;
+}
+
+.form-group {
+  padding: 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.form-label {
+  font-size: 28rpx;
+  margin-bottom: 10rpx;
+}
+
+.form-input {
+  width: 100%;
+  height: 80rpx;
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  box-sizing: border-box;
+}
+
+/* 加号按钮样式 */
+.add-button {
+  background-color: #0066FF;
+  color: white;
+  width: 100%;
+  height: 30rpx;
+  line-height: 26rpx;
+  font-size: 24rpx;
+  padding: 0;
+  border-radius: 4rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8rpx;
+}
+
+/* 加号按钮样式 - 细长版 */
+.add-button-slim {
+  background-color: #0066FF;
+  color: white;
+  width: 100%;
+  height: 30rpx;
+  line-height: 26rpx;
+  font-size: 24rpx;
+  padding: 0;
+  border-radius: 4rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8rpx;
+}
+
+/* 应用于图片中显示的蓝色长条加号按钮 */
+button.blue-add-button {
+  background-color: #0066FF;
+  color: white;
+  width: 100%;
+  height: 30rpx;
+  line-height: 26rpx;
+  font-size: 24rpx;
+  border-radius: 2rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  box-shadow: none;
+  border: none;
+}
+
+.form-textarea {
+  width: 100%;
+  height: 200rpx;
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+
+.btn-submit {
+  margin: 40rpx 20rpx;
+}
+
+.stats-card {
+  padding: 30rpx 20rpx;
+  text-align: center;
+}
+
+.stats-number {
+  font-size: 40rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.stats-label {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.category-tabs {
+  display: flex;
+  background-color: #fff;
+  border-bottom: 1rpx solid #eee;
+  margin-bottom: 20rpx;
+}
+
+.category-tab {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 28rpx;
+}
+
+.category-tab.active {
+  color: #0066FF;
+  font-weight: bold;
+  position: relative;
+}
+
+.category-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  width: 50%;
+  height: 6rpx;
+  background-color: #0066FF;
+  border-radius: 3rpx;
+}
+
+.bottom-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  padding: 20rpx;
+  background-color: #fff;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.action-btn {
+  flex: 1;
+  margin: 0 10rpx;
+}
+
+/* 通用加号按钮样式 - 匹配所有显示为+的按钮，但不影响add-cart、modal-btn */
+button:only-child:not([size="mini"]):not(.action-btn):not(.add-cart):not(.modal-btn) {
+  height: 30rpx !important;
+  line-height: 26rpx !important;
+  width: auto !important;
+  padding: 0 10rpx !important;
+  font-size: 22rpx !important;
+  margin: 0 !important;
+  border-radius: 2rpx !important;
+}
+
+/* 排除take-btn内的按钮不受全局样式影响 */
+.take-btn button {
+  height: auto !important;
+  line-height: normal !important;
+  width: auto !important;
+  padding: 0 24rpx !important;
+  font-size: 24rpx !important;
+}
+
+/* 针对蓝色长条加号按钮的全局样式 */
+.blue-plus-btn {
+  background-color: #0066FF !important;
+  color: white !important;
+  height: 30rpx !important;
+  width: 100% !important;
+  padding: 0 !important;
+  font-size: 20rpx !important;
+  line-height: 28rpx !important;
+  text-align: center !important;
+  border-radius: 2rpx !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+}

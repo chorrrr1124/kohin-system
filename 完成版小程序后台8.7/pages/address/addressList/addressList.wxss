@@ -1,0 +1,173 @@
+/* pages/address/addressList/addressList.wxss */
+
+.container {
+  padding: 20rpx;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  margin-bottom: 20rpx;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.add-btn {
+  padding: 10rpx 30rpx;
+  background-color: #007aff;
+  color: #fff;
+  border-radius: 30rpx;
+  font-size: 28rpx;
+}
+
+/* 加载中样式 */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.loading-icon {
+  font-size: 60rpx;
+  color: #007aff;
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+/* 空状态样式 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.empty-icon {
+  font-size: 100rpx;
+  color: #ccc;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  color: #999;
+  font-size: 30rpx;
+  margin-bottom: 30rpx;
+}
+
+.empty-action {
+  padding: 15rpx 40rpx;
+  background-color: #007aff;
+  color: #fff;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+}
+
+/* 地址列表样式 */
+.address-list {
+  padding-bottom: 30rpx;
+}
+
+.address-item {
+  position: relative;
+  background-color: #fff;
+  margin-bottom: 20rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.address-item.default {
+  border: 2rpx solid #007aff;
+}
+
+.default-tag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #007aff;
+  color: #fff;
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-bottom-left-radius: 12rpx;
+  z-index: 1;
+}
+
+.address-content {
+  padding: 30rpx;
+}
+
+.address-top {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-right: 20rpx;
+}
+
+.phone {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.address-detail {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.5;
+}
+
+/* 地址操作区域 */
+.address-actions {
+  display: flex;
+  border-top: 1rpx solid #eee;
+  background-color: #fafafa;
+}
+
+.action-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 15rpx 0;
+}
+
+.action-icon {
+  font-size: 32rpx;
+  margin-bottom: 5rpx;
+  color: #666;
+}
+
+.action-text {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.action-item:not(:last-child) {
+  border-right: 1rpx solid #eee;
+} 

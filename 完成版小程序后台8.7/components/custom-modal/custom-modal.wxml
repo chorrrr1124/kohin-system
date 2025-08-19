@@ -1,0 +1,15 @@
+<view class="modal-mask" wx:if="{{show}}" bindtap="onMaskTap">
+  <view class="modal-container" catchtap="stopPropagation">
+    <view class="modal-header">
+      <text class="modal-title">{{title}}</text>
+      <view class="modal-close" bindtap="onClose">×</view>
+    </view>
+    <view class="modal-content">
+      <text class="modal-text">{{content}}</text>
+    </view>
+    <view class="modal-footer">
+      <button class="modal-btn cancel-btn" wx:if="{{showCancel}}" bindtap="onCancel">{{cancelText}}</button>
+      <button class="modal-btn confirm-btn" bindtap="onConfirm">{{confirmText}}</button>
+    </view>
+  </view>
+</view> 

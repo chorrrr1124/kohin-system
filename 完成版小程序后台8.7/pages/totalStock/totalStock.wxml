@@ -1,0 +1,26 @@
+<!-- pages/totalStock/totalStock.wxml -->
+<view class="page">
+  <!-- 页面标题 -->
+  <view class="header">
+    <text class="title">SKU详情</text>
+    <text class="subtitle">总计: {{totalCount}}个</text>
+  </view>
+
+  <!-- 分类统计列表 -->
+  <view class="category-list">
+    <block wx:if="{{categoryStats.length > 0}}">
+      <view 
+        class="category-item" 
+        wx:for="{{categoryStats}}" 
+        wx:key="name"
+        bindtap="viewCategoryDetail"
+        data-category="{{item.name}}"
+      >
+        <view class="category-name">{{item.name}}</view>
+        <view class="category-count">{{item.count}}个</view>
+        <view class="arrow">></view>
+      </view>
+    </block>
+    <view wx:else class="empty-tip">暂无产品数据</view>
+  </view>
+</view>

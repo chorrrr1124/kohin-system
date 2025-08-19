@@ -1,0 +1,109 @@
+/* components/image-placeholder/image-placeholder.wxss */
+.image-placeholder {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 8rpx;
+}
+
+.placeholder-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholder-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border: 2rpx dashed #e0e0e0;
+  position: relative;
+}
+
+.placeholder-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10rpx,
+    rgba(255,255,255,0.1) 10rpx,
+    rgba(255,255,255,0.1) 20rpx
+  );
+}
+
+.placeholder-icon {
+  font-size: 60rpx;
+  opacity: 0.6;
+  margin-bottom: 10rpx;
+  z-index: 1;
+}
+
+.icon-text {
+  display: inline-block;
+  animation: pulse 2s infinite;
+}
+
+.placeholder-text {
+  font-size: 24rpx;
+  color: #999;
+  z-index: 1;
+}
+
+/* 不同类型的占位符样式 */
+.placeholder-container.product {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.placeholder-container.avatar {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border-radius: 50%;
+}
+
+.placeholder-container.banner {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.placeholder-container.category {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+/* 动画效果 */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* 加载状态 */
+.image-placeholder.loading {
+  background: linear-gradient(-90deg, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%);
+  background-size: 400% 400%;
+  animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: -200% 0%;
+  }
+} 

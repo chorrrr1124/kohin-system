@@ -1,0 +1,414 @@
+/* pages/admin/homepageSettings/homepageSettings.wxss */
+
+.container {
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* 页面头部 */
+.header {
+  background: #fff;
+  padding: 40rpx 30rpx;
+  border-bottom: 1rpx solid #eee;
+  margin-bottom: 20rpx;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.subtitle {
+  font-size: 26rpx;
+  color: #666;
+}
+
+/* 主要内容区域 */
+.main-content {
+  height: calc(100vh - 160rpx);
+  padding: 0 30rpx;
+}
+
+/* 区域样式 */
+.section {
+  background: #fff;
+  border-radius: 16rpx;
+  margin-bottom: 30rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 轮播图列表 */
+.carousel-list {
+  padding: 30rpx;
+}
+
+.carousel-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  border: 1rpx solid #f0f0f0;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+  background: #fafafa;
+}
+
+.carousel-preview {
+  position: relative;
+  width: 120rpx;
+  height: 80rpx;
+  border-radius: 8rpx;
+  overflow: hidden;
+  margin-right: 20rpx;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+}
+
+.gradient-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 8rpx;
+}
+
+.carousel-info {
+  flex: 1;
+  margin-right: 20rpx;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+  font-size: 24rpx;
+}
+
+.label {
+  color: #666;
+  width: 100rpx;
+}
+
+.value {
+  color: #333;
+  flex: 1;
+}
+
+.status-active {
+  color: #4CAF50;
+}
+
+.status-inactive {
+  color: #f44336;
+}
+
+.carousel-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+/* 推广内容预览 */
+.promo-preview {
+  padding: 30rpx;
+}
+
+.promo-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 20rpx;
+  font-size: 26rpx;
+}
+
+.promo-label {
+  color: #666;
+  width: 160rpx;
+  flex-shrink: 0;
+}
+
+.promo-value {
+  color: #333;
+  flex: 1;
+  word-break: break-all;
+}
+
+.price-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.price-tag {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 60rpx 30rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+/* 按钮样式 */
+.btn {
+  border: none;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  padding: 16rpx 24rpx;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #2196F3;
+  color: #fff;
+}
+
+.btn-primary:active {
+  background: #1976D2;
+}
+
+.btn-secondary {
+  background: #f5f5f5;
+  color: #666;
+  border: 1rpx solid #ddd;
+}
+
+.btn-secondary:active {
+  background: #e0e0e0;
+}
+
+.btn-danger {
+  background: #f44336;
+  color: #fff;
+}
+
+.btn-danger:active {
+  background: #d32f2f;
+}
+
+.btn-small {
+  padding: 12rpx 20rpx;
+  font-size: 24rpx;
+}
+
+/* 弹窗样式 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 16rpx;
+  width: 90%;
+  max-width: 600rpx;
+  max-height: 80%;
+  overflow: hidden;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.modal.show .modal-content {
+  transform: scale(1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.modal-close {
+  font-size: 40rpx;
+  color: #999;
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-body {
+  padding: 30rpx;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 20rpx;
+  padding: 30rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+/* 表单样式 */
+.form-group {
+  margin-bottom: 30rpx;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 12rpx;
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  padding: 20rpx;
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  background: #fff;
+}
+
+.form-input:focus {
+  border-color: #2196F3;
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 120rpx;
+  padding: 20rpx;
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  background: #fff;
+}
+
+/* 图片上传 */
+.image-upload-container {
+  border: 2rpx dashed #ddd;
+  border-radius: 8rpx;
+  overflow: hidden;
+  position: relative;
+}
+
+.upload-preview {
+  width: 100%;
+  height: 200rpx;
+}
+
+.upload-placeholder {
+  height: 200rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 26rpx;
+  background: #fafafa;
+}
+
+/* 选择器显示 */
+.picker-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  background: #fff;
+}
+
+.gradient-preview {
+  width: 60rpx;
+  height: 30rpx;
+  border-radius: 4rpx;
+  border: 1rpx solid #ddd;
+}
+
+/* 价格设置 */
+.price-settings {
+  border: 1rpx solid #f0f0f0;
+  border-radius: 8rpx;
+  padding: 20rpx;
+  background: #fafafa;
+}
+
+.price-setting-item {
+  display: flex;
+  align-items: center;
+  gap: 15rpx;
+  margin-bottom: 15rpx;
+}
+
+.price-input {
+  flex: 1;
+  padding: 15rpx;
+  border: 1rpx solid #ddd;
+  border-radius: 6rpx;
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.price-separator {
+  color: #666;
+  font-size: 24rpx;
+}
+
+/* 响应式设计 */
+@media (max-width: 750rpx) {
+  .carousel-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .carousel-preview {
+    margin-right: 0;
+    margin-bottom: 15rpx;
+  }
+  
+  .carousel-actions {
+    flex-direction: row;
+    width: 100%;
+    justify-content: flex-end;
+  }
+} 

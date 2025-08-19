@@ -1,0 +1,101 @@
+<!--pages/customers/addCustomer/addCustomer.wxml-->
+<view class="container">
+  <view class="form-container">
+    <!-- 基本信息 -->
+    <view class="section">
+      <view class="section-title">基本信息</view>
+      
+      <!-- 客户名称 -->
+      <view class="form-item">
+        <view class="label required">客户名称</view>
+        <input class="input" name="name" value="{{customer.name}}" placeholder="请输入客户名称" bindinput="inputCustomerName"/>
+      </view>
+      
+      <!-- 从购物车跳转进来时隐藏客户性质和来源，简化界面 -->
+      <block wx:if="{{!fromCart}}">
+      <!-- 客户性质 -->
+      <view class="form-item">
+        <view class="label required">客户性质</view>
+        <picker bindchange="onNatureChange" value="{{natureIndex}}" range="{{natureTypes}}">
+          <view class="picker {{natureIndex !== null ? '' : 'placeholder'}}">
+            {{natureIndex !== null ? natureTypes[natureIndex] : '请选择客户性质'}}
+          </view>
+        </picker>
+        <view class="helper-text" wx:if="{{natureIndex !== null}}">
+          <text wx:if="{{natureIndex === 0 || natureIndex === 1}}">预存客户可享受预存金额或产品的优惠</text>
+          <text wx:if="{{natureIndex === 2}}">零售客户为直接购买商品的普通客户</text>
+        </view>
+      </view>
+      
+      <!-- 客户来源 -->
+      <view class="form-item">
+        <view class="label required">客户来源</view>
+        <picker bindchange="onSourceChange" value="{{sourceIndex}}" range="{{sourcesTypes}}">
+          <view class="picker {{sourceIndex !== null ? '' : 'placeholder'}}">
+            {{sourceIndex !== null ? sourcesTypes[sourceIndex] : '请选择客户来源'}}
+          </view>
+        </picker>
+      </view>
+      </block>
+    </view>
+
+    <!-- 联系人信息 -->
+    <view class="section">
+      <view class="section-title">联系人信息</view>
+      <view class="contacts">
+        <block wx:for="{{contacts}}" wx:key="index">
+          <view class="contact-item">
+            <view class="contact-header">
+              <text>联系人 {{index + 1}}</text>
+              <text class="delete-btn" wx:if="{{contacts.length > 1}}" bindtap="deleteContact" data-index="{{index}}">删除</text>
+            </view>
+            
+            <view class="form-item">
+              <view class="label required">姓名</view>
+              <input class="input" value="{{item.name}}" placeholder="请输入联系人姓名" data-index="{{index}}" bindinput="inputContactName"/>
+            </view>
+            
+            <view class="form-item">
+              <view class="label required">电话</view>
+              <input class="input" type="number" value="{{item.phone}}" maxlength="11" placeholder="请输入11位手机号" data-index="{{index}}" bindinput="inputContactPhone"/>
+            </view>
+            
+            <view class="form-item">
+              <view class="label {{fromCart ? 'required' : ''}}">所在地区</view>
+              <picker mode="region" bindchange="bindContactRegionChange" data-index="{{index}}" value="{{item.region || ['', '', '']}}">
+                <view class="picker {{item.province ? '' : 'placeholder'}}">
+                  {{item.province ? item.province + item.city + item.district : '请选择所在地区'}}
+                </view>
+              </picker>
+            </view>
+            
+            <view class="form-item">
+              <view class="label {{fromCart ? 'required' : ''}}">详细地址</view>
+              <input class="input" value="{{item.addressDetail}}" placeholder="请输入详细地址" data-index="{{index}}" bindinput="inputContactAddressDetail"/>
+            </view>
+          </view>
+        </block>
+      </view>
+      
+      <!-- 从购物车跳转时隐藏添加多个联系人功能 -->
+      <view class="add-contact" bindtap="addContact" wx:if="{{!fromCart}}">
+        <text class="add-icon">+</text>
+        <text>添加联系人</text>
+      </view>
+    </view>
+
+    <!-- 备注 -->
+    <view class="section" wx:if="{{!fromCart}}">
+      <view class="section-title">备注</view>
+      <view class="form-item">
+        <textarea class="textarea" name="remark" value="{{customer.remark}}" placeholder="请输入备注信息" bindinput="inputCustomerRemark"/>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="button-group">
+      <button class="btn btn-cancel" bindtap="cancelAdd">取消</button>
+      <button class="btn btn-primary" bindtap="submitForm">保存</button>
+    </view>
+  </view>
+</view> 

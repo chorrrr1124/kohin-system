@@ -1,0 +1,16 @@
+{
+  "name": "inventory-management-miniprogram",
+  "version": "1.0.0",
+  "description": "产品库存管理小程序",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "微信小程序",
+    "库存管理",
+    "产品管理"
+  ],
+  "author": "",
+  "license": "ISC"
+}

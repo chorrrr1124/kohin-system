@@ -1,0 +1,65 @@
+<!--pages/customers/editCustomer/editCustomer.wxml-->
+<view class="container">
+  <view class="form-section">
+    <!-- 客户名称 -->
+    <view class="form-group">
+      <view class="form-label">客户名称 <text class="required">*</text></view>
+      <input class="form-input" value="{{customer.name}}" placeholder="请输入客户名称" bindinput="onNameInput" />
+    </view>
+
+    <!-- 联系人信息标题 -->
+    <view class="section-header">联系人信息</view>
+
+    <!-- 联系人列表 -->
+    <view wx:for="{{customer.contacts}}" wx:key="index" class="contact-section">
+      <view class="contact-title">联系人 {{index + 1}}</view>
+      
+      <view class="form-group">
+        <view class="form-label">联系人姓名 <text class="required">*</text></view>
+        <input class="form-input" value="{{item.name}}" placeholder="请输入联系人姓名" data-index="{{index}}" bindinput="onContactNameInput" />
+      </view>
+
+      <view class="form-group">
+        <view class="form-label">联系电话 <text class="required">*</text></view>
+        <input class="form-input" value="{{item.phone}}" type="number" placeholder="请输入联系电话" data-index="{{index}}" bindinput="onContactPhoneInput" />
+      </view>
+
+      <view class="form-group">
+        <view class="form-label">所在地区</view>
+        <picker mode="region" bindchange="onRegionChange" value="{{item.region}}" data-index="{{index}}">
+          <view class="form-picker {{item.province ? '' : 'placeholder'}}">
+            {{item.province ? item.province + item.city + item.district : '请选择所在地区'}}
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-group">
+        <view class="form-label">详细地址</view>
+        <textarea class="form-textarea" value="{{item.address}}" placeholder="请输入详细地址" data-index="{{index}}" bindinput="onContactAddressInput"></textarea>
+      </view>
+
+      <!-- 删除联系人按钮 (只有多个联系人时显示) -->
+      <view wx:if="{{customer.contacts.length > 1}}" class="delete-contact-btn" data-index="{{index}}" bindtap="onDeleteContact">
+        删除联系人
+      </view>
+    </view>
+
+    <!-- 新增联系人按钮 -->
+    <view class="add-contact-btn" bindtap="onAddContact">
+      <text class="add-icon">+</text>
+      <text>新增联系人</text>
+    </view>
+
+    <!-- 备注 -->
+    <view class="form-group">
+      <view class="form-label">备注</view>
+      <textarea class="form-textarea" value="{{customer.remark}}" placeholder="请输入备注信息" bindinput="onRemarkInput"></textarea>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-actions">
+    <button class="btn-save" bindtap="onSave">保存客户</button>
+    <button class="btn-cancel" bindtap="onCancel">取消</button>
+  </view>
+</view> 

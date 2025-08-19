@@ -1,0 +1,38 @@
+<view class="address-page">
+  <view class="address-list">
+    <view 
+      class="address-item {{selectedAddressId === item.id ? 'selected' : ''}}"
+      wx:for="{{addresses}}" 
+      wx:key="id"
+      bindtap="selectAddress"
+      data-id="{{item.id}}">
+      
+      <view class="address-info">
+        <view class="address-header">
+          <text class="address-name">{{item.name}}</text>
+          <text class="address-phone">{{item.phone}}</text>
+          <text class="default-tag" wx:if="{{item.isDefault}}">默认</text>
+        </view>
+        <text class="address-detail">{{item.province}}{{item.city}}{{item.district}}{{item.detail}}</text>
+      </view>
+      
+      <view class="address-actions">
+        <text class="action-btn edit-btn" catchtap="editAddress" data-id="{{item.id}}">编辑</text>
+        <text class="action-btn delete-btn" catchtap="deleteAddress" data-id="{{item.id}}">删除</text>
+      </view>
+      
+      <view class="radio-icon">
+        <text class="radio {{selectedAddressId === item.id ? 'checked' : ''}}"></text>
+      </view>
+    </view>
+  </view>
+  
+  <view class="add-address-btn" bindtap="addNewAddress">
+    <text class="add-icon">+</text>
+    <text class="add-text">添加新地址</text>
+  </view>
+</view>
+
+<view class="bottom-bar">
+  <button class="confirm-btn" bindtap="confirmSelect">确认选择</button>
+</view> 

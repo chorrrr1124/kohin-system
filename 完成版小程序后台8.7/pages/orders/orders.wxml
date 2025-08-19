@@ -1,0 +1,141 @@
+<!-- pages/orders/orders.wxml -->
+<view class="container">
+  <view class="fixed-header">
+    <!-- <view class="section-title">订单管理</view> -->
+    <!-- 批量操作区已删除 -->
+    <!-- 订单状态选项卡 -->
+    <view class="order-tabs">
+      <view 
+        wx:for="{{tabs}}" 
+        wx:key="id" 
+        class="order-tab {{activeTab === item.id ? 'active' : ''}}"
+        bindtap="switchTab"
+        data-id="{{item.id}}"
+      >
+        {{item.name}}
+      </view>
+    </view>
+    <!-- 日期筛选 -->
+    <view class="date-filter">
+      <view class="date-picker">
+        <picker mode="date" value="{{startDate}}" bindchange="onStartDateChange">
+          <view class="picker-item">
+            <text class="date-label">开始日期:</text>
+            <text class="date-value">{{startDate || '请选择'}}</text>
+          </view>
+        </picker>
+      </view>
+      <view class="date-picker">
+        <picker mode="date" value="{{endDate}}" bindchange="onEndDateChange">
+          <view class="picker-item">
+            <text class="date-label">结束日期:</text>
+            <text class="date-value">{{endDate || '请选择'}}</text>
+          </view>
+        </picker>
+      </view>
+      <view class="filter-btn-row">
+      <view class="filter-button" bindtap="filterByDate">筛选</view>
+      <view class="filter-button reset" bindtap="resetDateFilter">重置</view>
+        <!-- 更多按钮及下拉栏已移除 -->
+      </view>
+    </view>
+    
+    <!-- 搜索栏 -->
+    <view class="search-container">
+      <view class="search-box">
+        <input type="text" 
+               placeholder="搜索订单号、客户、电话、商品、地址等" 
+               confirm-type="search" 
+               bindinput="onSearchInput" 
+               bindconfirm="onSearchConfirm"
+               value="{{searchKeyword}}" />
+        <view class="search-icon" wx:if="{{!searchKeyword}}">🔍</view>
+        <view class="clear-icon" wx:if="{{searchKeyword}}" bindtap="clearSearch">✕</view>
+      </view>
+    </view>
+  </view>
+  <!-- 订单列表（可滚动区域） -->
+  <scroll-view class="scrollable-content" scroll-y="true" bindscrolltolower="loadMoreOrders" enable-flex="true">
+    <view class="order-list-container">
+      <view class="order-list" wx:if="{{!loading}}">
+        <block wx:for="{{orders}}" wx:key="id">
+          <view class="order-item" bindtap="viewOrderDetail" data-id="{{item.id}}">
+            <!-- 复选框已移除 -->
+            <!-- 订单头部：订单号和状态在同一行 -->
+            <view class="order-header-row">
+              <view class="order-id">订单号: {{item.id || '待生成'}}</view>
+              <view class="order-status">
+                <text wx:if="{{item.status === 'pending'}}" class="status-pending">待付款</text>
+                <text wx:elif="{{item.status === 'pending_shipment'}}" class="status-processing">待发货</text>
+                <text wx:elif="{{item.status === 'shipped'}}" class="status-shipped">已发货</text>
+                <text wx:elif="{{item.status === 'completed'}}" class="status-completed">已完成</text>
+              </view>
+            </view>
+            <view class="order-info">
+              <view class="order-date">下单时间: {{item.date || '未知'}}</view>
+              <view class="order-customer">客户: {{item.customer || '未知客户'}}</view>
+              <view class="order-items">
+                <text wx:for="{{item.items}}" wx:for-item="product" wx:key="name" class="order-item-product">
+                  {{product.name}} x{{product.quantity}}
+                </text>
+              </view>
+            </view>
+            <view class="order-footer">
+              <view class="order-total-section">              
+                <view class="order-total-label">总金额:</view>
+                <view class="order-total-amount">
+                  <block wx:if="{{item.isPrepaidProduct || item.paymentMethod === 'prepaid' || item.paymentMethod === 'prestore'}}">
+                    ¥0.00 (预存扣除)
+                  </block>
+                  <block wx:else>
+                    ¥{{item.total || 0}}
+                  </block>
+                </view>
+              </view>
+              <view class="order-actions">
+                <button 
+                  class="action-btn" 
+                  catchtap="processOrder" 
+                  data-id="{{item.id}}"
+                  wx:if="{{item.status !== 'completed'}}"
+                  hover-class="button-hover"
+                  hover-stay-time="100"
+                >
+                  <block wx:if="{{item.processing && item.processingId === item.id}}">
+                    <view class="loading-dots">处理中<text class="dot">.</text><text class="dot">.</text><text class="dot">.</text></view>
+                  </block>
+                  <block wx:else>
+                  {{item.status === 'pending' ? '确认付款' : 
+                    item.status === 'pending_shipment' ? '发货' : 
+                    item.status === 'shipped' ? '确认完成' : ''}}
+                  </block>
+                </button>
+              </view>
+            </view>
+          </view>
+        </block>
+      </view>
+      <view class="loading" wx:if="{{loading}}">
+        <text>加载中...</text>
+      </view>
+      <view class="empty-tip" wx:if="{{!loading && orders.length === 0}}">
+        <view class="empty-state">
+          <view class="empty-icon">📋</view>
+          <text class="empty-text">暂无订单</text>
+          <text class="empty-hint">添加订单后将显示在这里</text>
+        </view>
+      </view>
+      <!-- 加载更多 - 只在订单总数超过10条时显示 -->
+      <view class="load-more" wx:if="{{hasMoreOrders && !loading && orders.length > 0 && allOrders.length > 10}}">
+        <view class="load-more-btn" bindtap="loadMoreOrders">加载更多</view>
+      </view>
+      <!-- 底部间距 -->
+      <view class="bottom-space"></view>
+    </view>
+  </scroll-view>
+  <!-- 添加手动刷新按钮 -->
+  <view class="refresh-btn" bindtap="manualRefresh">
+    <text class="refresh-icon">⟳</text>
+    <text class="refresh-text">刷新数据</text>
+  </view>
+</view>

@@ -1,0 +1,82 @@
+<!-- pages/productCalendar/productCalendar.wxml -->
+<view class="calendar-container">
+  <view class="header">
+    <view class="product-title">{{productName}}</view>
+    <view class="month-title">
+      <view class="prev-btn" bindtap="prevMonth">◀</view>
+      <view class="title">{{year}}年{{month}}月</view>
+      <view class="next-btn" bindtap="nextMonth">▶</view>
+    </view>
+    
+    <view class="legend-row">
+      <view class="legend-item in">
+        <view class="dot"></view>
+        <text>入库</text>
+      </view>
+      <view class="legend-item out">
+        <view class="dot"></view>
+        <text>出库</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 星期头部 -->
+  <view class="weekday-row">
+    <view class="weekday-cell">日</view>
+    <view class="weekday-cell">一</view>
+    <view class="weekday-cell">二</view>
+    <view class="weekday-cell">三</view>
+    <view class="weekday-cell">四</view>
+    <view class="weekday-cell">五</view>
+    <view class="weekday-cell">六</view>
+  </view>
+
+  <!-- 日历主体 -->
+  <view class="calendar-grid">
+    <block wx:for="{{days}}" wx:key="index">
+      <view class="day-cell {{item.isCurrentMonth ? '' : 'other-month'}} {{item.isToday ? 'today' : ''}}" 
+            bindtap="viewDayDetail" 
+            data-date="{{item.fullDate}}">
+        <view class="day-number {{item.isToday ? 'today-number' : ''}}">{{item.day}}</view>
+        
+        <!-- 出入库记录显示 -->
+        <block wx:if="{{item.records}}">
+          <view class="record-info">
+            <block wx:if="{{item.records.in > 0}}">
+              <view class="record-value in">{{item.records.in}}</view>
+            </block>
+            <block wx:if="{{item.records.out > 0}}">
+              <view class="record-value out">{{item.records.out}}</view>
+            </block>
+          </view>
+          <view class="record-count" wx:if="{{item.records.records.length > 0}}">
+            共{{item.records.records.length}}条
+          </view>
+        </block>
+      </view>
+    </block>
+  </view>
+
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <view class="tips">
+    <text>点击日期可查看当天详细出入库记录</text>
+  </view>
+
+  <!-- 可滚动弹窗组件 -->
+  <scrollable-modal
+    show="{{showScrollableModal}}"
+    title="{{scrollableModalTitle}}"
+    content="{{scrollableModalContent}}"
+    maxHeight="{{1000}}"
+    showCancel="{{scrollableModalShowCancel}}"
+    confirmText="{{scrollableModalConfirmText}}"
+    enablePagination="{{scrollableModalEnablePagination}}"
+    pageData="{{scrollableModalPageData}}"
+    pageSize="{{scrollableModalPageSize}}"
+    bind:confirm="onScrollableModalConfirm"
+    bind:close="onScrollableModalClose"
+  ></scrollable-modal>
+</view> 

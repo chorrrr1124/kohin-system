@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "custom-modal": "../../components/custom-modal/custom-modal"
+  },
+  "navigationBarTitleText": "商城产品管理"
+}

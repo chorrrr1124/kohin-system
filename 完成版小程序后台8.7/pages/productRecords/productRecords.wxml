@@ -1,0 +1,91 @@
+<!-- pages/productRecords/productRecords.wxml -->
+<view class="page">
+  <view class="section-title">{{productName}}的出入库记录</view>
+  
+  <!-- 月份导航 -->
+  <view class="month-nav">
+    <view class="nav-btn" bindtap="prevMonth">上个月</view>
+    <view class="month-title">{{year}}年{{month}}月</view>
+    <view class="nav-btn" bindtap="nextMonth">下个月</view>
+  </view>
+  
+  <!-- 记录类型切换 -->
+  <view class="category-tabs">
+    <view 
+      class="category-tab {{recordType === 'all' ? 'active' : ''}}"
+      bindtap="switchRecordType"
+      data-type="all"
+    >
+      全部记录
+    </view>
+    <view 
+      class="category-tab {{recordType === 'in' ? 'active' : ''}}"
+      bindtap="switchRecordType"
+      data-type="in"
+    >
+      入库记录
+    </view>
+    <view 
+      class="category-tab {{recordType === 'out' ? 'active' : ''}}"
+      bindtap="switchRecordType"
+      data-type="out"
+    >
+      出库记录
+    </view>
+  </view>
+  
+  <!-- 统计信息 -->
+  <view class="stats-container">
+    <view class="stats-title">当月记录: {{currentMonthRecords.length}}条</view>
+  </view>
+  
+  <!-- 日历头部 -->
+  <view class="calendar-header">
+    <view class="weekday">日</view>
+    <view class="weekday">一</view>
+    <view class="weekday">二</view>
+    <view class="weekday">三</view>
+    <view class="weekday">四</view>
+    <view class="weekday">五</view>
+    <view class="weekday">六</view>
+  </view>
+  
+  <!-- 日历主体 -->
+  <view class="calendar-body">
+    <view 
+      class="calendar-day {{item.isCurrentMonth ? '' : 'empty'}} {{item.isToday ? 'today' : ''}}"
+      wx:for="{{days}}" 
+      wx:key="index"
+      bindtap="viewDayRecords"
+      data-day="{{item.day}}"
+    >
+      <view class="day-number">{{item.day}}</view>
+      <view wx:if="{{dayRecords[item.day]}}" class="record-indicator">
+        <!-- 使用不同颜色区分入库和出库记录 -->
+        <block wx:for="{{dayRecords[item.day]}}" wx:for-item="record" wx:key="id">
+          <view class="record-dot {{record.type === 'in' ? 'in-record' : 'out-record'}}"></view>
+        </block>
+        <view class="record-count">{{dayRecords[item.day].length}}</view>
+      </view>
+      <view wx:if="{{dayRecords[item.day] && dayRecords[item.day].length > 0}}" class="record-preview">
+        {{dayRecords[item.day][0].type === 'in' ? '入' : '出'}}: {{dayRecords[item.day][0].quantity}}个
+        <view wx:if="{{dayRecords[item.day].length > 1}}" class="more-indicator">...</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 可滚动弹窗组件 -->
+  <scrollable-modal
+    show="{{showScrollableModal}}"
+    title="{{modalTitle}}"
+    content="{{modalContent}}"
+    maxHeight="{{1000}}"
+    showCancel="{{false}}"
+    confirmText="关闭"
+    enablePagination="{{modalEnablePagination}}"
+    pageData="{{modalPageData}}"
+    pageSize="{{modalPageSize}}"
+    bind:confirm="onScrollableModalClose"
+    bind:close="onScrollableModalClose"
+  ></scrollable-modal>
+</view>

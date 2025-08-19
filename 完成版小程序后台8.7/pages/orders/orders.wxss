@@ -1,0 +1,603 @@
+/* pages/orders/orders.wxss */
+.container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.fixed-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background-color: #fff;
+  padding: 10rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.scrollable-content {
+  flex: 1;
+  margin-top: 390rpx;
+  height: calc(100vh - 390rpx);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.section-title {
+  font-size: 38rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  text-align: center;
+  color: #333;
+}
+
+/* 日期筛选样式 */
+.date-filter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 15rpx;
+  background-color: #f8f8f8;
+  border-radius: 8rpx;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+  min-height: 0 !important;
+}
+
+.date-picker {
+  width: 48%;
+  margin-bottom: 15rpx;
+}
+
+.picker-item {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  padding: 15rpx;
+  border-radius: 6rpx;
+  border: 1px solid #e0e0e0;
+}
+
+.date-label {
+  color: #666;
+  margin-right: 10rpx;
+  font-size: 28rpx;
+}
+
+.date-value {
+  color: #333;
+  font-size: 28rpx;
+}
+
+.filter-button {
+  width: 48%;
+  text-align: center;
+  padding: 15rpx 0;
+  background-color: #07c160;
+  color: white;
+  border-radius: 6rpx;
+  font-size: 28rpx;
+}
+
+.filter-button.reset {
+  background-color: #f2f2f2;
+  color: #666;
+  border: 1px solid #e0e0e0;
+}
+
+/* 订单状态选项卡 */
+.order-tabs {
+  display: flex;
+  background-color: #fff;
+  border-bottom: 1rpx solid #eee;
+  margin-bottom: 15rpx;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 5rpx;
+}
+
+.order-tab {
+  padding: 15rpx 25rpx;
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.order-tab.active {
+  color: #0066FF;
+  font-weight: bold;
+}
+
+.order-tab.active:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  width: 50%;
+  height: 4rpx;
+  background-color: #0066FF;
+}
+
+/* 搜索栏样式 */
+.search-container {
+  padding: 15rpx;
+  background-color: #fff;
+  border-top: 1rpx solid #eee;
+}
+
+.search-box {
+  position: relative;
+  background-color: #f8f8f8;
+  border-radius: 25rpx;
+  display: flex;
+  align-items: center;
+  padding: 0 20rpx;
+}
+
+.search-box input {
+  flex: 1;
+  height: 70rpx;
+  line-height: 70rpx;
+  font-size: 28rpx;
+  color: #333;
+  background: transparent;
+  border: none;
+}
+
+.search-box input:placeholder-shown {
+  color: #999;
+}
+
+.search-icon,
+.clear-icon {
+  position: absolute;
+  right: 20rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24rpx;
+  color: #999;
+  cursor: pointer;
+}
+
+.clear-icon {
+  color: #666;
+  background-color: #ddd;
+  border-radius: 50%;
+  width: 32rpx;
+  height: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20rpx;
+}
+
+.clear-icon:active {
+  background-color: #ccc;
+}
+
+/* 订单列表 */
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  padding-bottom: 20rpx;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.order-item {
+  background-color: #fff;
+  border-radius: 12rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+  border: 1rpx solid #eaeaea;
+  margin-bottom: 20rpx;
+  position: relative;
+}
+
+.order-item:active {
+  transform: scale(0.98);
+  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.05);
+}
+
+/* 订单头部行样式优化 */
+.order-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  background-color: #fafafa;
+  border-bottom: 1rpx solid #f0f0f0;
+  min-height: 50rpx; /* 确保最小高度，避免内容过少时显示不正常 */
+}
+
+/* 调整订单号样式 */
+.order-id {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+  max-width: 65%; /* 稍微减小最大宽度，防止挤压状态标签 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 10rpx; /* 添加右侧内边距，与状态标签保持一定距离 */
+}
+
+/* 优化订单状态容器样式 */
+.order-status {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* 状态标签样式 */
+.status-pending, .status-processing, .status-shipped, .status-completed {
+  display: inline-block;
+  min-width: 100rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  font-weight: normal;
+  text-align: center;
+  white-space: nowrap;
+  color: #fff;
+  box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.1);
+  line-height: 1.2;
+}
+
+.status-pending {
+  background-color: #ff9800;
+}
+
+.status-processing {
+  background-color: #2196f3;
+}
+
+.status-shipped {
+  background-color: #9c27b0;
+}
+
+.status-completed {
+  background-color: #4caf50;
+}
+
+/* 订单信息区域简化 */
+.order-info {
+  padding: 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.order-date, .order-customer {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+}
+
+.order-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 12rpx;
+}
+
+.order-item-product {
+  font-size: 24rpx;
+  color: #333;
+  background-color: #f5f5f5;
+  padding: 8rpx 14rpx;
+  border-radius: 6rpx;
+}
+
+/* 订单底部区域简化 */
+.order-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  background-color: #fefefe;
+}
+
+/* 新的总金额区域样式 */
+.order-total-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.order-total-label {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 4rpx;
+}
+
+.order-total-amount {
+  font-size: 32rpx;
+  color: #ff4d4f;
+  font-weight: bold;
+}
+
+/* 保留原有样式作为兼容 */
+.order-total {
+  font-size: 28rpx;
+  color: #ff4d4f;
+  font-weight: bold;
+}
+
+.order-actions {
+  display: flex;
+  gap: 10rpx;
+}
+
+.action-btn {
+  font-size: 24rpx;
+  padding: 0 20rpx;
+  line-height: 60rpx;
+  height: 60rpx;
+  background-color: #0066FF;
+  color: #fff;
+  border-radius: 30rpx;
+}
+
+/* 根据状态设置按钮颜色 */
+button.action-btn {
+  margin: 0;
+  font-weight: normal;
+}
+
+.loading, .empty-tip {
+  text-align: center;
+  color: #999;
+  padding: 40rpx 0;
+}
+
+/* 空状态样式 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+  color: #ccc;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+.empty-hint {
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* 加载更多按钮样式 */
+.load-more {
+  text-align: center;
+  padding: 20rpx 0;
+}
+
+.load-more-btn {
+  display: inline-block;
+  padding: 15rpx 30rpx;
+  font-size: 26rpx;
+  color: #666;
+  background-color: #f5f5f5;
+  border-radius: 30rpx;
+  border: 1rpx solid #e0e0e0;
+}
+
+.load-more-btn:active {
+  background-color: #e0e0e0;
+}
+
+/* 底部间距 */
+.bottom-space {
+  height: 60rpx;
+}
+
+.order-list-container {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* 添加按钮悬停效果 */
+.button-hover {
+  opacity: 0.8;
+  transform: scale(0.98);
+  transition: all 0.2s;
+}
+
+/* 按钮加载动画 */
+.loading-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-dots .dot {
+  animation: dot-animation 1.4s infinite;
+  opacity: 0;
+}
+
+.loading-dots .dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.loading-dots .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loading-dots .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dot-animation {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* 添加刷新按钮样式 */
+.refresh-btn {
+  position: fixed;
+  bottom: 40rpx;
+  right: 40rpx;
+  background-color: #007aff;
+  color: white;
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+}
+
+.refresh-icon {
+  font-size: 40rpx;
+  margin-bottom: 4rpx;
+}
+
+.refresh-text {
+  font-size: 20rpx;
+}
+
+.big-btn {
+  font-size: 15px;
+  padding: 8px 0;
+  margin: 0 8px 0 0;
+  width: 90px;
+  border-radius: 6px;
+  background: #fff;
+  color: #222;
+  border: 1px solid #007aff;
+  font-weight: normal;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.batch-delete-btn.big-btn {
+  background: #ff4d4f;
+  color: #fff;
+  border: none;
+}
+
+.batch-select-btn.big-btn {
+  background: #007aff;
+  color: #fff;
+  border: none;
+}
+
+.batch-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.filter-btn-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 8px;
+  width: 100%;
+  gap: 8px;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+  min-height: 0 !important;
+}
+
+.filter-btn-row .filter-button {
+  flex: 1 1 0;
+  margin: 0;
+  text-align: center;
+  border-radius: 4px;
+  height: 40px;
+  line-height: 40px;
+  font-size: 16px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.more-btn-wrapper {
+  position: relative;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+}
+
+.more-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 120px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  border-radius: 6px;
+  z-index: 100;
+  margin-top: 4px;
+  padding: 0;
+}
+
+.more-menu-item {
+  padding: 12px 0;
+  text-align: center;
+  font-size: 15px;
+  color: #222;
+  background: #fff;
+}
+
+.more-menu-item:active {
+  background: #f5f5f5;
+}
+
+.more-menu-divider {
+  height: 1px;
+  background: #eee;
+  margin: 0 10px;
+}
+
+.order-item {
+  position: relative;
+}
+
+.delete-btn {
+  font-size: 28.6rpx;
+  padding: 0 23.4rpx;
+  line-height: 62.4rpx;
+  height: 62.4rpx;
+  background-color: #ffeaea;
+  color: #ff4d4f;
+  border-radius: 23.4rpx;
+  margin-left: 13rpx;
+  border: none;
+  font-weight: 400;
+  box-shadow: 0 1.3rpx 2.6rpx rgba(255,77,79,0.04);
+  transition: background 0.2s, color 0.2s;
+}
+.delete-btn:active {
+  background-color: #ff4d4f;
+  color: #fff;
+}

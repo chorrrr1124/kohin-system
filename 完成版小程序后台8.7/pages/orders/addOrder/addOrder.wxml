@@ -1,0 +1,137 @@
+<!--pages/orders/addOrder/addOrder.wxml-->
+<view class="page">
+  <block wx:if="{{noCustomer}}">
+    <view class="no-customer-tip">
+      当前没有客户信息，请先添加客户。
+    </view>
+    <button class="add-customer-btn" bindtap="addCustomerRedirect">添加客户</button>
+  </block>
+  <block wx:elif="{{customerDeleted}}">
+    <view class="customer-deleted-tip">
+      该订单关联的客户已被删除，无法编辑订单。
+    </view>
+  </block>
+  <block wx:else>
+  <view class="form-container">
+    <view class="form-section">
+      <view class="section-title">客户信息</view>
+      
+      <view class="form-group">
+        <view class="form-label">客户 <text class="required">*</text></view>
+        <picker mode="selector" range="{{customerNames}}" value="{{customerIndex}}" bindchange="onCustomerChange">
+          <view class="picker-view">
+            <text>{{customerNames[customerIndex] || '请选择客户'}}</text>
+            <text class="arrow-right">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-group" wx:if="{{selectedCustomer}}">
+        <view class="form-label">联系人</view>
+        <picker mode="selector" range="{{contactNames}}" value="{{contactIndex}}" bindchange="onContactChange" disabled="{{contactNames.length <= 1}}">
+          <view class="picker-view">
+            <text>{{contactNames[contactIndex] || '无联系人'}}</text>
+            <text class="arrow-right" wx:if="{{contactNames.length > 1}}">▼</text>
+          </view>
+        </picker>
+      </view>
+      
+      <view class="form-group" wx:if="{{selectedCustomer && selectedContact}}">
+        <view class="form-label">联系电话</view>
+        <view class="form-input">{{selectedContact.phone || '无电话'}}</view>
+      </view>
+      
+      <view class="form-group" wx:if="{{selectedCustomer && selectedContact && selectedContact.address}}">
+        <view class="form-label">收货地址</view>
+        <view class="form-textarea">{{selectedContact.address || '无地址'}}</view>
+      </view>
+    </view>
+    
+    <view class="form-section">
+      <view class="section-title">订单信息</view>
+      
+      <view class="form-group">
+        <view class="form-label">订单编号 <text class="required">*</text></view>
+        <input class="form-input" name="orderId" value="{{order.id}}" placeholder="自动生成" disabled="{{!!order.id}}" />
+      </view>
+      
+      <view class="form-group">
+        <view class="form-label">下单日期 <text class="required">*</text></view>
+        <picker mode="date" value="{{order.date}}" bindchange="onDateChange">
+          <view class="picker-view">
+            <text>{{order.date || '请选择日期'}}</text>
+            <text class="arrow-right">▼</text>
+          </view>
+        </picker>
+      </view>
+      
+      <view class="form-group">
+        <view class="form-label">订单状态 <text class="required">*</text></view>
+        <picker mode="selector" range="{{statusNames}}" value="{{statusIndex}}" bindchange="onStatusChange">
+          <view class="picker-view">
+            <text>{{statusNames[statusIndex] || '请选择状态'}}</text>
+            <text class="arrow-right">▼</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+    
+    <view class="form-section">
+      <view class="section-header">
+        <view class="section-title">商品列表</view>
+        <view class="add-btn" bindtap="addProduct">添加商品</view>
+      </view>
+      
+      <view class="product-list">
+        <block wx:if="{{products.length > 0}}">
+          <view class="product-item" wx:for="{{products}}" wx:key="index">
+            <view class="product-content">
+              <view class="product-row">
+                <view class="product-label">名称：</view>
+                <input class="product-input" value="{{item.name}}" placeholder="请输入商品名称" data-index="{{index}}" data-field="name" bindinput="onProductInput" />
+              </view>
+              
+              <view class="product-row">
+                <view class="product-label">单价：</view>
+                <input class="product-input" type="digit" value="{{item.price}}" placeholder="0.00" data-index="{{index}}" data-field="price" bindinput="onProductInput" />
+              </view>
+              
+              <view class="product-row">
+                <view class="product-label">数量：</view>
+                <input class="product-input" type="number" value="{{item.quantity}}" placeholder="1" data-index="{{index}}" data-field="quantity" bindinput="onProductInput" />
+              </view>
+              
+              <view class="product-subtotal">
+                小计: ¥{{item.price * item.quantity || 0}}
+              </view>
+            </view>
+            
+            <view class="product-delete" bindtap="removeProduct" data-index="{{index}}">
+              <text class="delete-icon">✕</text>
+            </view>
+          </view>
+        </block>
+        <view class="empty-tip" wx:else>
+          暂无商品，点击"添加商品"添加
+        </view>
+      </view>
+      
+      <view class="order-total" wx:if="{{products.length > 0}}">
+        总计: ¥{{totalAmount}}
+      </view>
+    </view>
+    
+    <view class="form-section">
+      <view class="section-title">备注信息</view>
+      <view class="form-group">
+        <textarea class="form-textarea" name="remark" value="{{order.remark}}" placeholder="请输入备注信息" />
+      </view>
+    </view>
+    
+    <view class="form-actions">
+      <button class="btn-cancel" bindtap="cancelAdd">取消</button>
+      <button class="btn-submit" bindtap="submitForm">保存</button>
+    </view>
+  </view>
+  </block>
+</view> 

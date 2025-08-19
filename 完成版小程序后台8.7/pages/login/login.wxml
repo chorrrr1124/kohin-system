@@ -1,0 +1,67 @@
+<view class="login-container">
+  <view class="login-header">
+    <view class="logo">📦</view>
+    <text class="title">产品库存管理系统</text>
+    <text class="subtitle">请输入您的登录信息</text>
+  </view>
+  
+  <view class="login-form">
+    <view class="input-group">
+      <view class="input-label">
+        <text class="label-icon">👤</text>
+        <text class="label-text">账号</text>
+      </view>
+      <input 
+        class="input-field" 
+        type="text" 
+        placeholder="请输入账号"
+        value="{{username}}"
+        bindinput="onUsernameInput"
+        maxlength="20"
+      />
+    </view>
+    
+    <view class="input-group">
+      <view class="input-label">
+        <text class="label-icon">🔒</text>
+        <text class="label-text">密码</text>
+      </view>
+      <input 
+        class="input-field" 
+        type="{{showPassword ? 'text' : 'password'}}" 
+        placeholder="请输入密码"
+        value="{{password}}"
+        bindinput="onPasswordInput"
+        maxlength="50"
+      />
+      <view class="password-toggle" bindtap="togglePassword">
+        <text class="toggle-icon">{{showPassword ? '🙈' : '👁️'}}</text>
+      </view>
+    </view>
+    
+    <button 
+      class="login-btn {{canLogin ? 'active' : 'disabled'}}" 
+      bindtap="onLogin"
+      disabled="{{!canLogin}}"
+    >
+      登录
+    </button>
+    
+    <view class="login-tips">
+      <text class="tip-text">💡 请联系管理员获取登录账号</text>
+    </view>
+  </view>
+</view>
+
+<!-- 自定义弹窗 -->
+<custom-modal
+  show="{{showModal}}"
+  title="{{modalTitle}}"
+  content="{{modalContent}}"
+  showCancel="{{showCancel}}"
+  confirmText="{{confirmText}}"
+  cancelText="{{cancelText}}"
+  bind:confirm="onModalConfirm"
+  bind:cancel="onModalCancel"
+  bind:close="onModalClose"
+></custom-modal> 

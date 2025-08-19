@@ -1,0 +1,9 @@
+{
+  "name": "syncUser",
+  "version": "1.0.0",
+  "description": "Upsert user info in users collection by _openid",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "^3.0.1"
+  }
+} 

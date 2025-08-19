@@ -1,0 +1,115 @@
+<!--pages/profile/profile.wxml-->
+<view class="profile-container">
+  <!-- 顶部标题栏 -->
+  <view class="header">
+    <text class="title">柠檬茶就喝丘大叔</text>
+    <view class="header-actions">
+      <text class="dots">···</text>
+      <view class="scan-icon">⊙</view>
+    </view>
+  </view>
+
+  <!-- 登录按钮（未登录时显示） -->
+  <view wx:if="{{!isLoggedIn}}" class="login-section">
+    <button class="login-button" bindtap="onOneClickLogin">微信一键登录</button>
+    <button class="login-button" open-type="getUserInfo" bindgetuserinfo="onGetUserProfile">授权头像昵称</button>
+  </view>
+
+  <!-- 用户信息卡片 -->
+  <view class="user-card">
+    <!-- 用户头像区域 -->
+    <view class="user-avatar-section">
+      <image class="user-avatar" src="{{userInfo.avatar}}" mode="aspectFill"></image>
+    </view>
+    
+    <!-- 用户信息区域 -->
+    <view class="user-info-section">
+      <!-- 问候语和VIP -->
+      <view class="user-greeting">
+        <text class="greeting-text">HI,{{userInfo.nickName}}</text>
+        <view class="vip-badge" wx:if="{{userInfo.vipLevel}}">
+          <text class="vip-text">VIP{{userInfo.vipLevel}}</text>
+        </view>
+      </view>
+      
+      <!-- 积分和优惠券 -->
+      <view class="user-stats">
+        <view class="stat-item">
+          <text class="stat-value">{{userInfo.points}}</text>
+          <text class="stat-label">积分</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{userInfo.coupons}}</text>
+          <text class="stat-label">优惠券</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 二维码图标 -->
+    <view class="qr-code">
+      <view class="qr-icon">⊞</view>
+    </view>
+  </view>
+
+  <!-- 成长值进度条 -->
+  <view class="growth-section">
+    <view class="growth-info">
+      <text class="growth-label">当前成长值</text>
+      <text class="growth-value">{{growthInfo.current}}/{{growthInfo.total}}</text>
+    </view>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: 100%"></view>
+    </view>
+    <text class="growth-level">{{growthInfo.level}}</text>
+  </view>
+
+  <!-- 积分过期提醒 -->
+  <view class="notice-banner">
+    <text class="notice-text">近7天内无积分过期</text>
+  </view>
+
+  <!-- 我的功能 -->
+  <view class="function-section">
+    <text class="section-title">我的功能</text>
+    
+    <view class="function-grid">
+      <block wx:for="{{functionMenus}}" wx:key="index" wx:for-index="rowIndex">
+        <view class="function-row">
+          <block wx:for="{{item}}" wx:key="path" wx:for-item="menu">
+            <view class="function-item" bindtap="onMenuTap" data-path="{{menu.path}}">
+              <image class="function-icon" src="{{menu.icon}}" mode="aspectFit"></image>
+              <text class="function-name">{{menu.name}}</text>
+            </view>
+          </block>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 心意礼卡 -->
+  <view class="gift-section">
+    <view class="gift-header">
+      <text class="section-title">心意礼卡</text>
+      <view class="view-all" bindtap="onViewAllGifts">
+        <text class="view-all-text">查看 全部</text>
+        <text class="arrow">»</text>
+      </view>
+    </view>
+    
+    <view class="gift-cards">
+      <block wx:for="{{giftCards}}" wx:key="id">
+        <view class="gift-card" bindtap="onGiftCardTap" data-id="{{item.id}}">
+          <image class="gift-image" src="{{item.image}}" mode="aspectFill"></image>
+          <view class="gift-overlay">
+            <view class="gift-price">
+              <text class="price-symbol">￥</text>
+              <text class="price-value">{{item.price}}</text>
+            </view>
+            <text class="gift-title">{{item.title}}</text>
+            <text class="gift-brand">{{item.brand}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

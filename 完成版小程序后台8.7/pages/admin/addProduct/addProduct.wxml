@@ -1,0 +1,65 @@
+<!-- pages/admin/addProduct/addProduct.wxml -->
+<view class="page">
+  <view class="section-title">{{isEdit ? '编辑产品' : '添加产品'}}</view>
+  
+  <view class="form-container">
+    <view class="form-group">
+      <view class="form-label">产品图片</view>
+      <view class="image-upload-container">
+        <view class="image-preview" wx:if="{{tempImagePath}}">
+          <image src="{{tempImagePath}}" mode="aspectFill" bindtap="previewImage"></image>
+          <view class="image-delete" catchtap="deleteImage">×</view>
+        </view>
+        <view class="image-picker" bindtap="chooseImage" wx:else>
+          <view class="image-picker-icon">+</view>
+          <view class="image-picker-text">添加图片</view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="form-group">
+      <view class="form-label">产品名称</view>
+      <input class="form-input" name="name" value="{{product.name}}" placeholder="请输入产品名称" bindinput="onFieldChange" data-field="name" />
+    </view>
+    
+    <view class="form-group">
+      <view class="form-label">品牌</view>
+      <input class="form-input" name="brand" value="{{product.brand}}" placeholder="请输入品牌" bindinput="onFieldChange" data-field="brand" />
+    </view>
+    
+    <view class="form-group">
+      <view class="form-label">类型</view>
+      <input class="form-input" name="type" value="{{product.type}}" placeholder="请输入类型" bindinput="onFieldChange" data-field="type" />
+    </view>
+    
+    <view class="form-group">
+      <view class="form-label">品类</view>
+      <input class="form-input" name="category" value="{{product.category}}" placeholder="请输入品类" bindinput="onFieldChange" data-field="category" />
+    </view>
+    
+    <view class="form-group">
+      <view class="form-label">规格</view>
+      <input class="form-input" name="specification" value="{{product.specification}}" placeholder="请输入规格" bindinput="onFieldChange" data-field="specification" />
+    </view>
+    
+    <view class="form-group">
+      <view class="form-label">库存数量</view>
+      <input class="form-input" name="stock" type="number" value="{{product.stock}}" placeholder="请输入库存数量" bindinput="onFieldChange" data-field="stock" />
+    </view>
+
+    <view class="form-group">
+      <view class="form-label">价格</view>
+      <input class="form-input" name="price" type="digit" value="{{product.price}}" placeholder="请输入价格" bindinput="onFieldChange" data-field="price" />
+    </view>
+    
+    <view class="form-group">
+      <view class="form-label">备注</view>
+      <textarea class="form-textarea" name="remark" value="{{product.remark}}" placeholder="请输入备注信息（选填）" bindinput="onFieldChange" data-field="remark"></textarea>
+    </view>
+    
+    <view class="form-buttons">
+      <button class="btn-save" type="primary" bindtap="submitForm">保存</button>
+      <button class="btn-cancel" bindtap="cancelAction">取消</button>
+    </view>
+  </view>
+</view>

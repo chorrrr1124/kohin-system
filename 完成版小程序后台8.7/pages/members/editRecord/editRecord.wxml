@@ -1,0 +1,70 @@
+<!-- pages/members/editRecord/editRecord.wxml -->
+<view class="container">
+  <view class="section-title">编辑预存记录</view>
+  
+  <view class="form-container">
+    <!-- 客户信息 -->
+    <view class="form-section">
+      <view class="form-title">客户信息</view>
+      <view class="form-item">
+        <view class="form-label">客户姓名 <text class="required">*</text></view>
+        <input class="form-input" name="customerName" value="{{record.customerName}}" placeholder="请输入客户姓名" />
+      </view>
+      <view class="form-item">
+        <view class="form-label">联系电话 <text class="required">*</text></view>
+        <input class="form-input" name="customerPhone" type="number" value="{{record.customerPhone}}" placeholder="请输入联系电话" />
+      </view>
+    </view>
+    
+    <!-- 预存信息 -->
+    <view class="form-section">
+      <view class="form-title">预存信息</view>
+      
+      <!-- 金额预存 -->
+      <block wx:if="{{record.type === 'cash'}}">
+        <view class="form-item">
+          <view class="form-label">预存金额 <text class="required">*</text></view>
+          <input class="form-input" name="amount" type="digit" value="{{record.amount}}" placeholder="请输入预存金额" />
+        </view>
+        <view class="form-item">
+          <view class="form-label">剩余金额 <text class="required">*</text></view>
+          <input class="form-input" name="balance" type="digit" value="{{record.balance}}" placeholder="请输入剩余金额" />
+        </view>
+      </block>
+      
+      <!-- 产品预存 -->
+      <block wx:else>
+        <view class="form-item">
+          <view class="form-label">预存产品 <text class="required">*</text></view>
+          <picker bindchange="bindProductChange" value="{{productIndex}}" range="{{products}}">
+            <view class="picker">
+              {{products[productIndex]}}
+            </view>
+          </picker>
+        </view>
+        <view class="form-item">
+          <view class="form-label">预存数量 <text class="required">*</text></view>
+          <input class="form-input" name="quantity" type="number" value="{{record.quantity}}" placeholder="请输入预存数量" />
+        </view>
+        <view class="form-item">
+          <view class="form-label">剩余数量 <text class="required">*</text></view>
+          <input class="form-input" name="balance" type="number" value="{{record.balance}}" placeholder="请输入剩余数量" />
+        </view>
+      </block>
+    </view>
+    
+    <!-- 备注信息 -->
+    <view class="form-section">
+      <view class="form-title">备注信息</view>
+      <view class="form-item">
+        <textarea class="form-textarea" name="remark" value="{{record.remark}}" placeholder="请输入备注信息" />
+      </view>
+    </view>
+    
+    <!-- 提交按钮 -->
+    <view class="form-actions">
+      <button class="btn-cancel" bindtap="cancelEdit">取消</button>
+      <button class="btn-submit" bindtap="submitForm">保存</button>
+    </view>
+  </view>
+</view> 

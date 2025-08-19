@@ -1,0 +1,111 @@
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  padding: 20rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid #eee;
+  margin-bottom: 0;
+}
+
+/* 分类选项卡样式 */
+.category-tabs {
+  display: flex;
+  background-color: #f8f8f8;
+  border-radius: 8rpx;
+  margin: 20rpx 0;
+  overflow: hidden;
+}
+
+.category-tab {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.category-tab.active {
+  background-color: #4CAF50;
+  color: white;
+  font-weight: bold;
+}
+
+.record-list {
+  background-color: #fff;
+}
+
+.record-item {
+  padding: 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10rpx;
+}
+
+.record-product {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.record-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.record-quantity {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.empty-tip {
+  text-align: center;
+  color: #999;
+  padding: 40rpx 0;
+}
+
+.nav-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 30rpx;
+  padding: 10rpx 20rpx;
+  background-color: #fff;
+  margin-bottom: 10rpx;
+}
+
+.nav-button {
+  color: #0066FF;
+  font-size: 28rpx;
+  padding: 10rpx 20rpx;
+  border: 1rpx solid #0066FF;
+  border-radius: 30rpx;
+  text-align: center;
+}
+
+/* 添加新增样式 */
+.record-extra {
+  font-size: 24rpx;
+  color: #666;
+  margin-top: 8rpx;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.customer-info {
+  color: #0066cc;
+  margin-left: 16rpx;
+}
+
+.tip-section {
+  text-align: center;
+  margin: 30rpx 0;
+}
+
+.tip-text {
+  font-size: 24rpx;
+  color: #999;
+}
