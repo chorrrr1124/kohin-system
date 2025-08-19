@@ -1,49 +1,27 @@
 // pages/cart/cart.js
+const imageService = require('../../utils/imageService')
 Page({
   data: {
     // 选中的分类
-    selectedCategory: 1,
+    selectedCategory: 'all',
+    sectionTitle: '全部商品',
     cartCount: 0,
+    brandName: 'KOHIN',
     
-    // 分类菜单
+    // 分类菜单（初始化为默认）
     categories: [
-      { id: 1, name: '新品抢先喝', icon: '/images/placeholder.png', isNew: true },
-      { id: 2, name: '爆款柠檬茶', icon: '/images/placeholder.png', isNew: false },
-      { id: 3, name: '超大杯柠檬茶', icon: '/images/placeholder.png', isNew: false },
-      { id: 4, name: '气泡柠檬茶', icon: '/images/placeholder.png', isNew: false },
-      { id: 5, name: '甄选纯茶', icon: '/images/placeholder.png', isNew: false }
+      { id: 'all', name: '全部', icon: '/images/category/all.png' }
     ],
     
     // 商品列表
-    products: [
-      {
-        id: 1,
-        name: '醺醺瓜柠檬茶',
-        description: '夏日解暑醺醺瓜新品',
-        price: 21,
-        image: '/images/placeholder.png',
-        detail: '满杯西瓜·鲜活盛夏，当季醺醺瓜现播，入口清甜透心凉'
-      },
-      {
-        id: 2,
-        name: '醺醺瓜柠檬茶（超大杯）',
-        description: '超大杯    畅饮吃瓜超满足',
-        price: 28,
-        image: '/images/placeholder.png',
-        detail: '新鲜现榨醺醺瓜西瓜，大口果肉脆甜爆汁，夏日必备解腻神器'
-      },
-      {
-        id: 3,
-        name: '招牌柠檬茶',
-        description: '经典口味，回味无穷',
-        price: 18,
-        image: '/images/placeholder.png',
-        detail: '精选优质柠檬，手工现榨，茶香柠香完美融合'
-      }
-    ]
+    products: [],
+    allProducts: []
   },
 
   onLoad(options) {
+    if (options && options.brand) {
+      this.setData({ brandName: options.brand })
+    }
     this.loadMallData();
   },
 
@@ -52,10 +30,95 @@ Page({
   },
 
   // 加载商城数据
-  loadMallData() {
-    // 这里可以从服务器获取商品数据
-    console.log('加载商城数据');
+  async loadMallData() {
     this.updateCartCount();
+    await Promise.all([
+      this.loadCategories(),
+      this.loadProducts()
+    ])
+    this.applyCategoryFilter(this.data.selectedCategory)
+  },
+
+  // 加载分类（从 getShopProducts 的 getCategories 或独立 getCategories 获取）
+  async loadCategories() {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'getShopProducts',
+        data: { getCategories: true }
+      })
+      if (res && res.result && res.result.success && Array.isArray(res.result.categories)) {
+        const dynamicCategories = res.result.categories
+          .filter(cat => !!cat && String(cat).trim() !== '')
+          .map(cat => ({ id: cat, name: cat }))
+
+        const categories = [
+          { id: 'all', name: '全部', icon: '/images/category/all.png' },
+          ...dynamicCategories
+        ]
+        this.setData({ categories })
+        return
+      }
+    } catch (e) {
+      console.warn('getShopProducts.getCategories 失败，尝试调用独立 getCategories', e)
+    }
+
+    // 兜底：调用独立云函数 getCategories
+    try {
+      const res2 = await wx.cloud.callFunction({ name: 'getCategories', data: { limit: 100 } })
+      if (res2 && res2.result && res2.result.success && Array.isArray(res2.result.data)) {
+        const categories = [{ id: 'all', name: '全部', icon: '/images/category/all.png' }].concat(
+          res2.result.data.map(c => ({ id: c.type || c._id || c.name, name: c.name, icon: c.icon }))
+        )
+        this.setData({ categories })
+      }
+    } catch (err) {
+      console.error('获取分类失败，使用默认分类:', err)
+      this.setData({
+        categories: [ { id: 'all', name: '全部', icon: '/images/category/all.png' } ]
+      })
+    }
+  },
+
+  // 从shopProducts集合加载商品（与8.7下单一致）
+  async loadProducts(category = '') {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'getShopProducts',
+        data: { limit: 200, skip: 0, onSale: true, category: category === 'all' ? '' : category }
+      });
+
+      if (res && res.result && res.result.success) {
+        const list = (res.result.data || []).map(item => ({
+          id: item._id,
+          _id: item._id,
+          name: item.name || '未命名商品',
+          description: item.description || item.specification || '',
+          price: item.price || 0,
+          image: imageService && imageService.buildImageUrl ? imageService.buildImageUrl(item.image) : (item.image || '/images/placeholder.png'),
+          detail: item.description || '' ,
+          stock: item.stock || 0,
+          category: item.category || item.type || ''
+        }));
+
+        this.setData({ allProducts: list, products: list });
+      } else {
+        console.warn('getShopProducts 无有效数据');
+      }
+    } catch (err) {
+      console.error('加载商品失败:', err);
+      wx.showToast({ title: '网络异常，使用占位数据', icon: 'none' });
+    }
+  },
+
+  // 应用分类筛选
+  applyCategoryFilter(categoryId) {
+    const all = this.data.allProducts || []
+    if (!categoryId || categoryId === 'all') {
+      this.setData({ products: all, sectionTitle: '全部商品' })
+      return
+    }
+    const filtered = all.filter(p => p.category === categoryId)
+    this.setData({ products: filtered, sectionTitle: categoryId })
   },
 
   // 更新购物车数量
@@ -72,28 +135,20 @@ Page({
   // 选择分类
   onSelectCategory(e) {
     const categoryId = e.currentTarget.dataset.id;
-    this.setData({
-      selectedCategory: categoryId
-    });
-    
-    // 根据分类加载对应商品
-    this.loadProductsByCategory(categoryId);
-  },
+    this.setData({ selectedCategory: categoryId });
+    this.applyCategoryFilter(categoryId)
 
-  // 根据分类加载商品
-  loadProductsByCategory(categoryId) {
-    // 这里可以根据分类ID从服务器获取对应的商品
-    console.log('加载分类商品:', categoryId);
+    // 如需从后端按类分页，可切换为重新加载：
+    // this.loadProducts(categoryId)
   },
 
   // 添加到购物车
   onAddToCart(e) {
     const productId = e.currentTarget.dataset.id;
-    const product = this.data.products.find(p => p.id === productId);
+    const product = this.data.products.find(p => p.id === productId || p._id === productId);
     
     if (!product) return;
 
-    // 这里应该跳转到商品详情或规格选择页面
     wx.showModal({
       title: '选择规格',
       content: `${product.name}\n${product.description}\n¥${product.price}`,
@@ -110,15 +165,15 @@ Page({
   addToCart(product) {
     const app = getApp();
     const cartItem = {
-      _id: Date.now().toString(),
-      id: product.id,
+      _id: (product._id || product.id || Date.now().toString()),
+      id: (product.id || product._id),
       name: product.name,
       description: product.description,
       price: product.price,
       image: product.image,
       quantity: 1,
       selected: true,
-      stock: 999
+      stock: product.stock || 999
     };
 
     app.addToCart(cartItem);
@@ -134,7 +189,6 @@ Page({
   onSearch(e) {
     const keyword = e.detail.value;
     console.log('搜索关键词:', keyword);
-    // 实现搜索逻辑
   },
 
   // 跳转到购物车

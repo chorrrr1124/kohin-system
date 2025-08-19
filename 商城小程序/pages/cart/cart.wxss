@@ -13,25 +13,6 @@
   border-bottom: 1rpx solid #eee;
 }
 
-.search-left {
-  display: flex;
-  align-items: center;
-  margin-right: 20rpx;
-}
-
-.logo-icon {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 50%;
-  margin-right: 15rpx;
-}
-
-.app-name {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
-}
-
 .search-box {
   flex: 1;
   display: flex;
@@ -65,166 +46,6 @@
   height: 50rpx;
   margin-left: 20rpx;
   opacity: 0.7;
-}
-
-/* 店铺信息 */
-.store-info {
-  background-color: #fff;
-  padding: 30rpx;
-  margin-bottom: 20rpx;
-}
-
-.store-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20rpx;
-}
-
-.store-name {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
-  margin-right: 10rpx;
-}
-
-.arrow-icon {
-  width: 30rpx;
-  height: 30rpx;
-  opacity: 0.5;
-}
-
-.store-details {
-  display: flex;
-  align-items: center;
-  margin-bottom: 30rpx;
-}
-
-.location-icon {
-  width: 30rpx;
-  height: 30rpx;
-  margin-right: 10rpx;
-  opacity: 0.6;
-}
-
-.store-distance {
-  font-size: 28rpx;
-  color: #666;
-  margin-right: 30rpx;
-}
-
-.store-status {
-  font-size: 28rpx;
-  color: #999;
-}
-
-.delivery-options {
-  display: flex;
-  margin-bottom: 30rpx;
-}
-
-.delivery-btn {
-  padding: 15rpx 40rpx;
-  border-radius: 50rpx;
-  font-size: 28rpx;
-  margin-right: 20rpx;
-  background-color: #f0f0f0;
-  color: #666;
-}
-
-.delivery-btn.active {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.store-expand {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.store-expand-text {
-  font-size: 28rpx;
-  color: #333;
-}
-
-.expand-action {
-  font-size: 26rpx;
-  color: #666;
-}
-
-.expand-arrow {
-  width: 24rpx;
-  height: 24rpx;
-  opacity: 0.5;
-}
-
-/* 优惠卡片 */
-.promotion-card {
-  background: linear-gradient(135deg, #4CAF50, #2E7D32);
-  margin: 0 30rpx 20rpx;
-  border-radius: 20rpx;
-  padding: 30rpx;
-  display: flex;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.promotion-content {
-  flex: 1;
-  color: white;
-}
-
-.promotion-text {
-  margin-bottom: 20rpx;
-}
-
-.promotion-title {
-  font-size: 40rpx;
-  font-weight: bold;
-  display: block;
-  margin-bottom: 10rpx;
-}
-
-.promotion-subtitle {
-  font-size: 24rpx;
-  opacity: 0.8;
-  display: block;
-  margin-bottom: 20rpx;
-}
-
-.promotion-btn {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2rpx solid white;
-  border-radius: 50rpx;
-  padding: 10rpx 30rpx;
-  font-size: 26rpx;
-}
-
-.promotion-prices {
-  margin-top: 20rpx;
-}
-
-.price-item {
-  margin-bottom: 10rpx;
-}
-
-.price {
-  font-size: 32rpx;
-  font-weight: bold;
-  margin-right: 10rpx;
-}
-
-.price-desc {
-  font-size: 24rpx;
-  opacity: 0.8;
-}
-
-.promotion-image {
-  width: 150rpx;
-  height: 150rpx;
-  border-radius: 20rpx;
 }
 
 /* 分类导航 */
@@ -274,6 +95,12 @@
   border-radius: 3rpx;
 }
 
+/* 品牌名称样式 */
+.brand-name {
+  font-size: 32rpx;
+  color: #111;
+}
+
 /* 内容区域 */
 .content-wrapper {
   display: flex;
@@ -290,15 +117,28 @@
 .menu-item {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: center;
+  height: 140rpx;
   padding: 30rpx 20rpx;
   position: relative;
   background-color: #f8f8f8;
+  box-sizing: border-box;
 }
 
 .menu-item.active {
   background-color: #fff;
-  border-right: 4rpx solid #4CAF50;
+}
+
+.menu-item.active::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6rpx;
+  height: 100%;
+  background-color: #4CAF50;
+  border-radius: 6rpx;
 }
 
 .menu-badge {
@@ -317,73 +157,22 @@
   width: 60rpx;
   height: 60rpx;
   margin-bottom: 10rpx;
+  margin-left: 0;
 }
 
 .menu-text {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: #333;
-  text-align: center;
-  line-height: 1.2;
+  text-align: left;
+  line-height: 36rpx;
+  max-width: 160rpx;
+  word-break: break-all;
 }
 
 /* 商品区域 */
 .products-area {
   flex: 1;
   padding: 30rpx;
-}
-
-/* VIP横幅 */
-.vip-banner {
-  background: linear-gradient(135deg, #4CAF50, #66BB6A);
-  border-radius: 20rpx;
-  padding: 30rpx;
-  margin-bottom: 30rpx;
-  display: flex;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.vip-content {
-  flex: 1;
-  color: white;
-}
-
-.vip-tag {
-  background-color: rgba(255, 255, 255, 0.2);
-  padding: 8rpx 16rpx;
-  border-radius: 20rpx;
-  font-size: 20rpx;
-  margin-bottom: 15rpx;
-  display: inline-block;
-}
-
-.vip-text {
-  font-size: 28rpx;
-  margin-bottom: 10rpx;
-  display: block;
-}
-
-.vip-offer {
-  font-size: 36rpx;
-  font-weight: bold;
-  margin-bottom: 20rpx;
-  display: block;
-}
-
-.vip-btn {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2rpx solid white;
-  border-radius: 50rpx;
-  padding: 15rpx 40rpx;
-  font-size: 26rpx;
-}
-
-.vip-image {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 15rpx;
 }
 
 /* 商品列表 */

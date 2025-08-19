@@ -1,3 +1,4 @@
+@import "/miniprogram_npm/tdesign-miniprogram/common/style/index.wxss";
 /* 全局样式 */
 page {
   background-color: #f5f5f5;
