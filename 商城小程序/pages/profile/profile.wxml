@@ -9,12 +9,6 @@
     </view>
   </view>
 
-  <!-- 登录按钮（未登录时显示） -->
-  <view wx:if="{{!isLoggedIn}}" class="login-section">
-    <button class="login-button" bindtap="onOneClickLogin">微信一键登录</button>
-    <button class="login-button" open-type="getUserInfo" bindgetuserinfo="onGetUserProfile">授权头像昵称</button>
-  </view>
-
   <!-- 用户信息卡片 -->
   <view class="user-card">
     <!-- 用户头像区域 -->

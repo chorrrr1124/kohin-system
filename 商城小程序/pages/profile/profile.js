@@ -5,9 +5,6 @@ Page({
    * 页面的初始数据
    */
   data: {
-    // 登录状态
-    isLoggedIn: false,
-
     // 用户信息
     userInfo: {
       nickName: '游客',
@@ -64,21 +61,19 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad() {
-    this.refreshLoginState()
+    this.refreshUserInfo()
   },
 
-  refreshLoginState() {
+  refreshUserInfo() {
     const app = getApp()
     const openid = wx.getStorageSync('openid') || app?.globalData?.openid
     const userInfo = wx.getStorageSync('userInfo') || app?.globalData?.userInfo
-    const isLoggedIn = !!openid
-    this.setData({ isLoggedIn })
 
     if (userInfo) {
       this.setData({ userInfo: { ...this.data.userInfo, ...userInfo } })
     }
 
-    if (isLoggedIn) {
+    if (openid) {
       // 按 _openid 拉取用户数据，确保隔离
       wx.cloud.database().collection('users').where({ _openid: openid }).get().then(res => {
         if (res.data && res.data.length) {
@@ -96,41 +91,6 @@ Page({
           })
         }
       })
-    }
-  },
-
-  // 一键登录（获取 openid 并 upsert 用户）
-  async onOneClickLogin() {
-    const app = getApp()
-    try {
-      const { openid } = await app.loginWithOpenId()
-      this.setData({ isLoggedIn: true })
-      // 立即刷新用户信息
-      this.refreshLoginState()
-      wx.showToast({ title: '登录成功', icon: 'success' })
-    } catch (e) {
-      wx.showToast({ title: '登录失败', icon: 'none' })
-    }
-  },
-
-  // 授权头像昵称（可选）
-  async onGetUserProfile(e) {
-    try {
-      // 新版建议使用 wx.getUserProfile，这里兼容 open-type 回调
-      let userInfo = e.detail && e.detail.userInfo
-      if (!userInfo && wx.getUserProfile) {
-        const prof = await wx.getUserProfile({ desc: '用于完善用户资料' })
-        userInfo = prof.userInfo
-      }
-      if (!userInfo) return
-
-      const app = getApp()
-      await app.syncUserToDatabase(userInfo)
-      wx.setStorageSync('userInfo', userInfo)
-      this.setData({ userInfo: { ...this.data.userInfo, ...userInfo } })
-      wx.showToast({ title: '授权成功', icon: 'success' })
-    } catch (e) {
-      wx.showToast({ title: '授权失败', icon: 'none' })
     }
   },
 

@@ -336,11 +336,3 @@
   display: block;
 }
 
-.login-section {
-  padding: 16px;
-}
-.login-button {
-  margin: 8px 0;
-  background-color: #4CAF50;
-  color: #fff;
-}
