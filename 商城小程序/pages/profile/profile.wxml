@@ -2,57 +2,90 @@
 <view class="profile-container">
 
 
-  <!-- 用户信息卡片 -->
-  <view class="user-card">
-    <!-- 用户头像区域 -->
-    <view class="user-avatar-section">
-      <image class="user-avatar" src="{{userInfo.avatar}}" mode="aspectFill"></image>
+  <!-- 会员卡 -->
+  <view class="member-card">
+    <!-- 会员码按钮 -->
+    <view class="member-code-btn">
+      <text class="member-code-text">会员码</text>
     </view>
     
-    <!-- 用户信息区域 -->
-    <view class="user-info-section">
-      <!-- 问候语和VIP -->
-      <view class="user-greeting">
-        <text class="greeting-text">HI,{{userInfo.nickName}}</text>
-        <view class="vip-badge" wx:if="{{userInfo.vipLevel}}">
-          <text class="vip-text">VIP{{userInfo.vipLevel}}</text>
+    <!-- 用户身份和等级 -->
+    <view class="user-identity">
+      <view class="identity-left">
+        <view class="level-badge">
+          <text class="level-text">LV {{userInfo.vipLevel || 2}}</text>
         </view>
+        <text class="user-title">资深养鸭人</text>
+        <view class="progress-section">
+          <view class="progress-bar">
+            <view class="progress-fill" style="width: {{(growthInfo.current / growthInfo.total) * 100}}%"></view>
+          </view>
+          <text class="progress-text">{{growthInfo.current || 170.9}}/{{growthInfo.total || 480}}</text>
+        </view>
+        <text class="upgrade-text">再获得{{(growthInfo.total || 480) - (growthInfo.current || 170.9)}}鸭力值可升级为鸭厂小财主</text>
       </view>
       
-      <!-- 积分和优惠券 -->
-      <view class="user-stats">
-        <view class="stat-item">
-          <text class="stat-value">{{userInfo.points}}</text>
-          <text class="stat-label">积分</text>
-        </view>
-        <view class="stat-item">
-          <text class="stat-value">{{userInfo.coupons}}</text>
-          <text class="stat-label">优惠券</text>
-        </view>
+      <!-- 吉祥物鸭子 -->
+      <view class="mascot-duck">
+        <text class="duck-emoji">🦆</text>
+        <text class="duck-label">EXPERT</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 已解锁权益 -->
+  <view class="benefits-section">
+    <view class="benefits-header">
+      <text class="benefits-title">已解锁{{benefitsInfo.count || 5}}项权益</text>
+      <view class="view-all-benefits">
+        <text class="view-all-text">全部权益 ></text>
       </view>
     </view>
     
-    <!-- 二维码图标 -->
-    <view class="qr-code">
-      <view class="qr-icon">⊞</view>
+    <view class="benefits-grid">
+      <view class="benefit-item">
+        <view class="benefit-icon">💰</view>
+        <text class="benefit-count">x1</text>
+        <text class="benefit-name">满30-5元券</text>
+      </view>
+      <view class="benefit-item">
+        <view class="benefit-icon">🥤</view>
+        <text class="benefit-count">x1</text>
+        <text class="benefit-name">招牌饮品8...</text>
+      </view>
+      <view class="benefit-item">
+        <view class="benefit-icon">🪙</view>
+        <text class="benefit-count">x2</text>
+        <text class="benefit-name">鸭币翻倍</text>
+      </view>
+      <view class="benefit-item">
+        <view class="benefit-icon">🎂</view>
+        <text class="benefit-count">x1</text>
+        <text class="benefit-name">生日单品8...</text>
+      </view>
     </view>
   </view>
 
-  <!-- 成长值进度条 -->
-  <view class="growth-section">
-    <view class="growth-info">
-      <text class="growth-label">当前成长值</text>
-      <text class="growth-value">{{growthInfo.current}}/{{growthInfo.total}}</text>
+  <!-- 我的资产 -->
+  <view class="assets-section">
+    <text class="section-title">我的资产</text>
+    <view class="assets-grid">
+      <view class="asset-item">
+        <text class="asset-value">{{userInfo.coupons || 5}}</text>
+        <text class="asset-label">优惠券</text>
+        <view class="asset-icon">🎫</view>
+      </view>
+      <view class="asset-item">
+        <text class="asset-value">{{userInfo.balance || 0}}</text>
+        <text class="asset-label">余额</text>
+        <view class="asset-icon">💴</view>
+      </view>
+      <view class="asset-item">
+        <text class="asset-value">{{userInfo.points || 59.9}}</text>
+        <text class="asset-label">积分</text>
+        <view class="asset-icon">🪙</view>
+      </view>
     </view>
-    <view class="progress-bar">
-      <view class="progress-fill" style="width: 100%"></view>
-    </view>
-    <text class="growth-level">{{growthInfo.level}}</text>
-  </view>
-
-  <!-- 积分过期提醒 -->
-  <view class="notice-banner">
-    <text class="notice-text">近7天内无积分过期</text>
   </view>
 
   <!-- 我的功能 -->

@@ -17,9 +17,14 @@ Page({
     
     // 成长值信息
     growthInfo: {
-      current: 0,
-      total: 0,
-      level: 'Lv0'
+      current: 170.9,
+      total: 480,
+      level: 'Lv2'
+    },
+    
+    // 权益信息
+    benefitsInfo: {
+      count: 5
     },
     
     // 功能菜单
