@@ -1,13 +1,6 @@
 <!--pages/profile/profile.wxml-->
 <view class="profile-container">
-  <!-- 顶部标题栏 -->
-  <view class="header">
-    <text class="title">柠檬茶就喝丘大叔</text>
-    <view class="header-actions">
-      <text class="dots">···</text>
-      <view class="scan-icon">⊙</view>
-    </view>
-  </view>
+
 
   <!-- 用户信息卡片 -->
   <view class="user-card">
