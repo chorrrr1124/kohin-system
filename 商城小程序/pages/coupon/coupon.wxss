@@ -77,10 +77,18 @@
 
 .coupon-footer {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 12rpx 24rpx;
   border-top: 1rpx solid #f0f0f0;
+  gap: 20rpx;
+}
+
+.coupon-footer .usage-rules {
+  flex-shrink: 0;
+}
+
+.coupon-footer .coupon-actions {
+  flex: 1;
 }
 
 .usage-rules {
@@ -88,6 +96,8 @@
   align-items: center;
   font-size: 22rpx;
   color: #666;
+  width: 120rpx;
+  flex-shrink: 0;
 }
 
 .arrow {
@@ -104,6 +114,9 @@
 .coupon-actions {
   display: flex;
   gap: 10rpx;
+  flex: 1;
+  min-width: 0;
+  justify-content: space-between;
 }
 
 .action-btn {
@@ -117,14 +130,14 @@
 }
 
 .share-btn {
-  width: 160rpx;
+  flex: 6;
   background: #fff;
   color: #4caf50;
   border-color: #4caf50;
 }
 
 .use-btn {
-  width: 220rpx;
+  flex: 8;
   background: #4caf50;
   color: #fff;
   border-color: #4caf50;
