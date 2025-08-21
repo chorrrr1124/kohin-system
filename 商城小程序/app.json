@@ -48,5 +48,7 @@
   "cloud": true,
   "style": "v2",
   "sitemapLocation": "sitemap.json",
-  "usingComponents": {}
+  "usingComponents": {
+    "benefit-card": "/components/benefit-card/benefit-card"
+  }
 }

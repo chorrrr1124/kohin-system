@@ -34,37 +34,12 @@
   </view>
 
   <!-- 已解锁权益 -->
-  <view class="benefits-section">
-    <view class="benefits-header">
-      <text class="benefits-title">已解锁{{benefitsInfo.count || 5}}项权益</text>
-      <view class="view-all-benefits">
-        <text class="view-all-text">全部权益 ></text>
-      </view>
-    </view>
-    
-    <view class="benefits-grid">
-      <view class="benefit-item">
-        <view class="benefit-icon">💰</view>
-        <text class="benefit-count">x1</text>
-        <text class="benefit-name">满30-5元券</text>
-      </view>
-      <view class="benefit-item">
-        <view class="benefit-icon">🥤</view>
-        <text class="benefit-count">x1</text>
-        <text class="benefit-name">招牌饮品8...</text>
-      </view>
-      <view class="benefit-item">
-        <view class="benefit-icon">🪙</view>
-        <text class="benefit-count">x2</text>
-        <text class="benefit-name">鸭币翻倍</text>
-      </view>
-      <view class="benefit-item">
-        <view class="benefit-icon">🎂</view>
-        <text class="benefit-count">x1</text>
-        <text class="benefit-name">生日单品8...</text>
-      </view>
-    </view>
-  </view>
+  <benefit-card 
+    benefits-count="{{benefitsInfo.count}}"
+    benefits-list="{{benefitsInfo.items}}"
+    bind:benefittap="onBenefitTap"
+    bind:viewall="onViewAllBenefits">
+  </benefit-card>
 
   <!-- 我的资产 -->
   <view class="assets-section">

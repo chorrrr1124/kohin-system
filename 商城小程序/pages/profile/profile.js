@@ -24,7 +24,49 @@ Page({
     
     // 权益信息
     benefitsInfo: {
-      count: 5
+      count: 5,
+      items: [
+        {
+          id: 1,
+          icon: '💰',
+          count: 1,
+          name: '满30-5元券',
+          description: '满30元可用',
+          status: 'active'
+        },
+        {
+          id: 2,
+          icon: '🥤',
+          count: 1,
+          name: '招牌饮品8折',
+          description: '限时优惠',
+          status: 'active'
+        },
+        {
+          id: 3,
+          icon: '🪙',
+          count: 2,
+          name: '鸭币翻倍',
+          description: '积分翻倍',
+          status: 'active'
+        },
+        {
+          id: 4,
+          icon: '🎂',
+          count: 1,
+          name: '生日单品8折',
+          description: '生日专享',
+          status: 'active'
+        },
+        {
+          id: 5,
+          icon: '🎁',
+          count: 1,
+          name: '新用户专享券',
+          description: '新用户专享',
+          status: 'active'
+        }
+      ]
     },
     
     // 功能菜单
@@ -119,6 +161,39 @@ Page({
     wx.navigateTo({
       url: `/pages/gift-detail/gift-detail?id=${id}`
     });
+  },
+
+  /**
+   * 权益点击事件
+   */
+  onBenefitTap(e) {
+    const { benefit } = e.currentTarget.dataset;
+    wx.showToast({
+      title: `查看${benefit.name}`,
+      icon: 'none',
+      duration: 1500
+    });
+    
+    // 这里可以跳转到权益详情页面
+    // wx.navigateTo({
+    //   url: `/pages/benefit-detail/benefit-detail?id=${benefit.id}`
+    // });
+  },
+
+  /**
+   * 查看全部权益
+   */
+  onViewAllBenefits() {
+    wx.showToast({
+      title: '查看全部权益',
+      icon: 'none',
+      duration: 1500
+    });
+    
+    // 这里可以跳转到权益列表页面
+    // wx.navigateTo({
+    //   url: '/pages/benefits/benefits'
+    // });
   },
 
   /**

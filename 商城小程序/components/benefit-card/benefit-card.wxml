@@ -1,0 +1,19 @@
+<!--components/benefit-card/benefit-card.wxml-->
+<view class="benefit-card">
+  <view class="benefit-header">
+    <text class="benefit-title">已解锁{{benefitsCount}}项权益</text>
+    <view class="view-all-btn" bindtap="onViewAll">
+      <text class="view-all-text">全部权益 ></text>
+    </view>
+  </view>
+  
+  <view class="benefits-grid">
+    <block wx:for="{{benefitsList}}" wx:key="id">
+      <view class="benefit-item" bindtap="onBenefitTap" data-benefit="{{item}}">
+        <view class="benefit-icon">{{item.icon}}</view>
+        <text class="benefit-count">x{{item.count}}</text>
+        <text class="benefit-name">{{item.name}}</text>
+      </view>
+    </block>
+  </view>
+</view> 
