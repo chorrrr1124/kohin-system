@@ -88,7 +88,8 @@
 }
 
 .coupon-footer .coupon-actions {
-  flex: 1;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .usage-rules {
@@ -112,9 +113,8 @@
 }
 
 .coupon-actions {
-  display: flex;
+  display: inline-flex;
   gap: 10rpx;
-  flex: 1;
   min-width: 0;
   justify-content: flex-end;
 }
