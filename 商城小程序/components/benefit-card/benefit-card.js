@@ -4,10 +4,22 @@ Component({
    * 组件的属性列表
    */
   properties: {
+    // 会员等级
+    memberLevel: {
+      type: Number,
+      value: 2
+    },
+    // 会员等级名称
+    memberLevelName: {
+      type: String,
+      value: '资深养鸭人'
+    },
+    // 权益数量
     benefitsCount: {
       type: Number,
       value: 5
     },
+    // 权益列表
     benefitsList: {
       type: Array,
       value: []

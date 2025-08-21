@@ -1,40 +1,34 @@
 <!--pages/profile/profile.wxml-->
 <view class="profile-container">
-
-
-  <!-- 会员卡 -->
-  <view class="member-card">
-    <!-- 会员码按钮 -->
-    <view class="member-code-btn">
-      <text class="member-code-text">会员码</text>
-    </view>
-    
-    <!-- 用户身份和等级 -->
-    <view class="user-identity">
-      <view class="identity-left">
-        <view class="level-badge">
-          <text class="level-text">LV {{userInfo.vipLevel || 2}}</text>
-        </view>
-        <text class="user-title">资深养鸭人</text>
-        <view class="progress-section">
-          <view class="progress-bar">
-            <view class="progress-fill" style="width: {{(growthInfo.current / growthInfo.total) * 100}}%"></view>
-          </view>
-          <text class="progress-text">{{growthInfo.current || 170.9}}/{{growthInfo.total || 480}}</text>
-        </view>
-        <text class="upgrade-text">再获得{{(growthInfo.total || 480) - (growthInfo.current || 170.9)}}鸭力值可升级为鸭厂小财主</text>
+  <!-- 会员信息区域 -->
+  <view class="member-section">
+    <view class="member-header">
+      <view class="member-code">
+        <text class="code-text">会员码</text>
+        <text class="level-text">LV 2</text>
       </view>
-      
-      <!-- 吉祥物鸭子 -->
-      <view class="mascot-duck">
-        <text class="duck-emoji">🦆</text>
-        <text class="duck-label">EXPERT</text>
+      <view class="member-title">
+        <text class="title-text">资深养鸭人</text>
+      </view>
+      <view class="progress-section">
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{progressPercent}}%"></view>
+        </view>
+        <text class="progress-text">{{progressText}}</text>
+      </view>
+    </view>
+    <view class="member-avatar">
+      <image class="duck-image" src="{{duckImage}}" mode="aspectFit"></image>
+      <view class="expert-badge">
+        <text class="badge-text">EXPERT</text>
       </view>
     </view>
   </view>
 
-  <!-- 已解锁权益 -->
+  <!-- 权益卡片 -->
   <benefit-card 
+    member-level="{{memberInfo.level}}"
+    member-level-name="{{memberInfo.levelName}}"
     benefits-count="{{benefitsInfo.count}}"
     benefits-list="{{benefitsInfo.items}}"
     bind:benefittap="onBenefitTap"

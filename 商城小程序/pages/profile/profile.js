@@ -5,102 +5,39 @@ Page({
    * 页面的初始数据
    */
   data: {
-    // 用户信息
-    userInfo: {
-      nickName: '游客',
-      avatar: '/images/placeholder.png',
-      vipLevel: 0,
-      points: 0,
-      balance: 0,
-      coupons: 0
+    // 会员信息
+    memberInfo: {
+      level: 2,
+      levelName: '资深养鸭人'
     },
-    
-    // 成长值信息
-    growthInfo: {
-      current: 170.9,
-      total: 480,
-      level: 'Lv2'
-    },
-    
+    // 进度信息
+    progressPercent: 35.6, // 170.9/480 * 100
+    progressText: '170.9/480',
+    // 鸭子图片
+    duckImage: '/images/duck.png',
     // 权益信息
     benefitsInfo: {
       count: 5,
       items: [
-        {
-          id: 1,
-          icon: '💰',
-          count: 1,
-          name: '满30-5元券',
-          description: '满30元可用',
-          status: 'active'
-        },
-        {
-          id: 2,
-          icon: '🥤',
-          count: 1,
-          name: '招牌饮品8折',
-          description: '限时优惠',
-          status: 'active'
-        },
-        {
-          id: 3,
-          icon: '🪙',
-          count: 2,
-          name: '鸭币翻倍',
-          description: '积分翻倍',
-          status: 'active'
-        },
-        {
-          id: 4,
-          icon: '🎂',
-          count: 1,
-          name: '生日单品8折',
-          description: '生日专享',
-          status: 'active'
-        },
-        {
-          id: 5,
-          icon: '🎁',
-          count: 1,
-          name: '新用户专享券',
-          description: '新用户专享',
-          status: 'active'
-        }
+        { id: 1, icon: '💰', name: '满30-5元券', count: 1 },
+        { id: 2, icon: '🥤', name: '招牌饮品8折', count: 1 },
+        { id: 3, icon: '🪙', name: '鸭币翻倍', count: 2 },
+        { id: 4, icon: '🎂', name: '生日单品8折', count: 1 },
+        { id: 5, icon: '🎁', name: '新用户专享券', count: 1 }
       ]
     },
-    
-    // 功能菜单
-    functionMenus: [
-      [
-        { icon: '/images/placeholder.png', name: '学生认证', path: '/pages/student-auth/student-auth' },
-        { icon: '/images/placeholder.png', name: '企业团购', path: '/pages/enterprise/enterprise' },
-        { icon: '/images/placeholder.png', name: '兑换中心', path: '/pages/exchange/exchange' },
-        { icon: '/images/placeholder.png', name: '在线客服', path: '/pages/service/service' }
-      ],
-      [
-        { icon: '/images/placeholder.png', name: '礼品卡', path: '/pages/gift-card/gift-card' },
-        { icon: '/images/placeholder.png', name: '完善信息', path: '/pages/sale-info/sale-info' },
-        { icon: '/images/placeholder.png', name: '我的地址', path: '/pages/address/address' },
-        { icon: '/images/placeholder.png', name: '更多', path: '/pages/more/more' }
-      ]
-    ],
-    
-    // 心意礼卡
-    giftCards: [
-      {
-        id: 1,
-        title: '春风。',
-        price: 30,
-        brand: '丘大叔UNCLE丘',
-        image: '/images/placeholder.png'
-      },
-      {
-        id: 2,
-        title: '拼面。',
-        price: 66,
-        brand: '丘大叔UNCLE丘',
-        image: '/images/placeholder.png'
-      }
+    // 资产信息
+    assetsInfo: {
+      coupons: 5,
+      balance: 0,
+      points: 59.9
+    },
+    // 功能列表
+    functionList: [
+      { id: 1, name: '学生认证', icon: '🎓' },
+      { id: 2, name: '企业团购', icon: '🏢' },
+      { id: 3, name: '兑换中心', icon: '🔄' },
+      { id: 4, name: '在线客服', icon: '💬' }
     ]
   },
 

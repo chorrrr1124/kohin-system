@@ -1,16 +1,21 @@
-# 权益卡片组件 (Benefit Card)
+# 权益卡片组件 (Benefit Card Component)
 
-## 组件介绍
+## 功能特性
 
-权益卡片组件用于展示用户的已解锁权益，包含权益数量、权益列表和"全部权益"按钮。
+### 🎯 会员等级显示
+- 在权益卡片顶部显示会员等级信息
+- 支持自定义等级数字和等级名称
+- 红色渐变等级标签，突出显示
 
-## 组件特性
+### 🎁 权益展示
+- 支持5个权益项的动态展示
+- 每个权益项包含图标、数量和名称
+- 响应式网格布局，自动适应不同屏幕尺寸
 
-- 🎨 红色边框设计，符合设计要求
-- 📱 响应式网格布局，支持5个权益项
-- 🎯 交互式权益项，支持点击事件
-- 🔄 平滑的动画效果和悬停状态
-- 📊 动态数据绑定
+### 🎨 视觉设计
+- 红色边框突出显示，符合设计要求
+- 渐变背景和阴影效果
+- 悬停和点击动画效果
 
 ## 使用方法
 
@@ -24,90 +29,85 @@
 }
 ```
 
-### 2. 在WXML中使用
+### 2. 在页面模板中使用
 
 ```xml
 <benefit-card 
-  benefits-count="{{benefitsCount}}"
-  benefits-list="{{benefitsList}}"
+  member-level="{{memberInfo.level}}"
+  member-level-name="{{memberInfo.levelName}}"
+  benefits-count="{{benefitsInfo.count}}"
+  benefits-list="{{benefitsInfo.items}}"
   bind:benefittap="onBenefitTap"
   bind:viewall="onViewAllBenefits">
 </benefit-card>
 ```
 
-### 3. 在JS中处理事件
+### 3. 在页面脚本中设置数据
 
 ```javascript
 Page({
   data: {
-    benefitsCount: 5,
-    benefitsList: [
-      {
-        id: 1,
-        icon: '💰',
-        count: 1,
-        name: '满30-5元券',
-        description: '满30元可用',
-        status: 'active'
-      }
-      // ... 更多权益项
-    ]
-  },
-
-  // 权益点击事件
-  onBenefitTap(e) {
-    const { benefit } = e.detail;
-    console.log('点击权益:', benefit);
-  },
-
-  // 查看全部权益
-  onViewAllBenefits() {
-    console.log('查看全部权益');
+    memberInfo: {
+      level: 2,
+      levelName: '资深养鸭人'
+    },
+    benefitsInfo: {
+      count: 5,
+      items: [
+        { id: 1, icon: '💰', name: '满30-5元券', count: 1 },
+        { id: 2, icon: '🥤', name: '招牌饮品8折', count: 1 },
+        { id: 3, icon: '🪙', name: '鸭币翻倍', count: 2 },
+        { id: 4, icon: '🎂', name: '生日单品8折', count: 1 },
+        { id: 5, icon: '🎁', name: '新用户专享券', count: 1 }
+      ]
+    }
   }
-});
+})
 ```
 
-## 属性说明
+## 组件属性
 
 | 属性名 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
-| benefitsCount | Number | 5 | 已解锁权益数量 |
-| benefitsList | Array | [] | 权益列表数据 |
+| memberLevel | Number | 2 | 会员等级数字 |
+| memberLevelName | String | '资深养鸭人' | 会员等级名称 |
+| benefitsCount | Number | 5 | 权益总数 |
+| benefitsList | Array | [] | 权益列表数组 |
 
-## 事件说明
-
-| 事件名 | 说明 | 回调参数 |
-|--------|------|----------|
-| benefittap | 权益项点击事件 | { benefit: 权益对象 } |
-| viewall | 全部权益按钮点击事件 | 无 |
-
-## 权益数据结构
+## 权益项数据结构
 
 ```javascript
 {
-  id: 1,                    // 权益ID
-  icon: '💰',               // 权益图标（emoji）
-  count: 1,                 // 权益数量
-  name: '满30-5元券',       // 权益名称
-  description: '满30元可用', // 权益描述
-  status: 'active'          // 权益状态
+  id: Number,        // 权益ID
+  icon: String,      // 权益图标（emoji或图片路径）
+  name: String,      // 权益名称
+  count: Number      // 权益数量
 }
 ```
 
+## 事件
+
+| 事件名 | 说明 | 回调参数 |
+|--------|------|----------|
+| benefittap | 权益项点击事件 | event.detail.benefit: 被点击的权益项 |
+| viewall | 全部权益按钮点击事件 | 无 |
+
 ## 样式定制
 
-组件使用CSS变量，可以通过以下方式定制样式：
+组件使用CSS变量，可以通过以下方式自定义样式：
 
 ```css
-/* 自定义主题色 */
+/* 自定义权益卡片样式 */
 .benefit-card {
-  --primary-color: #ff4757;
-  --secondary-color: #4a5a3a;
+  --border-color: #ff4757;
+  --border-radius: 16rpx;
+  --shadow-color: rgba(255, 71, 87, 0.15);
 }
 ```
 
 ## 注意事项
 
-1. 权益列表建议最多显示5个，超出部分可以通过"全部权益"按钮查看
-2. 图标建议使用emoji，确保跨平台兼容性
-3. 组件已包含响应式设计，支持不同屏幕尺寸 
+1. 权益列表最多支持5个权益项
+2. 会员等级标签使用红色渐变设计
+3. 组件会自动处理权益项的布局和响应式显示
+4. 建议使用emoji图标以保持跨平台兼容性 

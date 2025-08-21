@@ -1,5 +1,13 @@
 <!--components/benefit-card/benefit-card.wxml-->
 <view class="benefit-card">
+  <!-- 会员等级信息 -->
+  <view class="member-info">
+    <view class="member-level">
+      <text class="level-tag">LV {{memberLevel}}</text>
+      <text class="level-name">{{memberLevelName}}</text>
+    </view>
+  </view>
+  
   <view class="benefit-header">
     <text class="benefit-title">已解锁{{benefitsCount}}项权益</text>
     <view class="view-all-btn" bindtap="onViewAll">

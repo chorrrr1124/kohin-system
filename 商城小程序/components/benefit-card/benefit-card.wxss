@@ -1,11 +1,42 @@
 /* components/benefit-card/benefit-card.wxss */
+
+/* 会员等级信息样式 */
+.member-info {
+  padding: 16rpx 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.member-level {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.level-tag {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: white;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 107, 0.3);
+}
+
+.level-name {
+  color: #2c3e50;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+/* 权益卡片主体样式 */
 .benefit-card {
   background: white;
-  border: 2rpx solid #ff4757;
-  border-radius: 20rpx;
-  padding: 30rpx;
+  border: 3rpx solid #ff4757;
+  border-radius: 16rpx;
   margin: 20rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  box-shadow: 0 4rpx 20rpx rgba(255, 71, 87, 0.15);
 }
 
 .benefit-header {
