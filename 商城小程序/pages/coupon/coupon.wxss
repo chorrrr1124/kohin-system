@@ -117,12 +117,14 @@
 }
 
 .share-btn {
+  width: 160rpx;
   background: #fff;
   color: #4caf50;
   border-color: #4caf50;
 }
 
 .use-btn {
+  width: 220rpx;
   background: #4caf50;
   color: #fff;
   border-color: #4caf50;
