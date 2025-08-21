@@ -32,11 +32,10 @@
 /* 权益卡片主体样式 */
 .benefit-card {
   background: white;
-  border: 3rpx solid #ff4757;
   border-radius: 16rpx;
   margin: 20rpx;
   overflow: hidden;
-  box-shadow: 0 4rpx 20rpx rgba(255, 71, 87, 0.15);
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
 }
 
 .benefit-header {
@@ -44,6 +43,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 25rpx;
+  padding: 0 20rpx;
 }
 
 .benefit-title {
@@ -70,6 +70,7 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 15rpx;
+  padding: 0 20rpx 20rpx 20rpx;
 }
 
 .benefit-item {
@@ -121,4 +122,4 @@
   display: block;
   font-weight: 500;
   margin-top: 8rpx;
-} 
+}

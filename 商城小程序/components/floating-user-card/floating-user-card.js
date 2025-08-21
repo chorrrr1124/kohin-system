@@ -111,6 +111,13 @@ Component({
       }
     },
 
+    // 优惠券点击事件
+    onCouponTap() {
+      wx.navigateTo({
+        url: '/pages/coupon/coupon',
+      });
+    },
+
     // 功能按钮点击事件
     onFunctionTap(e) {
       const functionType = e.currentTarget.dataset.type;

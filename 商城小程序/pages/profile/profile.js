@@ -19,11 +19,11 @@ Page({
     benefitsInfo: {
       count: 5,
       items: [
-        { id: 1, icon: '💰', name: '满30-5元券', count: 1 },
-        { id: 2, icon: '🥤', name: '招牌饮品8折', count: 1 },
-        { id: 3, icon: '🪙', name: '鸭币翻倍', count: 2 },
-        { id: 4, icon: '🎂', name: '生日单品8折', count: 1 },
-        { id: 5, icon: '🎁', name: '新用户专享券', count: 1 }
+        { id: 1, icon: '💰', name: '会员专享优惠券', count: 1 },
+        { id: 2, icon: '🥤', name: '饮品会员折扣', count: 1 },
+        { id: 3, icon: '🪙', name: '会员积分翻倍', count: 2 },
+        { id: 4, icon: '🎂', name: '生日会员特权', count: 1 },
+        { id: 5, icon: '🎁', name: '会员专属礼品', count: 1 }
       ]
     },
     // 资产信息

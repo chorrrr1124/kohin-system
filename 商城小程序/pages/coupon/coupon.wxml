@@ -1,0 +1,48 @@
+<!-- pages/coupon/coupon.wxml -->
+<view class="coupon-container">
+  <!-- 优惠券列表 -->
+  <view class="coupon-list">
+    <block wx:for="{{coupons}}" wx:key="id" wx:for-index="index">
+      <view class="coupon-item {{item.isUsed ? 'used' : ''}}">
+        <view class="coupon-main">
+          <view class="coupon-left">
+            <view class="coupon-value">
+              <text class="value">{{item.value}}</text>
+              <text class="unit">{{item.unit}}</text>
+            </view>
+            <view class="coupon-condition">{{item.condition}}</view>
+          </view>
+          <view class="coupon-right">
+            <view class="coupon-title">{{item.title}}</view>
+            <view class="coupon-validity">{{item.validity}}</view>
+          </view>
+        </view>
+        <view class="coupon-footer">
+          <view class="usage-rules" bindtap="toggleRules" data-index="{{index}}">
+            <text>使用规则</text>
+            <image class="arrow {{item.rulesExpanded ? 'expanded' : ''}}" src="/images/icons/arrow-down.png" />
+          </view>
+          <view class="coupon-actions">
+            <button class="action-btn share-btn" data-index="{{index}}" bindtap="shareCoupon">送好友</button>
+            <button class="action-btn use-btn" data-index="{{index}}" bindtap="useCoupon">去使用</button>
+          </view>
+        </view>
+        <view class="rules-details {{item.rulesExpanded ? 'expanded' : ''}}">
+          <block wx:for="{{item.rules}}" wx:key="*this" wx:for-item="rule">
+            <view class="rule-item">{{rule}}</view>
+          </block>
+        </view>
+        <view class="used-stamp" wx:if="{{item.isUsed}}">已使用</view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 空状态提示 -->
+  <view class="empty-state" wx:if="{{coupons.length === 0}}">
+    <image class="empty-image" src="/images/empty-coupon.png" mode="aspectFit"></image>
+    <text class="empty-text">暂无优惠券</text>
+    <view class="get-coupon-btn" bindtap="onGetCoupon">
+      <text>去领券</text>
+    </view>
+  </view>
+</view>

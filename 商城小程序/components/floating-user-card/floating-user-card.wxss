@@ -83,6 +83,7 @@
   align-items: center;
   min-width: 60rpx;
   justify-content: flex-start;
+  padding: 10rpx;
 }
 
 .stat-label {
@@ -224,4 +225,4 @@
   box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.2);
   transform: translateY(-4rpx);
   transition: all 0.3s ease;
-} 
+}

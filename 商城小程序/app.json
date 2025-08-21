@@ -3,7 +3,8 @@
     "pages/index/index",
     "pages/cart/cart",
     "pages/profile/profile",
-    "pages/orders/orders"
+    "pages/orders/orders",
+    "pages/coupon/coupon"
   ],
   "window": {
     "backgroundTextStyle": "light",
