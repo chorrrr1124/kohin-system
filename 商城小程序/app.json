@@ -4,8 +4,7 @@
     "pages/cart/cart",
     "pages/profile/profile",
     "pages/orders/orders",
-    "pages/coupon/coupon",
-    "pages/coupon-center/coupon-center"
+    "pages/coupon/coupon"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -19,6 +18,7 @@
     "selectedColor": "#4CAF50",
     "backgroundColor": "#ffffff",
     "borderStyle": "black",
+    "height": "65px",
     "list": [
       {
         "pagePath": "pages/index/index",
@@ -28,7 +28,7 @@
       },
       {
         "pagePath": "pages/cart/cart",
-        "text": "商城",
+        "text": "购物车",
         "iconPath": "images/icons/cart.png",
         "selectedIconPath": "images/icons/cart-active.png"
       },

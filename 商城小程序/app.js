@@ -49,7 +49,7 @@ App({
   },
 
   // 检查登录状态
-  checkLoginStatus() {
+  async checkLoginStatus() {
     const userInfo = wx.getStorageSync('userInfo');
     const openid = wx.getStorageSync('openid');
     
@@ -57,6 +57,14 @@ App({
       this.globalData.userInfo = userInfo;
       this.globalData.openid = openid;
       this.globalData.isLoggedIn = true;
+      
+      // 可以在这里调用云函数同步最新的用户信息
+      this.syncUserToDatabase(userInfo).catch(err => {
+        console.error('同步用户信息失败:', err);
+      });
+      
+      // 初始化购物车（登录后）
+      await this.initCart();
     } else {
       // 检查是否是首次启动（没有任何登录信息）
       const hasEverLoggedIn = wx.getStorageSync('hasEverLoggedIn');
@@ -66,17 +74,31 @@ App({
         setTimeout(() => {
           this.showLoginModal();
         }, 1000);
+        // 未登录状态下初始化空购物车
+        this.initCart();
       } else {
         // 之前登录过，尝试静默获取 openid
-        this.loginWithOpenId().catch(err => {
+        try {
+          await this.loginWithOpenId();
+          // 登录成功后初始化购物车
+          await this.initCart();
+        } catch (err) {
           console.warn('静默登录失败，将弹出授权登录弹窗', err);
           // 延迟一下再弹出登录弹窗，确保小程序完全启动
           setTimeout(() => {
             this.showLoginModal();
           }, 1000);
-        });
+          // 未登录状态下初始化空购物车
+          this.initCart();
+        }
       }
     }
+    
+    // 初始化地址
+    this.initAddresses();
+    
+    // 初始化测试订单数据
+    this.initTestOrders();
   },
 
   // 一键静默登录（无需先授权用户信息）
@@ -191,52 +213,119 @@ App({
   },
 
   // 购物车管理
-  addToCart(product) {
-    const existingItem = this.globalData.cart.find(item => item._id === product._id);
-    
-    if (existingItem) {
-      existingItem.quantity += product.quantity || 1;
-    } else {
-      this.globalData.cart.push({
-        ...product,
-        quantity: product.quantity || 1,
-        selected: true // 默认选中
+  async addToCart(product) {
+    if (!this.globalData.openid) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
       });
+      return;
     }
 
-    // 保存到本地存储
-    wx.setStorageSync('cart', this.globalData.cart);
-    
-    // 更新购物车角标
-    this.updateCartBadge();
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'updateUserCart',
+        data: {
+          action: 'add',
+          productData: {
+            ...product,
+            quantity: product.quantity || 1
+          }
+        }
+      });
+
+      if (result.result.ok) {
+        this.globalData.cart = result.result.data;
+        this.updateCartBadge();
+        wx.showToast({
+          title: '已添加到购物车',
+          icon: 'success'
+        });
+      } else {
+        wx.showToast({
+          title: result.result.message || '添加失败',
+          icon: 'none'
+        });
+      }
+    } catch (error) {
+      console.error('添加到购物车失败:', error);
+      wx.showToast({
+        title: '添加失败',
+        icon: 'none'
+      });
+    }
   },
 
   // 从购物车移除商品
-  removeFromCart(productId) {
-    this.globalData.cart = this.globalData.cart.filter(item => item._id !== productId);
-    wx.setStorageSync('cart', this.globalData.cart);
-    this.updateCartBadge();
+  async removeFromCart(productId) {
+    if (!this.globalData.openid) {
+      return;
+    }
+
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'updateUserCart',
+        data: {
+          action: 'remove',
+          productId: productId
+        }
+      });
+
+      if (result.result.ok) {
+        this.globalData.cart = result.result.data;
+        this.updateCartBadge();
+      }
+    } catch (error) {
+      console.error('移除商品失败:', error);
+    }
   },
 
   // 更新购物车数量
-  updateCartQuantity(productId, quantity) {
-    const item = this.globalData.cart.find(item => item._id === productId);
-    if (item) {
-      if (quantity <= 0) {
-        this.removeFromCart(productId);
-      } else {
-        item.quantity = quantity;
-        wx.setStorageSync('cart', this.globalData.cart);
+  async updateCartQuantity(productId, quantity) {
+    if (!this.globalData.openid) {
+      return;
+    }
+
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'updateUserCart',
+        data: {
+          action: 'updateQuantity',
+          productId: productId,
+          quantity: quantity
+        }
+      });
+
+      if (result.result.ok) {
+        this.globalData.cart = result.result.data;
         this.updateCartBadge();
       }
+    } catch (error) {
+      console.error('更新数量失败:', error);
     }
   },
 
   // 清空购物车
-  clearCart() {
-    this.globalData.cart = [];
-    wx.setStorageSync('cart', this.globalData.cart);
-    this.updateCartBadge();
+  async clearCart() {
+    if (!this.globalData.openid) {
+      return;
+    }
+
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'updateUserCart',
+        data: {
+          action: 'clear'
+        }
+      });
+
+      if (result.result.ok) {
+        this.globalData.cart = result.result.data;
+        this.updateCartBadge();
+      }
+    } catch (error) {
+      console.error('清空购物车失败:', error);
+    }
   },
 
   // 更新购物车角标
@@ -280,12 +369,29 @@ App({
   },
 
   // 初始化购物车
-  initCart() {
-    const cart = wx.getStorageSync('cart');
-    if (cart) {
-      this.globalData.cart = cart;
+  async initCart() {
+    // 从云端加载用户购物车数据
+    if (!this.globalData.openid) {
+      this.globalData.cart = [];
       this.updateCartBadge();
+      return;
     }
+
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'getUserCart'
+      });
+
+      if (result.result.ok) {
+        this.globalData.cart = result.result.data || [];
+      } else {
+        this.globalData.cart = [];
+      }
+    } catch (error) {
+      console.error('加载购物车数据失败:', error);
+      this.globalData.cart = [];
+    }
+    this.updateCartBadge();
     
     // 初始化默认地址
     this.initAddresses();

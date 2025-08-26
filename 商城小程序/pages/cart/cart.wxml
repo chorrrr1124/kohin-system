@@ -1,63 +1,73 @@
 <!--pages/cart/cart.wxml-->
-<view class="mall-container">
-  <!-- 顶部搜索栏 -->
-  <view class="search-header">
-    <view class="search-box">
-      <image class="search-icon" src="/images/placeholder.png"></image>
-      <input class="search-input" placeholder="搜索商品" />
-    </view>
-    <view class="header-right">
-      <image class="menu-icon" src="/images/placeholder.png"></image>
-      <image class="scan-icon" src="/images/placeholder.png"></image>
-    </view>
+<view class="cart-container">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-text">加载中...</view>
   </view>
 
-  <!-- 品牌名称 -->
-  <view class="category-nav">
-    <view class="category-tabs">
-      <view class="category-tab active">
-        <text class="tab-text brand-name">{{brandName}}</text>
-        <view class="tab-indicator"></view>
-      </view>
-    </view>
+  <!-- 购物车为空 -->
+  <view wx:elif="{{isEmpty}}" class="empty-cart">
+    <image class="empty-icon" src="/images/empty-cart.svg" mode="aspectFit"></image>
+    <text class="empty-text">购物车空空如也</text>
+    <text class="empty-desc">快去挑选心仪的商品吧</text>
+    <button class="continue-shopping-btn" bindtap="continueShopping">去购物</button>
   </view>
 
-  <!-- 侧边分类菜单 -->
-  <view class="content-wrapper">
-    <view class="side-menu">
-      <view wx:for="{{categories}}" wx:key="id" class="menu-item {{selectedCategory === item.id ? 'active' : ''}}" bindtap="onSelectCategory" data-id="{{item.id}}">
-        
-        <image wx:if="{{item.icon}}" class="menu-icon" src="{{item.icon}}"></image>
-        <text class="menu-text">{{item.name}}</text>
-      </view>
+  <!-- 购物车有商品 -->
+  <view wx:else class="cart-content">
+    <!-- 购物车头部 -->
+    <view class="cart-header">
+      <text class="cart-title">购物车</text>
+      <text class="cart-count">({{cartItems.length}}件商品)</text>
+      <text class="clear-cart" bindtap="clearCart">清空</text>
     </view>
 
-    <!-- 商品区域 -->
-    <view class="products-area">
-      <!-- 商品列表 -->
-      <view class="products-list">
-        <view class="section-title">{{sectionTitle}}</view>
-        <view wx:for="{{products}}" wx:key="id" class="product-item">
-          <image class="product-image" src="{{item.image}}"></image>
-          <view class="product-info">
-            <text class="product-name">{{item.name}}</text>
-            <text class="product-desc">{{item.description}}</text>
-            <view class="product-footer">
-              <text class="product-price">¥{{item.price}}</text>
-              <button class="add-to-cart-btn" bindtap="onAddToCart" data-id="{{item.id}}">选规格</button>
-            </view>
+    <!-- 商品列表 -->
+    <scroll-view class="cart-list" scroll-y="true">
+      <view class="cart-item" wx:for="{{cartItems}}" wx:key="_id" wx:for-index="index">
+        <!-- 选择框 -->
+        <view class="item-checkbox" bindtap="toggleSelection" data-index="{{index}}">
+          <icon type="{{item.selected !== false ? 'success' : 'circle'}}" size="20" color="{{item.selected !== false ? '#07c160' : '#c9c9c9'}}"></icon>
+        </view>
+
+        <!-- 商品图片 -->
+        <image class="item-image" src="{{item.image || '/images/placeholder.png'}}" mode="aspectFill"></image>
+
+        <!-- 商品信息 -->
+        <view class="item-info">
+          <text class="item-name">{{item.name}}</text>
+          <text class="item-desc">{{item.description}}</text>
+          <view class="item-price-row">
+            <text class="item-price">¥{{item.price}}</text>
+            <text class="item-stock">库存{{item.stock || 999}}</text>
           </view>
         </view>
-      </view>
-    </view>
-  </view>
 
-  <!-- 底部购物车提示 -->
-  <view class="cart-footer" wx:if="{{cartCount > 0}}">
-    <view class="cart-info">
-      <text class="cart-badge">{{cartCount}}张可用</text>
-      <image class="cart-icon" src="/images/placeholder.png"></image>
-      <text class="cart-text">暂无商品，请先选购</text>
+        <!-- 数量控制 -->
+        <view class="quantity-control">
+          <view class="quantity-btn decrease" bindtap="decreaseQuantity" data-index="{{index}}">
+            <text class="btn-text">-</text>
+          </view>
+          <text class="quantity-text">{{item.quantity}}</text>
+          <view class="quantity-btn increase" bindtap="increaseQuantity" data-index="{{index}}">
+            <text class="btn-text">+</text>
+          </view>
+        </view>
+
+        <!-- 删除按钮 -->
+        <view class="item-delete" bindtap="removeItem" data-index="{{index}}">
+          <icon type="clear" size="20" color="#999"></icon>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 底部结算栏 -->
+    <view class="cart-footer">
+      <view class="total-info">
+        <text class="total-label">合计：</text>
+        <text class="total-price">¥{{totalPrice}}</text>
+      </view>
+      <button class="checkout-btn" bindtap="goToCheckout">去结算</button>
     </view>
   </view>
 </view>

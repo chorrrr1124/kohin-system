@@ -226,26 +226,26 @@ Page({
     try {
       wx.showLoading({ title: '添加中...' })
 
-      const res = await wx.cloud.callFunction({
-        name: 'addToCart',
-        data: {
-          productId: this.data.product._id,
-          quantity: this.data.quantity,
-          specs: this.data.selectedSpecs
-        }
-      })
-
-      if (res.result.success) {
-        wx.showToast({
-          title: '已添加到购物车',
-          icon: 'success'
-        })
-      } else {
-        wx.showToast({
-          title: res.result.message || '添加失败',
-          icon: 'none'
-        })
+      const app = getApp()
+      const cartItem = {
+        _id: this.data.product._id,
+        id: this.data.product._id,
+        name: this.data.product.name,
+        description: this.data.product.description,
+        price: this.data.currentPrice || this.data.product.price,
+        image: this.data.product.image,
+        quantity: this.data.quantity,
+        selected: true,
+        stock: this.data.currentStock || this.data.product.stock,
+        specs: this.data.selectedSpecs
       }
+
+      await app.addToCart(cartItem)
+      
+      wx.showToast({
+        title: '已添加到购物车',
+        icon: 'success'
+      })
     } catch (error) {
       console.error('添加购物车失败:', error)
       wx.showToast({

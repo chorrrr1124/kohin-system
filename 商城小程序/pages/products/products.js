@@ -363,18 +363,7 @@ Page({
    */
   updateCartCount: function() {
     const app = getApp()
-    const cartCount = app.getCartCount()
-    
-    if (cartCount > 0) {
-      wx.setTabBarBadge({
-        index: 2,
-        text: cartCount.toString()
-      })
-    } else {
-      wx.removeTabBarBadge({
-        index: 2
-      })
-    }
+    app.updateCartBadge()
   },
 
   /**
@@ -425,4 +414,4 @@ Page({
       }
     }
   }
-}) 
+})

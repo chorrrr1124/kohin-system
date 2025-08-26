@@ -27,14 +27,17 @@ exports.main = async (event, context) => {
     // 5. 创建分类集合
     await createCategoriesCollection()
     
-    // 6. 插入初始数据
+    // 6. 创建系统管理集合
+    await createSystemCollections()
+    
+    // 7. 插入初始数据
     await insertInitialData()
     
     return {
       success: true,
       message: '数据库初始化成功',
       data: {
-        collections: ['coupons', 'users', 'orders', 'products', 'categories']
+        collections: ['coupons', 'users', 'orders', 'products', 'categories', 'operationLogs', 'systemSettings']
       }
     }
     
@@ -50,25 +53,45 @@ exports.main = async (event, context) => {
 
 // 创建优惠券集合
 async function createCouponsCollection() {
+  // 创建小程序端优惠券集合（用户领取的优惠券）
   try {
-    // 创建集合（如果不存在）
+    console.log('正在创建coupons集合...')
     await db.createCollection('coupons')
-    
-    // 设置集合权限
-    await db.collection('coupons').createIndex({
-      data: {
-        _openid: 1,
-        status: 1,
-        expireTime: 1
-      }
-    })
-    
-    console.log('优惠券集合创建成功')
+    console.log('小程序优惠券集合创建成功')
   } catch (error) {
-    if (error.message.includes('collection already exists')) {
-      console.log('优惠券集合已存在')
+    console.log('coupons集合创建错误:', error.message)
+    if (error.message.includes('collection already exists') || error.message.includes('Table exist')) {
+      console.log('coupons集合已存在')
     } else {
-      throw error
+      console.error('coupons集合创建失败:', error)
+    }
+  }
+  
+  // 创建Web端管理系统优惠券集合（优惠券模板）
+  try {
+    console.log('正在创建mall_coupons集合...')
+    await db.createCollection('mall_coupons')
+    console.log('Web端优惠券集合创建成功')
+  } catch (error) {
+    console.log('mall_coupons集合创建错误:', error.message)
+    if (error.message.includes('collection already exists') || error.message.includes('Table exist')) {
+      console.log('mall_coupons集合已存在')
+    } else {
+      console.error('mall_coupons集合创建失败:', error)
+    }
+  }
+  
+  // 创建用户优惠券关联集合
+  try {
+    console.log('正在创建user_coupons集合...')
+    await db.createCollection('user_coupons')
+    console.log('用户优惠券关联集合创建成功')
+  } catch (error) {
+    console.log('user_coupons集合创建错误:', error.message)
+    if (error.message.includes('collection already exists') || error.message.includes('Table exist')) {
+      console.log('user_coupons集合已存在')
+    } else {
+      console.error('user_coupons集合创建失败:', error)
     }
   }
 }
@@ -76,17 +99,12 @@ async function createCouponsCollection() {
 // 创建用户集合
 async function createUsersCollection() {
   try {
+    console.log('正在创建users集合...')
     await db.createCollection('users')
-    
-    await db.collection('users').createIndex({
-      data: {
-        _openid: 1
-      }
-    })
-    
     console.log('用户集合创建成功')
   } catch (error) {
-    if (error.message.includes('collection already exists')) {
+    console.log('用户集合创建错误:', error.message)
+    if (error.message.includes('collection already exists') || error.message.includes('Table exist')) {
       console.log('用户集合已存在')
     } else {
       throw error
@@ -97,19 +115,12 @@ async function createUsersCollection() {
 // 创建订单集合
 async function createOrdersCollection() {
   try {
+    console.log('正在创建orders集合...')
     await db.createCollection('orders')
-    
-    await db.collection('orders').createIndex({
-      data: {
-        _openid: 1,
-        status: 1,
-        createTime: 1
-      }
-    })
-    
     console.log('订单集合创建成功')
   } catch (error) {
-    if (error.message.includes('collection already exists')) {
+    console.log('订单集合创建错误:', error.message)
+    if (error.message.includes('collection already exists') || error.message.includes('Table exist')) {
       console.log('订单集合已存在')
     } else {
       throw error
@@ -120,18 +131,12 @@ async function createOrdersCollection() {
 // 创建商品集合
 async function createProductsCollection() {
   try {
+    console.log('正在创建products集合...')
     await db.createCollection('products')
-    
-    await db.collection('products').createIndex({
-      data: {
-        categoryId: 1,
-        status: 1
-      }
-    })
-    
     console.log('商品集合创建成功')
   } catch (error) {
-    if (error.message.includes('collection already exists')) {
+    console.log('商品集合创建错误:', error.message)
+    if (error.message.includes('collection already exists') || error.message.includes('Table exist')) {
       console.log('商品集合已存在')
     } else {
       throw error
@@ -142,19 +147,35 @@ async function createProductsCollection() {
 // 创建分类集合
 async function createCategoriesCollection() {
   try {
+    console.log('正在创建categories集合...')
     await db.createCollection('categories')
-    
-    await db.collection('categories').createIndex({
-      data: {
-        status: 1,
-        sort: 1
-      }
-    })
-    
     console.log('分类集合创建成功')
   } catch (error) {
-    if (error.message.includes('collection already exists')) {
+    console.log('分类集合创建错误:', error.message)
+    if (error.message.includes('collection already exists') || error.message.includes('Table exist')) {
       console.log('分类集合已存在')
+    } else {
+      throw error
+    }
+  }
+}
+
+// 创建系统管理集合
+async function createSystemCollections() {
+  try {
+    // 创建操作日志集合
+    console.log('正在创建operationLogs集合...')
+    await db.createCollection('operationLogs')
+    console.log('操作日志集合创建成功')
+    
+    // 创建系统设置集合
+    console.log('正在创建systemSettings集合...')
+    await db.createCollection('systemSettings')
+    console.log('系统设置集合创建成功')
+  } catch (error) {
+    console.log('系统集合创建错误:', error.message)
+    if (error.message.includes('collection already exists') || error.message.includes('Table exist')) {
+      console.log('系统管理集合已存在')
     } else {
       throw error
     }
@@ -221,4 +242,4 @@ async function insertInitialData() {
     console.log('插入初始数据时出错:', error.message)
     // 不抛出错误，因为数据可能已经存在
   }
-} 
+}

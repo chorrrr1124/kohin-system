@@ -1,0 +1,16 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- 购物车主体 -->
+  <rect x="40" y="80" width="120" height="80" rx="8" fill="none" stroke="#ddd" stroke-width="3"/>
+  
+  <!-- 购物车手柄 -->
+  <path d="M40 80 L30 60 L20 60" fill="none" stroke="#ddd" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- 购物车轮子 -->
+  <circle cx="60" cy="180" r="8" fill="#ddd"/>
+  <circle cx="140" cy="180" r="8" fill="#ddd"/>
+  
+  <!-- 空状态装饰线条 -->
+  <line x1="70" y1="100" x2="130" y2="100" stroke="#f0f0f0" stroke-width="2"/>
+  <line x1="70" y1="120" x2="110" y2="120" stroke="#f0f0f0" stroke-width="2"/>
+  <line x1="70" y1="140" x2="120" y2="140" stroke="#f0f0f0" stroke-width="2"/>
+</svg>
