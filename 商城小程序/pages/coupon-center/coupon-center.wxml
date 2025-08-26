@@ -1,0 +1,76 @@
+<!--pages/coupon-center/coupon-center.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <view class="header-title">优惠券中心</view>
+    <view class="header-subtitle">精选优惠券，等你来领</view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 优惠券列表 -->
+  <view wx:elif="{{coupons.length > 0}}" class="coupon-list">
+    <view 
+      wx:for="{{coupons}}" 
+      wx:key="_id" 
+      class="coupon-item"
+      data-id="{{item._id}}"
+      data-name="{{item.name}}"
+      bindtap="viewCouponDetail"
+    >
+      <!-- 优惠券左侧信息 -->
+      <view class="coupon-left">
+        <view class="coupon-value">
+          <text wx:if="{{item.type === 'fixed'}}" class="value-symbol">¥</text>
+          <text class="value-number">{{item.value}}</text>
+          <text wx:if="{{item.type === 'percentage'}}" class="value-unit">%</text>
+        </view>
+        <view class="coupon-condition">
+          {{item.minAmount > 0 ? '满' + item.minAmount + '元可用' : '无门槛'}}
+        </view>
+      </view>
+
+      <!-- 优惠券右侧信息 -->
+      <view class="coupon-right">
+        <view class="coupon-name">{{item.name}}</view>
+        <view class="coupon-desc">{{item.description || '本券不可与其他优惠同享'}}</view>
+        <view class="coupon-validity">
+          {{item.startTime ? formatDate(item.startTime) : '立即'}} - {{item.endTime ? formatDate(item.endTime) : '永不过期'}}
+        </view>
+        
+        <!-- 领取按钮 -->
+        <button 
+          class="claim-btn"
+          data-id="{{item._id}}"
+          data-name="{{item.name}}"
+          bindtap="claimCoupon"
+          catchtap="claimCoupon"
+        >
+          立即领取
+        </button>
+      </view>
+
+      <!-- 优惠券装饰元素 -->
+      <view class="coupon-decoration">
+        <view class="decoration-circle circle-left"></view>
+        <view class="decoration-circle circle-right"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:else class="empty-state">
+    <view class="empty-icon">🎫</view>
+    <view class="empty-text">暂无可用优惠券</view>
+    <view class="empty-subtext">请稍后再来看看吧</view>
+  </view>
+
+  <!-- 底部提示 -->
+  <view class="bottom-tips">
+    <text class="tips-text">优惠券领取后可在"我的优惠券"中查看</text>
+  </view>
+</view> 

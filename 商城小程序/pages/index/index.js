@@ -9,11 +9,11 @@ Page({
 
     userInfo: {
       nickName: '张程僖',
-      avatarUrl: 'data:image/svg+xml;charset=utf-8,%3Csvg width="80" height="80" xmlns="http://www.w3.org/2000/svg"%3E%3Ccircle cx="40" cy="40" r="40" fill="%234CAF50"/%3E%3Ctext x="40" y="50" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle" dominant-baseline="middle"%3E张%3C/text%3E%3C/svg%3E',
-      points: 288,
+      avatarUrl: 'data:image/svg+xml;charset=utf-8,%3Csvg width="80" height="80" xmlns="http://www.w3.org/2000/svg"%3E%3Ccircle cx="40" height="80" xmlns="http://www.w3.org/2000/svg"%3E%3Ccircle cx="40" cy="40" r="40" fill="%234CAF50"/%3E%3Ctext x="40" y="50" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle" dominant-baseline="middle"%3E张%3C/text%3E%3C/svg%3E',
+      points: 0,
       balance: 0,
       coupons: 0,
-      vipLevel: 6
+      vipLevel: 0
     },
     promoData: {
       title: '夏日消暑·就喝「丘大叔」',
@@ -258,6 +258,26 @@ Page({
   // 刷新用户信息
   refreshUserInfo() {
     this.loadUserInfo();
+    this.loadUserCouponCount();
+  },
+
+  // 加载用户优惠券数量
+  loadUserCouponCount() {
+    wx.cloud.callFunction({
+      name: 'getUserCouponCount',
+      success: (res) => {
+        console.log('获取优惠券数量成功:', res);
+        if (res.result.success) {
+          this.setData({
+            'userInfo.coupons': res.result.data
+          });
+        }
+      },
+      fail: (error) => {
+        console.error('获取优惠券数量失败:', error);
+        // 失败时保持默认值
+      }
+    });
   },
 
   // 促销购买点击
@@ -600,7 +620,6 @@ Page({
       }
     }
   },
-
 
 
 

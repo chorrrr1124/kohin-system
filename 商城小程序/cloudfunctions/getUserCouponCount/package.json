@@ -1,0 +1,9 @@
+{
+  "name": "getUserCouponCount",
+  "version": "1.0.0",
+  "description": "获取用户可用优惠券数量",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+} 

@@ -1,0 +1,25 @@
+{
+  "envId": "kohin-1327524326",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "getCosSts",
+      "runtime": "Nodejs16.13",
+      "memorySize": 128,
+      "timeout": 10,
+      "triggers": []
+    },
+    {
+      "name": "uploadImageToCos",
+      "runtime": "Nodejs16.13",
+      "memorySize": 256,
+      "timeout": 30,
+      "triggers": []
+    }
+  ],
+  "static": {
+    "root": "./web7.27/miniprogram-admin/dist",
+    "index": "index.html",
+    "error": "index.html"
+  }
+} 

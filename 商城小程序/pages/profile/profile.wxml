@@ -39,8 +39,8 @@
   <view class="assets-section">
     <text class="section-title">我的资产</text>
     <view class="assets-grid">
-      <view class="asset-item">
-        <text class="asset-value">{{userInfo.coupons || 5}}</text>
+      <view class="asset-item" bindtap="onCouponTap">
+        <text class="asset-value">{{userInfo.coupons || 0}}</text>
         <text class="asset-label">优惠券</text>
         <view class="asset-icon">🎫</view>
       </view>

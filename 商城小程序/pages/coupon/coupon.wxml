@@ -1,7 +1,20 @@
 <!-- pages/coupon/coupon.wxml -->
 <view class="coupon-container">
+  <!-- 加载状态 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 错误状态 -->
+  <view class="error-state" wx:elif="{{hasError}}">
+    <image class="error-image" src="/images/placeholder.png" mode="aspectFit"></image>
+    <text class="error-text">{{errorMessage}}</text>
+    <button class="retry-btn" bindtap="onRetry">重试</button>
+  </view>
+
   <!-- 优惠券列表 -->
-  <view class="coupon-list">
+  <view class="coupon-list" wx:elif="{{coupons.length > 0}}">
     <block wx:for="{{coupons}}" wx:key="id" wx:for-index="index">
       <view class="coupon-item {{item.isUsed ? 'used' : ''}}">
         <view class="coupon-main">
@@ -17,14 +30,18 @@
             <view class="coupon-validity">{{item.validity}}</view>
           </view>
         </view>
-        <view class="coupon-footer">
-          <view class="usage-rules" bindtap="toggleRules" data-index="{{index}}">
-            <text>使用规则</text>
-            <image class="arrow {{item.rulesExpanded ? 'expanded' : ''}}" src="/images/icons/arrow-down.png" />
-          </view>
-          <view class="coupon-actions">
-            <button class="action-btn share-btn" data-index="{{index}}" bindtap="shareCoupon">送好友</button>
-            <button class="action-btn use-btn" data-index="{{index}}" bindtap="useCoupon">去使用</button>
+        <!-- 操作按钮区域 -->
+        <view class="action-buttons">
+          <button class="rules-toggle" bindtap="toggleRules" data-index="{{index}}">
+            使用规则 {{item.rulesExpanded ? '▲' : '▼'}}
+          </button>
+          <view class="button-group">
+            <button class="coupon-btn share-btn" bindtap="shareCoupon" data-index="{{index}}">
+              送好友
+            </button>
+            <button class="coupon-btn use-btn" bindtap="useCoupon" data-index="{{index}}">
+              去使用
+            </button>
           </view>
         </view>
         <view class="rules-details {{item.rulesExpanded ? 'expanded' : ''}}">
@@ -38,8 +55,8 @@
   </view>
 
   <!-- 空状态提示 -->
-  <view class="empty-state" wx:if="{{coupons.length === 0}}">
-    <image class="empty-image" src="/images/empty-coupon.png" mode="aspectFit"></image>
+  <view class="empty-state" wx:elif="{{!loading && !hasError && coupons.length === 0}}">
+    <image class="empty-image" src="/images/placeholder.png" mode="aspectFit"></image>
     <text class="empty-text">暂无优惠券</text>
     <view class="get-coupon-btn" bindtap="onGetCoupon">
       <text>去领券</text>

@@ -1,0 +1,91 @@
+/* 小程序兼容的样式文件 */
+/* 移除 @tailwind 指令，使用标准CSS */
+
+/* 基础样式 */
+/* 小程序不支持通配符选择器，改用具体元素 */
+view, text, button, input, textarea, scroll-view, swiper, swiper-item, image, navigator, form, label, picker, radio, checkbox, switch, slider, textarea, map, canvas, open-data, web-view, ad, official-account, live-player, live-pusher, video, cover-view, cover-image, icon, progress, rich-text, movable-area, movable-view, cover-view, cover-image, slot, block, include, import, wxs {
+  box-sizing: border-box;
+}
+
+/* 按钮组件 */
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-outline {
+  border: 1px solid #4CAF50;
+  color: #4CAF50;
+  background-color: transparent;
+}
+
+/* 卡片组件 */
+.card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+}
+
+/* 输入框组件 */
+.input {
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.input:focus {
+  border-color: #4CAF50;
+  outline: none;
+}
+
+/* 标签组件 */
+.tag {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 0.375rem;
+}
+
+.tag-primary {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.tag-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.tag-warning {
+  background-color: #ffc107;
+  color: white;
+}
+
+.tag-error {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* 小程序特殊样式重置 */
+page {
+  background-color: #f5f5f5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* 隐藏滚动条 */
+::-webkit-scrollbar {
+  display: none;
+} 

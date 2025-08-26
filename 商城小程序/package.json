@@ -4,9 +4,14 @@
   "description": "商城小程序",
   "main": "app.js",
   "dependencies": {
+    "@iconify/icons-icon-park": "^1.2.11",
     "tdesign-miniprogram": "^1.6.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "tailwindcss": "^4.1.12",
+    "weapp-tailwindcss": "^4.2.5",
+    "weapp-tailwindcss-webpack-plugin": "^4.2.5"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -4,7 +4,8 @@
     "pages/cart/cart",
     "pages/profile/profile",
     "pages/orders/orders",
-    "pages/coupon/coupon"
+    "pages/coupon/coupon",
+    "pages/coupon-center/coupon-center"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -18,7 +19,6 @@
     "selectedColor": "#4CAF50",
     "backgroundColor": "#ffffff",
     "borderStyle": "black",
-    "height": "65px",
     "list": [
       {
         "pagePath": "pages/index/index",

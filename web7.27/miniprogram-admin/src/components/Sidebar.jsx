@@ -8,7 +8,8 @@ import {
   Cog6ToothIcon,
   PaintBrushIcon,
   HomeIcon,
-  PhotoIcon
+  PhotoIcon,
+  TicketIcon
 } from '@heroicons/react/24/outline';
 
 const Sidebar = ({ onItemClick }) => {
@@ -77,6 +78,12 @@ const Sidebar = ({ onItemClick }) => {
       href: '/image-management',
       icon: PhotoIcon,
       current: location.pathname === '/image-management'
+    },
+    {
+      name: '优惠券管理',
+      href: '/coupons',
+      icon: TicketIcon,
+      current: location.pathname === '/coupons'
     },
     {
       name: 'COS上传测试',

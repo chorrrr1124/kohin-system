@@ -1,0 +1,9 @@
+{
+  "name": "autoIssueCoupon",
+  "version": "1.0.0",
+  "description": "自动发放优惠券云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+} 

@@ -28,16 +28,24 @@ Page({
     },
     // 资产信息
     assetsInfo: {
-      coupons: 5,
+      coupons: 0,
       balance: 0,
-      points: 59.9
+      points: 0
     },
-    // 功能列表
-    functionList: [
-      { id: 1, name: '学生认证', icon: '🎓' },
-      { id: 2, name: '企业团购', icon: '🏢' },
-      { id: 3, name: '兑换中心', icon: '🔄' },
-      { id: 4, name: '在线客服', icon: '💬' }
+    // 功能菜单
+    functionMenus: [
+      [
+        { name: '学生认证', icon: '/images/icons/profile.png', path: '/pages/student-auth/student-auth' },
+        { name: '企业团购', icon: '/images/icons/cart.png', path: '/pages/enterprise/enterprise' }
+      ],
+      [
+        { name: '兑换中心', icon: '/images/icons/home.png', path: '/pages/exchange/exchange' },
+        { name: '优惠券中心', icon: '/images/icons/profile.png', path: '/pages/coupon-center/coupon-center' }
+      ],
+      [
+        { name: '在线客服', icon: '/images/icons/cart.png', path: '/pages/service/service' },
+        { name: '意见反馈', icon: '/images/icons/home.png', path: '/pages/feedback/feedback' }
+      ]
     ]
   },
 
@@ -76,6 +84,28 @@ Page({
         }
       })
     }
+
+    // 获取用户优惠券数量
+    this.loadUserCouponCount();
+  },
+
+  // 加载用户优惠券数量
+  loadUserCouponCount() {
+    wx.cloud.callFunction({
+      name: 'getUserCouponCount',
+      success: (res) => {
+        console.log('获取优惠券数量成功:', res);
+        if (res.result.success) {
+          this.setData({
+            'userInfo.coupons': res.result.data
+          });
+        }
+      },
+      fail: (error) => {
+        console.error('获取优惠券数量失败:', error);
+        // 失败时保持默认值
+      }
+    });
   },
 
   /**
@@ -97,6 +127,16 @@ Page({
     const { id } = e.currentTarget.dataset;
     wx.navigateTo({
       url: `/pages/gift-detail/gift-detail?id=${id}`
+    });
+  },
+
+  /**
+   * 优惠券点击事件
+   */
+  onCouponTap() {
+    // 直接跳转到优惠券页面，不需要弹窗选择
+    wx.navigateTo({
+      url: '/pages/coupon/coupon'
     });
   },
 

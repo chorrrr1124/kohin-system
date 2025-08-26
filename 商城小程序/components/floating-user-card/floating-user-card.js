@@ -113,6 +113,7 @@ Component({
 
     // 优惠券点击事件
     onCouponTap() {
+      // 直接跳转到优惠券页面，不需要弹窗选择
       wx.navigateTo({
         url: '/pages/coupon/coupon',
       });
