@@ -1,15 +1,14 @@
-import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import DashboardPage from './pages/DashboardPage';
 import UsersPage from './pages/UsersPage';
 import OrdersPage from './pages/OrdersPage';
 import DepositsPage from './pages/DepositsPage';
 import ShopPage from './pages/ShopPage';
+import CouponManagePage from './pages/CouponManagePage';
+import CouponAnalyticsPage from './pages/CouponAnalyticsPage';
 import MallManagePage from './pages/MallManagePage';
-import HomepageSettingsPage from './pages/HomepageSettingsPage';
 import ImageManagePage from './pages/ImageManagePage';
-import TestImagePage from './pages/TestImagePage';
-import TestCosUpload from './pages/TestCosUpload';
 import SettingsPage from './pages/SettingsPage';
 import LoginPage from './pages/LoginPage';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -39,11 +38,15 @@ function App() {
               <Route path="orders" element={<OrdersPage />} />
               <Route path="deposits" element={<DepositsPage />} />
               <Route path="shop" element={<ShopPage />} />
+              <Route path="coupons" element={<CouponManagePage />} />
+              <Route path="coupon-analytics" element={<CouponAnalyticsPage />} />
               <Route path="mall" element={<MallManagePage />} />
-              <Route path="carousel" element={<HomepageSettingsPage />} />
               <Route path="image-management" element={<ImageManagePage />} />
+<<<<<<< Updated upstream
               <Route path="test-image" element={<TestImagePage />} />
               <Route path="test-cos-upload" element={<TestCosUpload />} />
+=======
+>>>>>>> Stashed changes
               <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Routes>

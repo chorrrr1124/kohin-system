@@ -45,7 +45,6 @@ const ShopPage = () => {
   
   // 新增状态
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [lowStockProducts, setLowStockProducts] = useState([]);
   const [showLowStockAlert, setShowLowStockAlert] = useState(false);
@@ -53,6 +52,7 @@ const ShopPage = () => {
   const [batchAction, setBatchAction] = useState('');
   const [stockThreshold, setStockThreshold] = useState(10);
   const [activeTab, setActiveTab] = useState('products'); // products, categories, analytics
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   const pageSize = 10;
 
@@ -486,6 +486,43 @@ const ShopPage = () => {
     } catch (error) {
       console.error('删除商品失败:', error);
       alert('删除失败，请重试');
+    }
+  };
+
+  const confirmBatchAction = async () => {
+    if (submitting) return;
+
+    try {
+      setSubmitting(true);
+      await ensureLogin();
+      const db = app.database();
+
+      if (batchAction === 'delete') {
+        // 批量删除
+        for (const productId of selectedProducts) {
+          await db.collection('shopProducts').doc(productId).remove();
+        }
+      } else {
+        // 批量更新状态
+        const onSale = batchAction === 'onSale';
+        for (const productId of selectedProducts) {
+          await db.collection('shopProducts').doc(productId).update({
+            onSale,
+            updateTime: new Date()
+          });
+        }
+      }
+
+      setSelectedProducts([]);
+      setBatchAction('');
+      setShowBatchModal(false);
+      fetchProducts();
+      alert('批量操作完成');
+    } catch (error) {
+      console.error('批量操作失败:', error);
+      alert('批量操作失败，请重试');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -1475,7 +1512,7 @@ const ShopPage = () => {
               <span className="font-bold text-warning mx-1">{batchAction}</span>操作吗？
             </p>
             
-            {batchAction === '删除' && (
+            {batchAction === 'delete' && (
               <div className="alert alert-warning mb-4">
                 <ExclamationTriangleIcon className="w-6 h-6" />
                 <span>删除操作不可恢复，请谨慎操作！</span>
@@ -1490,7 +1527,7 @@ const ShopPage = () => {
                 取消
               </button>
               <button
-                className={`btn ${batchAction === '删除' ? 'btn-error' : 'btn-primary'}`}
+                className={`btn ${batchAction === 'delete' ? 'btn-error' : 'btn-primary'}`}
                 onClick={confirmBatchAction}
                 disabled={submitting}
               >

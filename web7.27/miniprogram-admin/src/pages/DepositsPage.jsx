@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CreditCardIcon, MagnifyingGlassIcon, EyeIcon, PlusIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { CreditCardIcon, MagnifyingGlassIcon, EyeIcon, PlusIcon, TrashIcon, PencilIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { app, ensureLogin } from '../utils/cloudbase';
 
 const DepositsPage = () => {
@@ -525,7 +525,14 @@ const DepositsPage = () => {
       {showDepositModal && selectedDeposit && (
         <div className="modal modal-open">
           <div className="modal-box">
-            <h3 className="font-bold text-lg mb-4">预存记录详情</h3>
+            <button
+              type="button"
+              className="absolute top-4 right-4 p-1 hover:bg-gray-200 rounded-full transition-colors"
+              onClick={() => setShowDepositModal(false)}
+            >
+              <XMarkIcon className="h-5 w-5 text-gray-500" />
+            </button>
+            <h3 className="font-bold text-lg mb-4 mr-8">预存记录详情</h3>
             <div className="space-y-3">
               <div>
                 <label className="label">
@@ -614,7 +621,14 @@ const DepositsPage = () => {
       {showAddModal && (
         <div className="modal modal-open">
           <div className="modal-box">
-            <h3 className="font-bold text-lg mb-4">添加预存记录</h3>
+            <button
+              type="button"
+              className="absolute top-4 right-4 p-1 hover:bg-gray-200 rounded-full transition-colors"
+              onClick={() => setShowAddModal(false)}
+            >
+              <XMarkIcon className="h-5 w-5 text-gray-500" />
+            </button>
+            <h3 className="font-bold text-lg mb-4 mr-8">添加预存记录</h3>
             <div className="space-y-4">
               <div className="form-control">
                 <label className="label">
@@ -753,7 +767,14 @@ const DepositsPage = () => {
       {showEditModal && (
         <div className="modal modal-open">
           <div className="modal-box">
-            <h3 className="font-bold text-lg mb-4">编辑预存记录</h3>
+            <button
+              type="button"
+              className="absolute top-4 right-4 p-1 hover:bg-gray-200 rounded-full transition-colors"
+              onClick={() => setShowEditModal(false)}
+            >
+              <XMarkIcon className="h-5 w-5 text-gray-500" />
+            </button>
+            <h3 className="font-bold text-lg mb-4 mr-8">编辑预存记录</h3>
             <div className="space-y-4">
               <div className="form-control">
                 <label className="label">
@@ -891,4 +912,4 @@ const DepositsPage = () => {
   );
 };
 
-export default DepositsPage; 
+export default DepositsPage;

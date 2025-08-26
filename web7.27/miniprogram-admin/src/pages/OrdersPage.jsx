@@ -755,7 +755,14 @@ const OrdersPage = () => {
       {showOrderModal && selectedOrder && (
         <div className="modal modal-open">
           <div className="modal-box max-w-4xl">
-            <h3 className="font-bold text-lg mb-4">订单详情</h3>
+            <button
+              type="button"
+              className="absolute top-4 right-4 p-1 hover:bg-gray-200 rounded-full transition-colors"
+              onClick={() => setShowOrderModal(false)}
+            >
+              <XMarkIcon className="h-5 w-5 text-gray-500" />
+            </button>
+            <h3 className="font-bold text-lg mb-4 mr-8">订单详情</h3>
             <div className="grid grid-cols-2 gap-6">
               {/* 基本信息 */}
               <div>

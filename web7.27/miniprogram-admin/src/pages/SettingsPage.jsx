@@ -63,32 +63,50 @@ const SettingsPage = () => {
 
   // 保存设置
   const saveSettings = async () => {
+    console.log('开始保存设置...');
+    console.log('当前设置数据:', settings);
+    
     setLoading(true);
     try {
+      // 确保用户已登录
+      console.log('检查登录状态...');
+      await ensureLogin();
+      console.log('登录状态检查完成');
+      
       const db = app.database();
+      console.log('数据库实例获取成功');
       
       // 保存系统设置到数据库
-      await db.collection('systemSettings').doc('main').set({
+      console.log('开始保存到systemSettings集合...');
+      const saveResult = await db.collection('systemSettings').doc('main').set({
         ...settings,
         updateTime: new Date()
       });
+      console.log('systemSettings保存结果:', saveResult);
       
       // 记录操作日志
-      await db.collection('operationLogs').add({
+      console.log('开始记录操作日志...');
+      const logResult = await db.collection('operationLogs').add({
         operation: 'update',
         module: 'system',
         action: 'update_settings',
         details: { tab: activeTab },
         createTime: new Date()
       });
+      console.log('操作日志记录结果:', logResult);
       
+      console.log('设置保存完成！');
       addToast('设置保存成功！', 'success');
       
     } catch (error) {
-      console.error('保存设置失败:', error);
-      addToast('保存设置失败，请重试', 'error');
+      console.error('保存设置失败 - 详细错误信息:', error);
+      console.error('错误类型:', error.name);
+      console.error('错误消息:', error.message);
+      console.error('错误堆栈:', error.stack);
+      addToast(`保存设置失败：${error.message}`, 'error');
     } finally {
       setLoading(false);
+      console.log('保存操作结束，loading状态已重置');
     }
   };
 

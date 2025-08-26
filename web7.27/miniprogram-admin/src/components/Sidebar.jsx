@@ -1,15 +1,38 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  ChartBarIcon,
+  HomeIcon,
   UsersIcon,
   ShoppingBagIcon,
+<<<<<<< Updated upstream
   CreditCardIcon,
   Cog6ToothIcon,
   PaintBrushIcon,
   HomeIcon,
   PhotoIcon
+=======
+  ArchiveBoxIcon,
+  BuildingStorefrontIcon,
+  PhotoIcon,
+  Cog6ToothIcon,
+  CreditCardIcon,
+  TicketIcon,
+  ChartBarIcon
+>>>>>>> Stashed changes
 } from '@heroicons/react/24/outline';
+
+const navLinks = [
+  { to: '/', icon: HomeIcon, text: '仪表板' },
+  { to: '/users', icon: UsersIcon, text: '客户管理' },
+  { to: '/orders', icon: ShoppingBagIcon, text: '订单管理' },
+  { to: '/deposits', icon: ArchiveBoxIcon, text: '预存记录' },
+  { to: '/shop', icon: BuildingStorefrontIcon, text: '商品管理' },
+  { to: '/coupons', icon: TicketIcon, text: '优惠券管理' },
+  { to: '/coupon-analytics', icon: ChartBarIcon, text: '优惠券分析' },
+  { to: '/mall', icon: CreditCardIcon, text: '商城装修' },
+  { to: '/image-management', icon: PhotoIcon, text: '图片管理' },
+  { to: '/settings', icon: Cog6ToothIcon, text: '系统设置' },
+];
 
 const Sidebar = ({ onItemClick }) => {
   const location = useLocation();
@@ -28,6 +51,7 @@ const Sidebar = ({ onItemClick }) => {
     }
   };
 
+<<<<<<< Updated upstream
   const navigation = [
     {
       name: '仪表板',
@@ -92,6 +116,8 @@ const Sidebar = ({ onItemClick }) => {
     }
   ];
 
+=======
+>>>>>>> Stashed changes
   return (
     <aside className="min-h-full w-80 bg-base-200 p-4">
         <div className="flex items-center gap-2 mb-8">
@@ -102,21 +128,21 @@ const Sidebar = ({ onItemClick }) => {
         </div>
         
         <nav className="space-y-2">
-          {navigation.map((item) => {
+          {navLinks.map((item) => {
             const Icon = item.icon;
             return (
               <Link
-                key={item.name}
-                to={item.href}
+                key={item.text}
+                to={item.to}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                  item.current
+                  location.pathname === item.to
                     ? 'bg-primary text-primary-content'
                     : 'hover:bg-base-300'
                 }`}
-                onClick={() => handleNavigation(item.href)}
+                onClick={() => handleNavigation(item.to)}
               >
                 <Icon className="w-5 h-5" />
-                <span>{item.name}</span>
+                <span>{item.text}</span>
               </Link>
             );
           })}

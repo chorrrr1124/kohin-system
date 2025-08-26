@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UsersIcon, MagnifyingGlassIcon, EyeIcon, PlusIcon, PencilIcon, TrashIcon, PhoneIcon, ChartBarIcon, GiftIcon, CurrencyDollarIcon, CalendarDaysIcon, DocumentArrowDownIcon, StarIcon } from '@heroicons/react/24/outline';
+import { UsersIcon, MagnifyingGlassIcon, EyeIcon, PlusIcon, PencilIcon, TrashIcon, PhoneIcon, ChartBarIcon, GiftIcon, CurrencyDollarIcon, CalendarDaysIcon, DocumentArrowDownIcon, StarIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { app, ensureLogin } from '../utils/cloudbase';
 import { ContentLoading, TableLoading, CardLoading } from '../components/LoadingSpinner';
 
@@ -838,7 +838,14 @@ const CustomersPage = () => {
       {showAddModal && (
         <div className="modal modal-open">
           <div className="modal-box max-w-lg">
-            <h3 className="font-bold text-lg mb-4">新增客户</h3>
+            <button
+              type="button"
+              className="absolute top-4 right-4 p-1 hover:bg-gray-200 rounded-full transition-colors"
+              onClick={() => setShowAddModal(false)}
+            >
+              <XMarkIcon className="h-5 w-5 text-gray-500" />
+            </button>
+            <h3 className="font-bold text-lg mb-4 mr-8">新增客户</h3>
             <div className="space-y-4">
               <div className="font-bold">基本信息</div>
               <div className="form-control">
@@ -891,7 +898,14 @@ const CustomersPage = () => {
       {showEditModal && (
         <div className="modal modal-open">
           <div className="modal-box max-w-lg">
-            <h3 className="font-bold text-lg mb-4">编辑客户</h3>
+            <button
+              type="button"
+              className="absolute top-4 right-4 p-1 hover:bg-gray-200 rounded-full transition-colors"
+              onClick={() => setShowEditModal(false)}
+            >
+              <XMarkIcon className="h-5 w-5 text-gray-500" />
+            </button>
+            <h3 className="font-bold text-lg mb-4 mr-8">编辑客户</h3>
             <div className="space-y-4">
               <div className="font-bold">基本信息</div>
               <div className="form-control">
@@ -946,7 +960,18 @@ const CustomersPage = () => {
       {showPointsModal && selectedCustomerForPoints && (
         <div className="modal modal-open">
           <div className="modal-box">
-            <h3 className="font-bold text-lg mb-4">积分管理</h3>
+            <button
+              type="button"
+              className="absolute top-4 right-4 p-1 hover:bg-gray-200 rounded-full transition-colors"
+              onClick={() => {
+                setShowPointsModal(false);
+                setSelectedCustomerForPoints(null);
+                setPointsOperation({ type: 'add', amount: 0, reason: '' });
+              }}
+            >
+              <XMarkIcon className="h-5 w-5 text-gray-500" />
+            </button>
+            <h3 className="font-bold text-lg mb-4 mr-8">积分管理</h3>
             <div className="mb-4">
               <p><span className="font-semibold">客户：</span>{selectedCustomerForPoints.name}</p>
               <p><span className="font-semibold">当前积分：</span>

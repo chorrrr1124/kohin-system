@@ -1,6 +1,6 @@
 {
-  "envId": "kohin-1327524326",
-  "functionRoot": "./cloudfunctions",
+  "envId": "cloudbase-3g4w6lls8a5ce59b",
+  "functionRoot": "./商城小程序/cloudfunctions",
   "functions": [
     {
       "name": "getCosSts",
@@ -15,6 +15,13 @@
       "memorySize": 256,
       "timeout": 30,
       "triggers": []
+    },
+    {
+      "name": "initDatabase",
+      "runtime": "Nodejs18.15",
+      "memorySize": 256,
+      "timeout": 30,
+      "triggers": []
     }
   ],
   "static": {
@@ -22,4 +29,4 @@
     "index": "index.html",
     "error": "index.html"
   }
-} 
+}

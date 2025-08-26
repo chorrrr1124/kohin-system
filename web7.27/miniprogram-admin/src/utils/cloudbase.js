@@ -3,6 +3,9 @@ import cloudbase from '@cloudbase/js-sdk';
 // 云开发环境ID
 const ENV_ID = 'cloudbase-3g4w6lls8a5ce59b';
 
+// 全局单例实例
+let globalApp = null;
+
 /**
  * 初始化云开发实例
  * @param {Object} config - 初始化配置
@@ -20,18 +23,31 @@ export const init = (config = {}) => {
 };
 
 /**
+ * 获取或创建云开发实例（单例模式）
+ * @returns {Object} 云开发实例
+ */
+const getApp = () => {
+  if (!globalApp) {
+    console.log('初始化云开发实例');
+    globalApp = init();
+  }
+  return globalApp;
+};
+
+/**
  * 默认的云开发实例
  */
-export const app = init();
+export const app = getApp();
 
 /**
  * 确保用户已登录（如未登录会执行匿名登录）
  * @returns {Promise} 登录状态
  */
 export const ensureLogin = async () => {
-  const auth = app.auth();
-
   try {
+    const currentApp = getApp();
+    const auth = currentApp.auth();
+
     // 检查当前登录状态
     let loginState = await auth.getLoginState();
 
@@ -70,9 +86,9 @@ export const ensureLogin = async () => {
  * @returns {Promise}
  */
 export const logout = async () => {
-  const auth = app.auth();
-
   try {
+    const currentApp = getApp();
+    const auth = currentApp.auth();
     const loginScope = await auth.loginScope();
 
     if (loginScope === 'anonymous') {
@@ -93,7 +109,7 @@ export const logout = async () => {
  * @returns {Object} 云开发实例
  */
 export const initCloudBase = () => {
-  return app;
+  return getApp();
 };
 
 // 默认导出
@@ -103,4 +119,4 @@ export default {
   ensureLogin,
   logout,
   initCloudBase
-}; 
+};

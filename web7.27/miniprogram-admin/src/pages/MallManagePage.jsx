@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
@@ -659,13 +660,19 @@ const MallManagePage = () => {
     { key: 'categories', label: '分类管理', icon: Store }
   ]
 
+=======
+import React from 'react';
+
+const MallManagePage = () => {
+>>>>>>> Stashed changes
   return (
     <div className="p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">商城装修管理</h1>
-        <p className="text-gray-600">管理商城的轮播图、优惠券、分类等装修内容</p>
+        <p className="text-gray-600">商城装修功能已被移除</p>
       </div>
 
+<<<<<<< Updated upstream
       {/* 标签页 */}
       <div className="bg-white rounded-lg shadow-sm mb-6">
         <div className="flex border-b border-gray-200">
@@ -950,8 +957,17 @@ const MallManagePage = () => {
           </div>
         </div>
       )}
+=======
+      <div className="bg-white rounded-lg shadow-sm p-8">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🚧</div>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">功能已移除</h2>
+          <p className="text-gray-500">商城装修的所有功能和内容已被删除</p>
+        </div>
+      </div>
+>>>>>>> Stashed changes
     </div>
-  )
-}
+  );
+};
 
-export default MallManagePage
+export default MallManagePage;
