@@ -11,7 +11,6 @@ import ImageManagePage from './pages/ImageManagePage';
 import TestImagePage from './pages/TestImagePage';
 import TestCosUpload from './pages/TestCosUpload';
 import SettingsPage from './pages/SettingsPage';
-import CouponsPage from './pages/CouponsPage';
 import LoginPage from './pages/LoginPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import { ToastContainer, useToast } from './components/Toast';
@@ -43,7 +42,6 @@ function App() {
               <Route path="mall" element={<MallManagePage />} />
               <Route path="carousel" element={<HomepageSettingsPage />} />
               <Route path="image-management" element={<ImageManagePage />} />
-              <Route path="coupons" element={<CouponsPage />} />
               <Route path="test-image" element={<TestImagePage />} />
               <Route path="test-cos-upload" element={<TestCosUpload />} />
               <Route path="settings" element={<SettingsPage />} />
