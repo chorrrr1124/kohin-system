@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "我的优惠券",
-  "usingComponents": {}
+  "usingComponents": {
+    "image-placeholder": "/components/image-placeholder/image-placeholder"
+  }
 }

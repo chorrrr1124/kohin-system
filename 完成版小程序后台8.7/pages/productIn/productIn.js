@@ -54,7 +54,8 @@ Page({
     
     // 提取所有产品类型
     const allTypes = products.map(p => p.type);
-    const uniqueCategories = ['全部'].concat(Array.from(new Set(allTypes))).filter(Boolean);
+    // 修复：不过滤"00"等有效值，只过滤null、undefined和空字符串
+    const uniqueCategories = ['全部'].concat(Array.from(new Set(allTypes))).filter(type => type !== null && type !== undefined && type !== '');
     
     // 根据当前选择的类型筛选产品
     let filteredProducts = products;
@@ -63,7 +64,7 @@ Page({
       
       // 提取当前类别下的所有品牌
       const allBrands = filteredProducts.map(p => p.brand);
-      const uniqueBrands = ['全部'].concat(Array.from(new Set(allBrands))).filter(Boolean);
+      const uniqueBrands = ['全部'].concat(Array.from(new Set(allBrands))).filter(brand => brand !== null && brand !== undefined && brand !== '');
       this.setData({ brands: uniqueBrands });
       
       // 根据选中的品牌进行二次筛选
@@ -73,7 +74,7 @@ Page({
     } else {
       // 全部类别时，提取所有品牌
       const allBrands = products.map(p => p.brand);
-      const uniqueBrands = ['全部'].concat(Array.from(new Set(allBrands))).filter(Boolean);
+      const uniqueBrands = ['全部'].concat(Array.from(new Set(allBrands))).filter(brand => brand !== null && brand !== undefined && brand !== '');
       this.setData({ brands: uniqueBrands });
       
       // 根据选中的品牌进行筛选

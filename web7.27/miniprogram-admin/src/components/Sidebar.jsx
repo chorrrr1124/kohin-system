@@ -4,13 +4,6 @@ import {
   HomeIcon,
   UsersIcon,
   ShoppingBagIcon,
-<<<<<<< Updated upstream
-  CreditCardIcon,
-  Cog6ToothIcon,
-  PaintBrushIcon,
-  HomeIcon,
-  PhotoIcon
-=======
   ArchiveBoxIcon,
   BuildingStorefrontIcon,
   PhotoIcon,
@@ -18,7 +11,6 @@ import {
   CreditCardIcon,
   TicketIcon,
   ChartBarIcon
->>>>>>> Stashed changes
 } from '@heroicons/react/24/outline';
 
 const navLinks = [
@@ -51,73 +43,7 @@ const Sidebar = ({ onItemClick }) => {
     }
   };
 
-<<<<<<< Updated upstream
-  const navigation = [
-    {
-      name: '仪表板',
-      href: '/',
-      icon: ChartBarIcon,
-      current: location.pathname === '/'
-    },
-    {
-      name: '客户管理',
-      href: '/users',
-      icon: UsersIcon,
-      current: location.pathname === '/users'
-    },
-    {
-      name: '订单管理',
-      href: '/orders',
-      icon: ShoppingBagIcon,
-      current: location.pathname === '/orders'
-    },
-    {
-      name: '预存记录',
-      href: '/deposits',
-      icon: CreditCardIcon,
-      current: location.pathname === '/deposits'
-    },
-    {
-      name: '商城管理',
-      href: '/shop',
-      icon: ShoppingBagIcon,
-      current: location.pathname === '/shop'
-    },
-    {
-      name: '商城装修',
-      href: '/mall',
-      icon: PaintBrushIcon,
-      current: location.pathname === '/mall'
-    },
-    // 首页设置入口已移除,
-    {
-      name: '轮播图管理',
-      href: '/carousel',
-      icon: HomeIcon,
-      current: location.pathname === '/carousel'
-    },
-    {
-      name: '图片管理',
-      href: '/image-management',
-      icon: PhotoIcon,
-      current: location.pathname === '/image-management'
-    },
-    {
-      name: 'COS上传测试',
-      href: '/test-cos-upload',
-      icon: PhotoIcon,
-      current: location.pathname === '/test-cos-upload'
-    },
-    {
-      name: '系统设置',
-      href: '/settings',
-      icon: Cog6ToothIcon,
-      current: location.pathname === '/settings'
-    }
-  ];
 
-=======
->>>>>>> Stashed changes
   return (
     <aside className="min-h-full w-80 bg-base-200 p-4">
         <div className="flex items-center gap-2 mb-8">

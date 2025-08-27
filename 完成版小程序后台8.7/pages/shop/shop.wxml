@@ -57,8 +57,8 @@
               <view class="product-name">{{item.name}}</view>
               <view class="product-meta">
                 <view class="meta-item" wx:if="{{item.brand && item.brand !== '无'}}">品牌: {{item.brand}}</view>
-                <view class="meta-item">类型: {{item.type || '无'}}</view>
-                <view class="meta-item">规格: {{item.specification || '无'}}</view>
+                <view class="meta-item">类型: {{item.type !== null && item.type !== undefined && item.type !== '' ? item.type : '无'}}</view>
+            <view class="meta-item">规格: {{item.specification !== null && item.specification !== undefined && item.specification !== '' ? item.specification : '无'}}</view>
                 <view class="meta-item">库存: {{item.stock || 0}}</view>
               </view>
               <view class="product-bottom">

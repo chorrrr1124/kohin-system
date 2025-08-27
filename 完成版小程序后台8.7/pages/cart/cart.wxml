@@ -21,8 +21,8 @@
         
         <!-- 添加产品详细信息 -->
         <view class="item-details">
-          <view class="detail-item" wx:if="{{item.brand}}">品牌: {{item.brand || '无'}}</view>
-          <view class="detail-item" wx:if="{{item.specification}}">规格: {{item.specification || '无'}}</view>
+          <view class="detail-item" wx:if="{{item.brand}}">品牌: {{item.brand !== null && item.brand !== undefined && item.brand !== '' ? item.brand : '无'}}</view>
+            <view class="detail-item" wx:if="{{item.specification}}">规格: {{item.specification !== null && item.specification !== undefined && item.specification !== '' ? item.specification : '无'}}</view>
           <view class="detail-item">库存: {{item.stock || 0}}</view>
         </view>
         

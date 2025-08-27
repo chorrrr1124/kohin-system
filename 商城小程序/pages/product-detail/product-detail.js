@@ -38,8 +38,8 @@ Page({
         const product = res.result.data
         
         // 处理商品图片URL
-        if (product.image) {
-          product.image = imageService.buildImageUrl(product.image)
+        if (product.image || product.imagePath) {
+          product.image = imageService.buildImageUrl(product.image || product.imagePath)
         }
         
         // 处理商品图片数组
@@ -47,7 +47,7 @@ Page({
           product.images = product.images.map(img => imageService.buildImageUrl(img))
         } else {
           // 确保图片数组存在
-          product.images = [product.image || '/images/placeholder.png']
+          product.images = [product.image || '/images/placeholder.svg']
         }
 
         this.setData({

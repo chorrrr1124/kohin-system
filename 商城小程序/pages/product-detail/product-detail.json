@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "image-placeholder": "/components/image-placeholder/image-placeholder"
+  },
+  "navigationBarTitleText": "商品详情"
+}

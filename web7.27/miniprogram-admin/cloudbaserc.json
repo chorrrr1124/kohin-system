@@ -1,0 +1,40 @@
+{
+  "envId": "cloudbase-3g4w6lls8a5ce59b",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "initDatabase",
+      "runtime": "Nodejs18.15",
+      "memorySize": 256,
+      "timeout": 30,
+      "triggers": []
+    },
+    {
+      "name": "autoIssueCoupon",
+      "runtime": "Nodejs16.13",
+      "memorySize": 256,
+      "timeout": 30,
+      "triggers": []
+    },
+    {
+      "name": "getCosSts",
+      "runtime": "Nodejs16.13",
+      "memorySize": 128,
+      "timeout": 10,
+      "triggers": []
+    },
+    {
+      "name": "scheduledCouponCheck",
+      "runtime": "Nodejs16.13",
+      "memorySize": 256,
+      "timeout": 30,
+      "triggers": [
+        {
+          "name": "dailyCheck",
+          "type": "timer",
+          "config": "0 0 9 * * * *"
+        }
+      ]
+    }
+  ]
+}

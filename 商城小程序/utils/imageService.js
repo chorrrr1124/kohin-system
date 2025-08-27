@@ -24,7 +24,7 @@ class ImageService {
 
   /**
    * 构建COS图片URL
-   * @param {string} key - COS对象键
+   * @param {string} key - COS对象键或本地路径
    * @returns {string} 完整的图片URL
    */
   buildImageUrl(key) {
@@ -32,6 +32,11 @@ class ImageService {
     
     // 如果已经是完整URL，直接返回
     if (key.startsWith('http://') || key.startsWith('https://')) {
+      return key;
+    }
+    
+    // 如果是本地路径（以/开头），直接返回
+    if (key.startsWith('/')) {
       return key;
     }
     

@@ -49,7 +49,7 @@
         <view class="product-name">{{item.name}}</view>
             <view class="product-details">
               <text class="product-brand">品牌: {{item.brand || '无品牌'}}</text>
-              <text class="product-spec">规格: {{item.specification || '无'}}</text>
+              <text class="product-spec">规格: {{item.specification !== null && item.specification !== undefined && item.specification !== '' ? item.specification : '无'}}</text>
               <text class="product-stock {{item.stock <= 10 ? 'low-stock' : 'normal-stock'}}">库存: {{item.stock}}个</text>
         </view>
       </view>

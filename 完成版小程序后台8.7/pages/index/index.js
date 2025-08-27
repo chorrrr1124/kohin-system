@@ -205,8 +205,9 @@ Page({
     }
 
     // 提取分类和品牌（只计算一次，确保数据类型正确）
-    const uniqueCategories = ['全部'].concat(Array.from(new Set(allProducts.map(p => String(p.type || '')).filter(Boolean))));
-    const uniqueBrands = ['全部'].concat(Array.from(new Set(allProducts.map(p => String(p.brand || '')).filter(Boolean))));
+    // 修复：不过滤"00"等有效值，只过滤null、undefined和空字符串
+    const uniqueCategories = ['全部'].concat(Array.from(new Set(allProducts.map(p => String(p.type || '')).filter(type => type !== null && type !== undefined && type !== ''))));
+    const uniqueBrands = ['全部'].concat(Array.from(new Set(allProducts.map(p => String(p.brand || '')).filter(brand => brand !== null && brand !== undefined && brand !== ''))));
 
     // 计算统计数据
     const stats = {
@@ -324,10 +325,10 @@ Page({
           this.setData({
             showModal: true,
             modalTitle: product.name,
-            modalContent: `🏷️ 品牌：${product.brand || '暂无'}
-📦 类型：${product.type || '暂无'}
-🏗️ 品类：${product.category || '暂无'}
-📏 规格：${product.specification || '暂无'}
+            modalContent: `🏷️ 品牌：${product.brand !== null && product.brand !== undefined && product.brand !== '' ? product.brand : '暂无'}
+📦 类型：${product.type !== null && product.type !== undefined && product.type !== '' ? product.type : '暂无'}
+🏗️ 品类：${product.category !== null && product.category !== undefined && product.category !== '' ? product.category : '暂无'}
+📏 规格：${product.specification !== null && product.specification !== undefined && product.specification !== '' ? product.specification : '暂无'}
 
 📊 当前库存：${product.stock || 0} 件
 

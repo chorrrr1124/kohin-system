@@ -1,0 +1,77 @@
+/* pages/debug/debug.wxss */
+.debug-container {
+  padding: 20rpx;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.debug-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 40rpx;
+  color: #333;
+}
+
+.test-section {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  color: #2c3e50;
+  border-left: 8rpx solid #3498db;
+  padding-left: 20rpx;
+}
+
+.image-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.image-item {
+  border: 2rpx solid #e0e0e0;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  background-color: #fafafa;
+}
+
+.image-path {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+  word-break: break-all;
+  background-color: #f0f0f0;
+  padding: 10rpx;
+  border-radius: 8rpx;
+  font-family: monospace;
+}
+
+.test-image {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 8rpx;
+  border: 2rpx solid #ddd;
+  margin: 10rpx 0;
+}
+
+.test-placeholder {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 8rpx;
+  border: 2rpx solid #ddd;
+  margin: 10rpx 0;
+}
+
+.load-status {
+  font-size: 28rpx;
+  font-weight: bold;
+  margin-top: 10rpx;
+}

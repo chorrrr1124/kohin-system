@@ -52,17 +52,13 @@ Component({
    * 组件的方法列表
    */
   methods: {
-    async onImageError(e) {
+    onImageError(e) {
       console.log('图片加载失败:', e.detail);
       
-      // 检查图片是否可访问
-      const isAccessible = await imageService.checkImageAccessible(this.data.processedSrc);
-      if (!isAccessible) {
-        console.log('图片确实无法访问，显示占位符');
-        this.setData({
-          imageError: true
-        });
-      }
+      // 直接显示占位符，避免重复的网络请求
+      this.setData({
+        imageError: true
+      });
       
       // 触发父组件的错误处理
       this.triggerEvent('imageerror', {
@@ -137,4 +133,4 @@ Component({
       this.processImageUrl(newSrc);
     }
   }
-}); 
+});

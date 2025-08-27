@@ -1,0 +1,67 @@
+<!--pages/debug/debug.wxml-->
+<view class="debug-container">
+  <view class="debug-title">图片加载调试页面</view>
+  
+  <!-- 原始图片路径测试 -->
+  <view class="test-section">
+    <view class="section-title">原始图片路径测试</view>
+    <view class="image-grid">
+      <view 
+        class="image-item" 
+        wx:for="{{testImages}}" 
+        wx:key="*this"
+      >
+        <view class="image-path">{{item}}</view>
+        <image 
+          src="{{item}}" 
+          class="test-image"
+          mode="aspectFill"
+          data-index="{{index}}"
+          bindload="onImageLoad"
+          binderror="onImageError"
+        />
+        <view class="load-status">
+          {{loadResults[index] ? (loadResults[index].status === 'success' ? '✅ 成功' : '❌ 失败') : '⏳ 加载中'}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 处理后图片路径测试 -->
+  <view class="test-section">
+    <view class="section-title">处理后图片路径测试</view>
+    <view class="image-grid">
+      <view 
+        class="image-item" 
+        wx:for="{{processedImages}}" 
+        wx:key="*this"
+      >
+        <view class="image-path">{{item}}</view>
+        <image 
+          src="{{item}}" 
+          class="test-image"
+          mode="aspectFill"
+        />
+      </view>
+    </view>
+  </view>
+
+  <!-- image-placeholder组件测试 -->
+  <view class="test-section">
+    <view class="section-title">image-placeholder组件测试</view>
+    <view class="image-grid">
+      <view 
+        class="image-item" 
+        wx:for="{{testImages}}" 
+        wx:key="*this"
+      >
+        <view class="image-path">{{item}}</view>
+        <image-placeholder 
+          src="{{item}}" 
+          type="product"
+          custom-class="test-placeholder"
+        />
+      </view>
+    </view>
+  </view>
+</view>

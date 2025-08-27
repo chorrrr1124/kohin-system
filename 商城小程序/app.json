@@ -1,10 +1,14 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/products/products",
+    "pages/product-detail/product-detail",
     "pages/cart/cart",
-    "pages/profile/profile",
     "pages/orders/orders",
-    "pages/coupon/coupon"
+    "pages/order/order",
+    "pages/profile/profile",
+    "pages/coupon/coupon",
+    "pages/debug/debug"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -18,13 +22,18 @@
     "selectedColor": "#4CAF50",
     "backgroundColor": "#ffffff",
     "borderStyle": "black",
-    "height": "65px",
     "list": [
       {
         "pagePath": "pages/index/index",
         "text": "首页",
         "iconPath": "images/icons/home.png",
         "selectedIconPath": "images/icons/home-active.png"
+      },
+      {
+        "pagePath": "pages/products/products",
+        "text": "商城",
+        "iconPath": "images/icons/category.png",
+        "selectedIconPath": "images/icons/category-active.png"
       },
       {
         "pagePath": "pages/cart/cart",

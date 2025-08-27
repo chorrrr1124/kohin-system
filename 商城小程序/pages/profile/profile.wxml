@@ -18,7 +18,7 @@
       </view>
     </view>
     <view class="member-avatar">
-      <image class="duck-image" src="{{duckImage}}" mode="aspectFit"></image>
+      <image-placeholder type="avatar" custom-class="duck-image" src="{{duckImage}}" mode="aspectFit"></image-placeholder>
       <view class="expert-badge">
         <text class="badge-text">EXPERT</text>
       </view>
@@ -66,7 +66,7 @@
         <view class="function-row">
           <block wx:for="{{item}}" wx:key="path" wx:for-item="menu">
             <view class="function-item" bindtap="onMenuTap" data-path="{{menu.path}}">
-              <image class="function-icon" src="{{menu.icon}}" mode="aspectFit"></image>
+              <image-placeholder type="default" custom-class="function-icon" src="{{menu.icon}}" mode="aspectFit"></image-placeholder>
               <text class="function-name">{{menu.name}}</text>
             </view>
           </block>
@@ -88,7 +88,7 @@
     <view class="gift-cards">
       <block wx:for="{{giftCards}}" wx:key="id">
         <view class="gift-card" bindtap="onGiftCardTap" data-id="{{item.id}}">
-          <image class="gift-image" src="{{item.image}}" mode="aspectFill"></image>
+          <image-placeholder type="product" custom-class="gift-image" src="{{item.image}}" mode="aspectFill"></image-placeholder>
           <view class="gift-overlay">
             <view class="gift-price">
               <text class="price-symbol">￥</text>

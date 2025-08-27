@@ -42,6 +42,7 @@ const ShopPage = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [deletedCategories, setDeletedCategories] = useState([]);
   
   // 新增状态
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -62,11 +63,7 @@ const ShopPage = () => {
     { value: false, label: '下架' }
   ];
 
-  // 预定义分类（可以从数据库动态获取）
-  const predefinedCategories = [
-    '食品饮料', '日用品', '电子产品', '服装配饰', 
-    '家居用品', '美妆护肤', '运动户外', '图书文具'
-  ];
+  // 分类完全从数据库动态获取，不使用预定义分类
 
   // 检查库存预警
   const checkLowStock = async () => {
@@ -170,6 +167,50 @@ const ShopPage = () => {
     }
   };
 
+  // 删除分类
+  const deleteCategory = async (categoryName) => {
+    if (!window.confirm(`确定要删除分类 "${categoryName}" 吗？`)) {
+      return;
+    }
+
+    try {
+      await ensureLogin();
+      const db = app.database();
+      
+      // 检查是否有商品使用此分类
+      const productsWithCategory = products.filter(p => p.category === categoryName);
+      if (productsWithCategory.length > 0) {
+        if (!window.confirm(`该分类下还有 ${productsWithCategory.length} 个商品，删除后这些商品将变为未分类，确定继续吗？`)) {
+          return;
+        }
+        
+        // 将使用此分类的商品分类设为空
+        for (const product of productsWithCategory) {
+          await db.collection('shopProducts').doc(product._id).update({
+            category: '',
+            updateTime: new Date()
+          });
+        }
+      }
+      
+      // 将分类添加到已删除列表中
+      const newDeletedCategories = [...deletedCategories, categoryName];
+      setDeletedCategories(newDeletedCategories);
+      localStorage.setItem('deletedCategories', JSON.stringify(newDeletedCategories));
+      
+      // 从分类列表中移除
+      const updatedCategories = categories.filter(c => c !== categoryName);
+      setCategories(updatedCategories);
+      
+      // 重新获取商品列表以更新显示
+      fetchProducts();
+      alert('分类删除成功');
+    } catch (error) {
+      console.error('删除分类失败:', error);
+      alert('删除分类失败，请重试');
+    }
+  };
+
   // 导出商品数据
   const exportProducts = async () => {
     try {
@@ -233,12 +274,13 @@ const ShopPage = () => {
         .filter(category => category && category.trim() !== '')
       )];
       
-      // 合并预定义分类和数据库中的分类
-      const allCategories = [...new Set([...predefinedCategories, ...uniqueCategories])];
+      // 只使用数据库中的分类，排除已删除的分类
+      const allCategories = uniqueCategories
+        .filter(category => !deletedCategories.includes(category));
       setCategories(allCategories);
     } catch (error) {
       console.error('获取分类失败:', error);
-      setCategories(predefinedCategories);
+      setCategories([]);
     }
   };
 
@@ -290,11 +332,19 @@ const ShopPage = () => {
     }
   };
 
+  // 加载已删除的分类
+  useEffect(() => {
+    const savedDeletedCategories = localStorage.getItem('deletedCategories');
+    if (savedDeletedCategories) {
+      setDeletedCategories(JSON.parse(savedDeletedCategories));
+    }
+  }, []);
+
   useEffect(() => {
     fetchProducts();
     fetchCategories();
     checkLowStock();
-  }, [currentPage, searchTerm, statusFilter, categoryFilter, stockThreshold]);
+  }, [currentPage, searchTerm, statusFilter, categoryFilter, stockThreshold, deletedCategories]);
 
   // 定期检查库存预警
   useEffect(() => {
@@ -661,21 +711,21 @@ const ShopPage = () => {
       {/* 标签页导航 */}
       <div className="tabs tabs-boxed mb-6">
         <button 
-          className={`tab ${activeTab === 'products' ? 'tab-active' : ''}`}
+          className={`tab ${activeTab === 'products' ? 'tab-active' : ''} flex items-center justify-center h-12`}
           onClick={() => setActiveTab('products')}
         >
           <ShoppingBagIcon className="w-4 h-4 mr-2" />
           商品管理
         </button>
         <button 
-          className={`tab ${activeTab === 'categories' ? 'tab-active' : ''}`}
+          className={`tab ${activeTab === 'categories' ? 'tab-active' : ''} flex items-center justify-center h-12`}
           onClick={() => setActiveTab('categories')}
         >
           <TagIcon className="w-4 h-4 mr-2" />
           分类管理
         </button>
         <button 
-          className={`tab ${activeTab === 'analytics' ? 'tab-active' : ''}`}
+          className={`tab ${activeTab === 'analytics' ? 'tab-active' : ''} flex items-center justify-center h-12`}
           onClick={() => setActiveTab('analytics')}
         >
           <Cog6ToothIcon className="w-4 h-4 mr-2" />
@@ -690,15 +740,15 @@ const ShopPage = () => {
           <div className="bg-base-100 shadow rounded-lg p-4 mb-6">
             <form onSubmit={handleSearch} className="flex gap-4 flex-wrap">
               <div className="form-control flex-1 min-w-64">
-                <div className="input-group">
+                <div className="flex">
                   <input
                     type="text"
                     placeholder="搜索商品名称..."
-                    className="input input-bordered w-full"
+                    className="input input-bordered flex-1 rounded-r-none"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
-                  <button type="submit" className="btn btn-square">
+                  <button type="submit" className="btn btn-square rounded-l-none border-l-0">
                     <MagnifyingGlassIcon className="w-5 h-5" />
                   </button>
                 </div>
@@ -1453,14 +1503,14 @@ const ShopPage = () => {
                   type="text"
                   placeholder="输入新分类名称"
                   className="input input-bordered flex-1"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && addCategory()}
                 />
                 <button
                   className="btn btn-primary"
                   onClick={addCategory}
-                  disabled={!newCategoryName.trim()}
+                  disabled={!newCategory.trim()}
                 >
                   <PlusIcon className="w-4 h-4 mr-1" />
                   添加

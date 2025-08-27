@@ -7,7 +7,7 @@
 
   <!-- 购物车为空 -->
   <view wx:elif="{{isEmpty}}" class="empty-cart">
-    <image class="empty-icon" src="/images/empty-cart.svg" mode="aspectFit"></image>
+    <image-placeholder type="default" custom-class="empty-icon" src="/images/empty-cart.svg" mode="aspectFit"></image-placeholder>
     <text class="empty-text">购物车空空如也</text>
     <text class="empty-desc">快去挑选心仪的商品吧</text>
     <button class="continue-shopping-btn" bindtap="continueShopping">去购物</button>
@@ -31,7 +31,7 @@
         </view>
 
         <!-- 商品图片 -->
-        <image class="item-image" src="{{item.image || '/images/placeholder.png'}}" mode="aspectFill"></image>
+        <image-placeholder type="product" custom-class="item-image" src="{{item.image}}" mode="aspectFill"></image-placeholder>
 
         <!-- 商品信息 -->
         <view class="item-info">

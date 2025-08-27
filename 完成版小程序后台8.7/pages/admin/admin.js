@@ -73,7 +73,8 @@ Page({
     
     // 提取所有产品类型
     const allTypes = products.map(function(p) { return p.type; });
-    const uniqueCategories = ['全部'].concat(Array.from(new Set(allTypes))).filter(Boolean);
+    // 修复：不过滤"00"等有效值，只过滤null、undefined和空字符串
+    const uniqueCategories = ['全部'].concat(Array.from(new Set(allTypes))).filter(type => type !== null && type !== undefined && type !== '');
     
     // 保存当前上下文
     const currentCategory = this.data.currentCategory;
@@ -87,7 +88,7 @@ Page({
       
       // 提取当前类别下的所有品牌
       const allBrands = filteredProducts.map(function(p) { return p.brand; });
-      const uniqueBrands = ['全部'].concat(Array.from(new Set(allBrands))).filter(Boolean);
+      const uniqueBrands = ['全部'].concat(Array.from(new Set(allBrands))).filter(brand => brand !== null && brand !== undefined && brand !== '');
       this.setData({ brands: uniqueBrands });
       
       // 根据选中的品牌进行二次筛选
@@ -97,7 +98,7 @@ Page({
     } else {
       // 全部类别时，提取所有品牌
       const allBrands = products.map(function(p) { return p.brand; });
-      const uniqueBrands = ['全部'].concat(Array.from(new Set(allBrands))).filter(Boolean);
+      const uniqueBrands = ['全部'].concat(Array.from(new Set(allBrands))).filter(brand => brand !== null && brand !== undefined && brand !== '');
       this.setData({ brands: uniqueBrands });
       
       // 根据选中的品牌进行筛选
@@ -162,7 +163,7 @@ Page({
     this.setData({
       showModal: true,
       modalTitle: product.name,
-      modalContent: "🏷️ 品牌：" + (product.brand || '暂无') + "\n📦 类型：" + (product.type || '暂无') + "\n🏗️ 品类：" + (product.category || '暂无') + "\n📏 规格：" + (product.specification || '暂无') + "\n\n📊 当前库存：" + (product.stock || 0) + " 件\n\n📝 备注：" + (product.remark || '暂无备注'),
+      modalContent: "🏷️ 品牌：" + (product.brand !== null && product.brand !== undefined && product.brand !== '' ? product.brand : '暂无') + "\n📦 类型：" + (product.type !== null && product.type !== undefined && product.type !== '' ? product.type : '暂无') + "\n🏗️ 品类：" + (product.category !== null && product.category !== undefined && product.category !== '' ? product.category : '暂无') + "\n📏 规格：" + (product.specification !== null && product.specification !== undefined && product.specification !== '' ? product.specification : '暂无') + "\n\n📊 当前库存：" + (product.stock || 0) + " 件\n\n📝 备注：" + (product.remark !== null && product.remark !== undefined && product.remark !== '' ? product.remark : '暂无备注'),
       showCancel: false
     });
   },

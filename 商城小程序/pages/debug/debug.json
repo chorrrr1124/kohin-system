@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "image-placeholder": "/components/image-placeholder/image-placeholder"
+  },
+  "navigationBarTitleText": "图片加载调试",
+  "enablePullDownRefresh": false
+}

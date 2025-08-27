@@ -9,11 +9,11 @@ Page({
 
     userInfo: {
       nickName: '张程僖',
-      avatarUrl: 'data:image/svg+xml;charset=utf-8,%3Csvg width="80" height="80" xmlns="http://www.w3.org/2000/svg"%3E%3Ccircle cx="40" height="80" xmlns="http://www.w3.org/2000/svg"%3E%3Ccircle cx="40" cy="40" r="40" fill="%234CAF50"/%3E%3Ctext x="40" y="50" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle" dominant-baseline="middle"%3E张%3C/text%3E%3C/svg%3E',
-      points: 0,
+      avatarUrl: 'data:image/svg+xml;charset=utf-8,%3Csvg width="80" height="80" xmlns="http://www.w3.org/2000/svg"%3E%3Ccircle cx="40" cy="40" r="40" fill="%234CAF50"/%3E%3Ctext x="40" y="50" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle" dominant-baseline="middle"%3E张%3C/text%3E%3C/svg%3E',
+      points: 288,
       balance: 0,
       coupons: 0,
-      vipLevel: 0
+      vipLevel: 6
     },
     promoData: {
       title: '夏日消暑·就喝「丘大叔」',
@@ -258,26 +258,6 @@ Page({
   // 刷新用户信息
   refreshUserInfo() {
     this.loadUserInfo();
-    this.loadUserCouponCount();
-  },
-
-  // 加载用户优惠券数量
-  loadUserCouponCount() {
-    wx.cloud.callFunction({
-      name: 'getUserCouponCount',
-      success: (res) => {
-        console.log('获取优惠券数量成功:', res);
-        if (res.result.success) {
-          this.setData({
-            'userInfo.coupons': res.result.data
-          });
-        }
-      },
-      fail: (error) => {
-        console.error('获取优惠券数量失败:', error);
-        // 失败时保持默认值
-      }
-    });
   },
 
   // 促销购买点击
@@ -395,10 +375,11 @@ Page({
         // 处理商品图片URL
         const processedProducts = products.map(product => ({
           ...product,
-          image: imageService.buildImageUrl(product.image),
+          image: imageService.buildImageUrl(product.image || product.imagePath),
           images: product.images ? product.images.map(img => imageService.buildImageUrl(img)) : []
         }));
         
+        // 一次性更新数据，避免多次setData导致闪烁
         this.setData({
           recommendProducts: processedProducts,
           loading: false
@@ -430,8 +411,8 @@ Page({
         message: error.message
       });
       
-      // 显示更友好的错误提示
-      if (error.errCode === -501000) {
+      // 显示更友好的错误提示（只在首次加载时显示）
+      if (error.errCode === -501000 && this.data.recommendProducts.length === 0) {
         wx.showToast({
           title: '云函数未部署，显示默认数据',
           icon: 'none',
@@ -462,12 +443,13 @@ Page({
         name: '柠檬蜂蜜茶',
         price: 28,
         currentPrice: 25,
-        image: createColorImage('#4CAF50', '柠檬茶'),
-        images: [createColorImage('#4CAF50', '柠檬茶')],
+        image: '/images/products/drink1.jpg',
+        images: ['/images/products/drink1.jpg'],
         stock: 100,
         sales: 1500,
         description: '清香柠檬配蜂蜜，夏日消暑必备',
         category: '茶饮',
+        brand: 'apple',
         tags: ['热销', '清香'],
         onSale: true
       },
@@ -476,12 +458,13 @@ Page({
         name: '芒果奶昔',
         price: 32,
         currentPrice: 28,
-        image: createColorImage('#FF9800', '芒果奶昔'),
-        images: [createColorImage('#FF9800', '芒果奶昔')],
+        image: '/images/products/drink2.jpg',
+        images: ['/images/products/drink2.jpg'],
         stock: 80,
         sales: 800,
         description: '新鲜芒果制作，香甜可口',
         category: '奶昔',
+        brand: 'samsung',
         tags: ['新品', '香甜'],
         onSale: true
       },
@@ -490,12 +473,13 @@ Page({
         name: '抹茶拿铁',
         price: 35,
         currentPrice: 32,
-        image: createColorImage('#8BC34A', '抹茶拿铁'),
-        images: [createColorImage('#8BC34A', '抹茶拿铁')],
+        image: '/images/products/drink3.jpg',
+        images: ['/images/products/drink3.jpg'],
         stock: 60,
         sales: 600,
         description: '日式抹茶配香浓牛奶',
         category: '咖啡',
+        brand: 'huawei',
         tags: ['经典', '香浓'],
         onSale: true
       },
@@ -504,12 +488,13 @@ Page({
         name: '草莓气泡水',
         price: 25,
         currentPrice: 22,
-        image: createColorImage('#E91E63', '草莓气泡'),
-        images: [createColorImage('#E91E63', '草莓气泡')],
+        image: '/images/products/drink4.jpg',
+        images: ['/images/products/drink4.jpg'],
         stock: 120,
         sales: 900,
         description: '清爽草莓味，带气泡口感',
         category: '气泡水',
+        brand: 'xiaomi',
         tags: ['清爽', '气泡'],
         onSale: true
       },
@@ -518,12 +503,13 @@ Page({
         name: '经典美式',
         price: 30,
         currentPrice: 26,
-        image: createColorImage('#795548', '美式咖啡'),
-        images: [createColorImage('#795548', '美式咖啡')],
+        image: '/images/products/drink1.jpg',
+        images: ['/images/products/drink1.jpg'],
         stock: 90,
         sales: 700,
         description: '经典美式咖啡，苦香醇厚',
         category: '咖啡',
+        brand: 'nike',
         tags: ['经典', '醇厚'],
         onSale: true
       },
@@ -532,12 +518,13 @@ Page({
         name: '蓝莓司康饼',
         price: 18,
         currentPrice: 15,
-        image: createColorImage('#3F51B5', '司康饼'),
-        images: [createColorImage('#3F51B5', '司康饼')],
+        image: '/images/products/drink2.jpg',
+        images: ['/images/products/drink2.jpg'],
         stock: 50,
         sales: 300,
         description: '新鲜蓝莓制作，酥脆可口',
         category: '烘焙',
+        brand: 'adidas',
         tags: ['新鲜', '酥脆'],
         onSale: true
       }
@@ -590,37 +577,9 @@ Page({
   },
 
   // 图片加载错误处理
-  async onImageError(e) {
-    console.warn('商品图片加载失败:', e.detail);
-    const index = e.currentTarget.dataset.index;
-    if (index !== undefined) {
-      const products = this.data.recommendProducts;
-      if (products[index]) {
-        const originalUrl = products[index].image;
-        console.log('原始图片URL:', originalUrl);
-        
-        // 尝试检查图片是否可访问
-        const isAccessible = await imageService.checkImageAccessible(originalUrl);
-        if (!isAccessible) {
-          console.log('图片确实无法访问，使用占位符');
-          const updateKey = `recommendProducts[${index}].image`;
-          // 使用默认颜色图片替换
-          const createColorImage = (color, text) => {
-            const svg = `<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
-              <rect width="300" height="300" fill="${color}"/>
-              <text x="150" y="150" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle" dominant-baseline="middle">${text}</text>
-            </svg>`;
-            return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-          };
-          
-          this.setData({
-            [updateKey]: createColorImage('#CCCCCC', '图片加载失败')
-          });
-        }
-      }
-    }
-  },
-
-
-
+  onImageError(e) {
+    console.warn('首页商品图片加载失败:', e.detail);
+    // image-placeholder组件已经内置了错误处理机制
+    // 这里只需要记录日志即可
+  }
 });

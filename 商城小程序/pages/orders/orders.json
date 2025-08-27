@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "image-placeholder": "/components/image-placeholder/image-placeholder"
+  },
+  "navigationBarTitleText": "我的订单",
+  "enablePullDownRefresh": true
+}

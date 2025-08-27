@@ -66,11 +66,13 @@
             data-id="{{item._id}}"
             wx:if="{{index < 6}}"
           >
-            <image 
+            <image-placeholder 
               src="{{item.image}}" 
-              class="product-image"
+              type="product"
+              custom-class="product-image"
               mode="aspectFill"
-              binderror="onImageError"
+              lazy-load="true"
+              bind:imageerror="onImageError"
               data-index="{{index}}"
             />
             <view class="product-info">

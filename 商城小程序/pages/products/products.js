@@ -1,4 +1,6 @@
 // pages/products/products.js
+const imageService = require('../../utils/imageService')
+
 Page({
 
   /**
@@ -8,16 +10,17 @@ Page({
     products: [],
     filteredProducts: [],
     searchKeyword: '',
-    activeFilter: 'all',
-    priceSort: '',
+    activeCategory: 'all',
+    activeBrand: 'all',
     loading: false,
     hasMore: true,
     page: 1,
     limit: 10,
     categories: [
-      { id: 'all', name: '全部' },
-      { id: 'hot', name: '热销' },
-      { id: 'new', name: '新品' }
+      { id: 'all', name: '全部' }
+    ],
+    brands: [
+      { id: 'all', name: '全部品牌' }
     ]
   },
 
@@ -26,6 +29,7 @@ Page({
    */
   onLoad: function (options) {
     this.loadCategories()
+    this.loadBrands()
     this.loadProducts()
   },
 
@@ -33,38 +37,121 @@ Page({
    * 加载商品分类
    */
   loadCategories: function() {
-    // 调用云函数获取商品分类
+    // 先获取所有商品，从中提取实际存在的分类
     wx.cloud.callFunction({
       name: 'getShopProducts',
       data: {
-        getCategories: true
+        limit: 1000, // 获取足够多的商品来分析分类
+        onSale: true // 只获取上架商品
       },
       success: (res) => {
-        if (res.result && res.result.success && res.result.categories) {
+        if (res.result && res.result.success && res.result.data) {
+          const products = res.result.data
+          const categorySet = new Set()
+          
+          // 从商品中提取分类
+          products.forEach(product => {
+            if (product.category && product.category.trim()) {
+              categorySet.add(product.category.trim())
+            }
+          })
+          
+          // 构建分类列表
           const categories = [
-            { id: 'all', name: '全部' },
-            { id: 'hot', name: '热销' },
-            { id: 'new', name: '新品' },
-            ...res.result.categories.map(cat => ({
-              id: cat,
-              name: cat
-            }))
+            { id: 'all', name: '全部' }
           ]
-          this.setData({ categories })
+          
+          // 添加实际存在的分类
+          Array.from(categorySet).sort().forEach(categoryName => {
+            categories.push({
+              id: categoryName.toLowerCase(),
+              name: categoryName
+            })
+          })
+          
+          // 如果有商品但没有分类，添加基本分类
+          if (products.length > 0 && categorySet.size === 0) {
+            // 根据商品特征添加动态分类
+            const hotProducts = products.filter(p => (p.sales || 0) > 100)
+            const newProducts = products.filter(p => this.isNewProduct(p.createTime))
+            
+            if (hotProducts.length > 0) {
+              categories.push({ id: 'hot', name: '热销' })
+            }
+            if (newProducts.length > 0) {
+              categories.push({ id: 'new', name: '新品' })
+            }
+          }
+          
+          this.setData({
+            categories: categories
+          })
+        } else {
+          // 如果没有商品数据，只显示全部分类
+          this.setData({
+            categories: [
+              { id: 'all', name: '全部' }
+            ]
+          })
         }
       },
       fail: (err) => {
-        console.error('获取分类失败：', err)
-        // 使用默认分类
+        console.error('获取商品数据失败:', err)
+        // 失败时只显示全部分类
         this.setData({
           categories: [
-            { id: 'all', name: '全部' },
-            { id: 'hot', name: '热销' },
-            { id: 'new', name: '新品' },
-            { id: '服装', name: '服装' },
-            { id: '数码', name: '数码' },
-            { id: '家居', name: '家居' },
-            { id: '美妆', name: '美妆' }
+            { id: 'all', name: '全部' }
+          ]
+        })
+      }
+    })
+  },
+
+  /**
+   * 加载商品品牌
+   */
+  loadBrands: function() {
+    // 调用云函数获取商品品牌
+    wx.cloud.callFunction({
+      name: 'getBrands',
+      data: {
+        limit: 20,
+        status: 'active'
+      },
+      success: (res) => {
+        if (res.result && res.result.success && res.result.data) {
+          const brands = [
+            { id: 'all', name: '全部品牌' }
+          ]
+          
+          // 添加从云端获取的品牌
+          res.result.data.forEach(brand => {
+            if (brand && brand.name) {
+              brands.push({
+                id: brand.code || brand.name.toLowerCase(),
+                name: brand.name,
+                _id: brand._id
+              })
+            }
+          })
+          
+          this.setData({
+            brands: brands
+          })
+        }
+      },
+      fail: (err) => {
+        console.error('获取品牌失败:', err)
+        // 使用默认品牌
+        this.setData({
+          brands: [
+            { id: 'all', name: '全部品牌' },
+            { id: 'apple', name: 'Apple' },
+            { id: 'samsung', name: 'Samsung' },
+            { id: 'huawei', name: 'Huawei' },
+            { id: 'xiaomi', name: 'Xiaomi' },
+            { id: 'nike', name: 'Nike' },
+            { id: 'adidas', name: 'Adidas' }
           ]
         })
       }
@@ -98,7 +185,7 @@ Page({
       },
       success: res => {
         console.log('获取商品数据成功:', res.result)
-        if (res.result.success) {
+        if (res.result && res.result.success) {
           const newProducts = res.result.data || []
           
           // 处理商品数据，确保格式兼容
@@ -110,13 +197,13 @@ Page({
             currentPrice: item.price,
             price: item.price,
             originalPrice: item.originalPrice || item.price,
-            image: item.image || '/images/placeholder.png',
-            imageUrl: item.image || '/images/placeholder.png',
-            images: item.images || [item.image || '/images/placeholder.png'],
-            stock: item.stock,
+            image: imageService.buildImageUrl(item.image || item.imagePath) || '/images/placeholder.svg',
+          imageUrl: imageService.buildImageUrl(item.image || item.imagePath) || '/images/placeholder.svg',
+          images: item.images ? item.images.map(img => imageService.buildImageUrl(img)) : [imageService.buildImageUrl(item.image || item.imagePath) || '/images/placeholder.svg'],
+            stock: item.stock || 0,
             sales: item.sales || 0,
             category: item.category,
-            isHot: item.sales > 100, // 根据销量判断是否热销
+            isHot: (item.sales || 0) > 100, // 根据销量判断是否热销
             isNew: this.isNewProduct(item.createTime), // 根据创建时间判断是否新品
             description: item.description,
             brand: item.brand,
@@ -132,29 +219,38 @@ Page({
             allProducts = [...this.data.products, ...processedProducts]
           }
 
-          this.setData({
+          // 一次性更新所有数据，避免多次setData导致闪烁
+          const updateData = {
             products: allProducts,
-            filteredProducts: this.filterProducts(allProducts),
             loading: false,
             hasMore: newProducts.length === this.data.limit,
             page: this.data.page + 1
-          })
+          }
+          
+          // 只有在有搜索或筛选条件时才更新filteredProducts
+          if (this.data.searchKeyword || this.data.activeFilter !== 'all') {
+            updateData.filteredProducts = this.filterProducts(allProducts)
+          }
+          
+          this.setData(updateData)
         } else {
-          console.error('获取商品数据失败:', res.result.message)
-          this.setData({ loading: false })
-          wx.showToast({
-            title: res.result.message || '加载失败',
-            icon: 'none'
-          })
+          console.error('获取商品数据失败:', res.result ? res.result.message : '未知错误')
+          this.loadDefaultProducts() // 加载默认商品数据
         }
       },
       fail: err => {
         console.error('调用云函数失败:', err)
-        this.setData({ loading: false })
-        wx.showToast({
-          title: '网络错误，请重试',
-          icon: 'none'
-        })
+        // 云函数调用失败时加载默认数据，避免页面空白
+        this.loadDefaultProducts()
+        
+        // 只在首次加载失败时显示提示
+        if (this.data.page === 1) {
+          wx.showToast({
+            title: '云函数未部署，显示默认数据',
+            icon: 'none',
+            duration: 2000
+          })
+        }
       }
     })
   },
@@ -166,6 +262,92 @@ Page({
     const productTime = new Date(createTime).getTime()
     const daysDiff = (now - productTime) / (1000 * 60 * 60 * 24)
     return daysDiff <= 7
+  },
+
+  // 加载默认商品数据（云函数调用失败时使用）
+  loadDefaultProducts: function() {
+    const defaultProducts = [
+      {
+        _id: 'default_1',
+        id: 'default_1',
+        productName: '夏日柠檬茶',
+        name: '夏日柠檬茶',
+        currentPrice: 25,
+        price: 25,
+        originalPrice: 30,
+        image: '/images/products/drink1.jpg',
+        imageUrl: '/images/products/drink1.jpg',
+        images: ['/images/products/drink1.jpg'],
+        stock: 100,
+        sales: 150,
+        category: '饮品',
+        isHot: true,
+        isNew: false,
+        description: '清香柠檬茶，夏日消暑必备',
+        brand: 'apple',
+        specification: '500ml',
+        onSale: true,
+        tags: ['热销']
+      },
+      {
+        _id: 'default_2',
+        id: 'default_2',
+        productName: '经典奶茶',
+        name: '经典奶茶',
+        currentPrice: 20,
+        price: 20,
+        originalPrice: 20,
+        image: '/images/products/drink2.jpg',
+        imageUrl: '/images/products/drink2.jpg',
+        images: ['/images/products/drink2.jpg'],
+        stock: 80,
+        sales: 80,
+        category: '饮品',
+        isHot: false,
+        isNew: true,
+        description: '香浓奶茶，经典口味',
+        brand: 'samsung',
+        specification: '500ml',
+        onSale: true,
+        tags: ['新品']
+      },
+      {
+        _id: 'default_3',
+        id: 'default_3',
+        productName: '水果沙拉',
+        name: '水果沙拉',
+        currentPrice: 35,
+        price: 35,
+        originalPrice: 40,
+        image: '/images/products/drink3.jpg',
+        imageUrl: '/images/products/drink3.jpg',
+        images: ['/images/products/drink3.jpg'],
+        stock: 50,
+        sales: 60,
+        category: '轻食',
+        isHot: false,
+        isNew: false,
+        description: '新鲜水果沙拉，健康美味',
+        brand: 'huawei',
+        specification: '300g',
+        onSale: true,
+        tags: []
+      }
+    ]
+
+    const updateData = {
+      products: defaultProducts,
+      loading: false,
+      hasMore: false,
+      page: 1
+    }
+    
+    // 只有在有搜索或筛选条件时才更新filteredProducts
+    if (this.data.searchKeyword || this.data.activeFilter !== 'all') {
+      updateData.filteredProducts = this.filterProducts(defaultProducts)
+    }
+    
+    this.setData(updateData)
   },
 
   // 加载商品分类
@@ -201,8 +383,6 @@ Page({
           // 合并默认分类和动态分类
           const allCategories = [
             { id: 'all', name: '全部' },
-            { id: 'hot', name: '热销' },
-            { id: 'new', name: '新品' },
             ...dynamicCategories
           ]
           
@@ -224,6 +404,8 @@ Page({
     this.setData({
       searchKeyword: e.detail.value
     })
+    // 实时搜索过滤
+    this.filterProducts()
   },
 
   /**
@@ -234,36 +416,28 @@ Page({
   },
 
   /**
-   * 筛选点击
+   * 分类点击
    */
-  onFilterTap: function(e) {
-    const filter = e.currentTarget.dataset.filter
+  onCategoryTap: function(e) {
+    const category = e.currentTarget.dataset.category
     this.setData({
-      activeFilter: filter,
-      priceSort: ''
+      activeCategory: category
     })
     this.filterProducts()
   },
 
   /**
-   * 价格排序
+   * 品牌点击
    */
-  onSortByPrice: function() {
-    let priceSort = ''
-    if (this.data.priceSort === '') {
-      priceSort = 'asc'
-    } else if (this.data.priceSort === 'asc') {
-      priceSort = 'desc'
-    } else {
-      priceSort = ''
-    }
-    
+  onBrandTap: function(e) {
+    const brand = e.currentTarget.dataset.brand
     this.setData({
-      priceSort: priceSort,
-      activeFilter: priceSort ? 'price' : 'all'
+      activeBrand: brand
     })
     this.filterProducts()
   },
+
+
 
   /**
    * 筛选商品
@@ -276,38 +450,28 @@ Page({
     if (this.data.searchKeyword) {
       const keyword = this.data.searchKeyword.toLowerCase()
       filtered = filtered.filter(product => 
-        product.name.toLowerCase().includes(keyword)
+        (product.productName || product.name || '').toLowerCase().includes(keyword) ||
+        (product.description || '').toLowerCase().includes(keyword)
       )
     }
     
     // 分类筛选
-    if (this.data.activeFilter !== 'all' && this.data.activeFilter !== 'price') {
-      switch (this.data.activeFilter) {
-        case 'hot':
-          filtered = filtered.filter(product => product.isHot)
-          break
-        case 'new':
-          filtered = filtered.filter(product => product.isNew)
-          break
-        default:
-          // 按商品类型或分类筛选
-          filtered = filtered.filter(product => 
-            product.category === this.data.activeFilter || 
-            product.type === this.data.activeFilter
-          )
-      }
-    }
-    
-    // 价格排序
-    if (this.data.priceSort) {
-      filtered.sort((a, b) => {
-        if (this.data.priceSort === 'asc') {
-          return a.price - b.price
-        } else {
-          return b.price - a.price
-        }
+    if (this.data.activeCategory !== 'all') {
+      filtered = filtered.filter(product => {
+        const category = product.category || product.type || ''
+        return category.toLowerCase() === this.data.activeCategory.toLowerCase()
       })
     }
+    
+    // 品牌筛选
+    if (this.data.activeBrand !== 'all') {
+      filtered = filtered.filter(product => {
+        const brand = product.brand || ''
+        return brand.toLowerCase() === this.data.activeBrand.toLowerCase()
+      })
+    }
+    
+
     
     // 如果传入了products参数，则返回过滤结果；否则更新data
     if (products) {
@@ -400,7 +564,7 @@ Page({
       if (productsIndex !== -1) {
         const updateKey = `products[${productsIndex}].image`;
         this.setData({
-          [updateKey]: '/images/placeholder.png'
+          [updateKey]: '/images/placeholder.svg'
         });
       }
       
@@ -409,7 +573,7 @@ Page({
       if (filteredIndex !== -1) {
         const updateKey = `filteredProducts[${filteredIndex}].image`;
         this.setData({
-          [updateKey]: '/images/placeholder.png'
+          [updateKey]: '/images/placeholder.svg'
         });
       }
     }

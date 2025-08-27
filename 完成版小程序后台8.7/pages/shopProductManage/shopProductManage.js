@@ -110,7 +110,12 @@ Page({
     
     // 提取所有产品类型
     const allTypes = products.map(p => p.type);
-    const uniqueCategories = ['全部'].concat(Array.from(new Set(allTypes))).filter(Boolean);
+    // 修复：不过滤"00"等有效值，只过滤null、undefined和空字符串
+    const uniqueCategories = ['全部'].concat(Array.from(new Set(allTypes))).filter(type => type !== null && type !== undefined && type !== '');
+    
+    // 调试输出，检查type值
+    console.log('所有type值:', allTypes);
+    console.log('去重后的分类:', uniqueCategories);
     
     // 根据当前选择的类型筛选产品
     let filteredProducts = products;
@@ -119,7 +124,7 @@ Page({
       
       // 提取当前类别下的所有品牌
       const allBrands = filteredProducts.map(p => p.brand);
-      const uniqueBrands = ['全部'].concat(Array.from(new Set(allBrands))).filter(Boolean);
+      const uniqueBrands = ['全部'].concat(Array.from(new Set(allBrands))).filter(brand => brand !== null && brand !== undefined && brand !== '');
       this.setData({ brands: uniqueBrands });
       
       // 根据选中的品牌进行二次筛选
@@ -129,7 +134,7 @@ Page({
     } else {
       // 全部类别时，提取所有品牌
       const allBrands = products.map(p => p.brand);
-      const uniqueBrands = ['全部'].concat(Array.from(new Set(allBrands))).filter(Boolean);
+      const uniqueBrands = ['全部'].concat(Array.from(new Set(allBrands))).filter(brand => brand !== null && brand !== undefined && brand !== '');
       this.setData({ brands: uniqueBrands });
       
       // 根据选中的品牌进行筛选
@@ -230,10 +235,10 @@ Page({
       this.setData({
         showModal: true,
         modalTitle: product.name,
-        modalContent: `🏷️ 品牌：${product.brand || '暂无'}
-📦 类型：${product.type || '暂无'}
-🏗️ 品类：${product.category || '暂无'}
-📏 规格：${product.specification || '暂无'}
+        modalContent: `🏷️ 品牌：${product.brand !== null && product.brand !== undefined && product.brand !== '' ? product.brand : '暂无'}
+📦 类型：${product.type !== null && product.type !== undefined && product.type !== '' ? product.type : '暂无'}
+🏗️ 品类：${product.category !== null && product.category !== undefined && product.category !== '' ? product.category : '暂无'}
+📏 规格：${product.specification !== null && product.specification !== undefined && product.specification !== '' ? product.specification : '暂无'}
 
 📊 当前库存：${product.stock || 0} 件
 
@@ -241,8 +246,8 @@ Page({
 💵 现价：¥${product.price || 0}
 🎯 销售状态：${product.onSale ? '🟢 在售' : '🔴 下架'}
 
-🎪 促销信息：${product.promotionInfo || '暂无'}
-📝 备注：${product.remark || '暂无备注'}`,
+🎪 促销信息：${product.promotionInfo !== null && product.promotionInfo !== undefined && product.promotionInfo !== '' ? product.promotionInfo : '暂无'}
+📝 备注：${product.remark !== null && product.remark !== undefined && product.remark !== '' ? product.remark : '暂无备注'}`,
         modalShowCancel: false,
         modalConfirmText: '知道了',
         currentProduct: product

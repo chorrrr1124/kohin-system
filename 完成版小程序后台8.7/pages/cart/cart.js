@@ -257,10 +257,10 @@ Page({
           // 保留原始ID和数据库ID
           id: item.id || productInfo.id,
           _id: item._id || productInfo._id,
-          brand: productInfo.brand || '无',
-          type: productInfo.type || '无',
-          specification: productInfo.specification || '无',
-          remark: productInfo.remark || '无',
+          brand: productInfo.brand !== null && productInfo.brand !== undefined && productInfo.brand !== '' ? productInfo.brand : '无',
+          type: productInfo.type !== null && productInfo.type !== undefined && productInfo.type !== '' ? productInfo.type : '无',
+          specification: productInfo.specification !== null && productInfo.specification !== undefined && productInfo.specification !== '' ? productInfo.specification : '无',
+          remark: productInfo.remark !== null && productInfo.remark !== undefined && productInfo.remark !== '' ? productInfo.remark : '无',
           // 确保使用最新的库存信息
           stock: productInfo.stock || 0
         });

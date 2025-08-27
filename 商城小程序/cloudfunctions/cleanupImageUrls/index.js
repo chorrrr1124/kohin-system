@@ -24,13 +24,13 @@ exports.main = async (event, context) => {
       
       // 检查并替换 image 字段
       if (product.image && (product.image.includes('placeholder.com') || product.image.includes('via.placeholder'))) {
-        updateData.image = '/images/placeholder.png'
+        updateData.image = '/images/placeholder.svg'
         needUpdate = true
       }
       
       // 检查并替换 imagePath 字段
       if (product.imagePath && (product.imagePath.includes('placeholder.com') || product.imagePath.includes('via.placeholder'))) {
-        updateData.imagePath = '/images/placeholder.png'
+        updateData.imagePath = '/images/placeholder.svg'
         needUpdate = true
       }
       
@@ -38,7 +38,7 @@ exports.main = async (event, context) => {
       if (product.images && Array.isArray(product.images)) {
         const cleanedImages = product.images.map(img => {
           if (img && (img.includes('placeholder.com') || img.includes('via.placeholder'))) {
-            return '/images/placeholder.png'
+            return '/images/placeholder.svg'
           }
           return img
         })
@@ -75,4 +75,4 @@ exports.main = async (event, context) => {
       message: err.message || '清理图片URL失败'
     }
   }
-} 
+}

@@ -175,7 +175,7 @@ Page({
     const productData = {
       name: formData.name,
       brand: formData.brand || '',
-      type: formData.type || '',
+      type: formData.type !== undefined && formData.type !== null ? formData.type : '',
       category: formData.category || '',
       specification: formData.specification || '',
       stock: parseInt(formData.stock),
@@ -185,6 +185,9 @@ Page({
       createTime: db.serverDate(),
       onSale: true
     };
+    
+    // 调试输出，确保type字段正确保存
+    console.log('保存的type值:', formData.type, '处理后的type值:', productData.type);
     
     if (this.data.isEdit) {
       // 编辑现有产品

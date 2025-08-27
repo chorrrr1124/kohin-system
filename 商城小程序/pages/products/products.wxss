@@ -1,0 +1,370 @@
+/* pages/products/products.wxss */
+
+/* 顶部Banner样式 */
+.banner-container {
+  position: relative;
+  width: 100%;
+  height: 300rpx;
+  overflow: hidden;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+}
+
+.banner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+
+.banner-title {
+  font-size: 48rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
+}
+
+.banner-subtitle {
+  font-size: 28rpx;
+  opacity: 0.9;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
+}
+
+.search-bar {
+  background-color: #fff;
+  padding: 20rpx;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.search-input-container {
+  display: flex;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-radius: 50rpx;
+  padding: 0 20rpx;
+}
+
+.search-input {
+  flex: 1;
+  height: 70rpx;
+  font-size: 28rpx;
+  padding: 0 20rpx;
+}
+
+.search-btn {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #007aff;
+}
+
+/* 主要内容区域 */
+.main-content {
+  display: flex;
+  height: calc(100vh - 400rpx);
+  overflow: hidden;
+}
+
+/* 左侧分类栏 */
+.sidebar {
+  width: 160rpx;
+  background-color: #f8f8f8;
+  border-right: 1rpx solid #e5e5e5;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.category-tabs {
+  display: flex;
+  flex-direction: column;
+}
+
+.category-tab {
+  padding: 30rpx 20rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: #666;
+  background-color: #f8f8f8;
+  border-bottom: 1rpx solid #e5e5e5;
+  position: relative;
+}
+
+.category-tab.active {
+  background-color: #fff;
+  color: #007aff;
+  font-weight: 600;
+}
+
+.category-tab.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6rpx;
+  height: 40rpx;
+  background-color: #007aff;
+  border-radius: 0 3rpx 3rpx 0;
+}
+
+/* 右侧内容区域 */
+.content-area {
+  flex: 1;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 品牌筛选栏 */
+.brand-filter {
+  background-color: #fff;
+  border-bottom: 1rpx solid #f0f0f0;
+  padding: 20rpx 0;
+}
+
+.brand-tabs {
+  white-space: nowrap;
+  padding: 0 20rpx;
+}
+
+.brand-tab {
+  display: inline-block;
+  padding: 16rpx 24rpx;
+  margin-right: 20rpx;
+  font-size: 26rpx;
+  color: #666;
+  background-color: #f5f5f5;
+  border-radius: 30rpx;
+  white-space: nowrap;
+}
+
+.brand-tab.active {
+  background-color: #007aff;
+  color: #fff;
+}
+
+.filter-bar {
+  background-color: #fff;
+  border-bottom: 2rpx solid #f0f0f0;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.filter-tabs {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+/* 水平品牌选项卡 */
+.brand-tabs-horizontal {
+  white-space: nowrap;
+  padding: 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.brand-tabs-horizontal .brand-tab {
+  display: inline-block;
+  padding: 16rpx 24rpx;
+  margin-right: 20rpx;
+  font-size: 26rpx;
+  color: #666;
+  background-color: #f5f5f5;
+  border-radius: 30rpx;
+  white-space: nowrap;
+}
+
+.brand-tabs-horizontal .brand-tab.active {
+  background-color: #007aff;
+  color: #fff;
+}
+
+
+
+.products-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20rpx;
+}
+
+.products-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.product-list-item {
+  background-color: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  display: flex;
+  padding: 8rpx;
+  gap: 8rpx;
+}
+
+.product-image-container {
+  position: relative;
+  flex-shrink: 0;
+  width: 104rpx;
+  height: 104rpx;
+}
+
+.product-list-image {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 12rpx;
+}
+
+.product-tags {
+  position: absolute;
+  top: 10rpx;
+  left: 10rpx;
+  display: flex;
+  gap: 8rpx;
+}
+
+.product-tag {
+  background-color: rgba(255, 59, 48, 0.9);
+  color: #fff;
+  font-size: 20rpx;
+  padding: 4rpx 8rpx;
+  border-radius: 8rpx;
+}
+
+.product-list-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.product-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 2rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.product-spec {
+  font-size: 28rpx;
+  color: #8e8e93;
+  margin-bottom: 4rpx;
+  line-height: 1.1;
+}
+
+.product-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6rpx;
+}
+
+.price-container {
+  display: flex;
+  align-items: baseline;
+  gap: 6rpx;
+}
+
+.product-price {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #ff3b30;
+}
+
+.product-original-price {
+  font-size: 28rpx;
+  color: #8e8e93;
+  text-decoration: line-through;
+}
+
+.product-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.add-cart-btn {
+  background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
+  color: #fff;
+  font-size: 20rpx;
+  padding: 6rpx 12rpx;
+  border-radius: 16rpx;
+  white-space: nowrap;
+}
+
+.add-cart-btn.disabled {
+  background: #d1d1d6;
+  color: #8e8e93;
+}
+
+.product-extra-text {
+  margin-top: 5rpx;
+  display: inline-block;
+  background: transparent;
+  border: 1rpx solid #d1d1d6;
+  border-radius: 16rpx;
+  padding: 6rpx 12rpx;
+  font-size: 20rpx;
+  color: #8e8e93;
+  white-space: nowrap;
+  max-width: fit-content;
+}
+
+.load-more, .no-more {
+  text-align: center;
+  padding: 40rpx;
+  color: #8e8e93;
+  font-size: 28rpx;
+}
+
+.load-more {
+  color: #007aff;
+}
+
+.empty {
+  text-align: center;
+  padding: 100rpx 40rpx;
+  color: #8e8e93;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-btn {
+  margin-top: 30rpx;
+  background-color: #007aff;
+  color: #fff;
+  padding: 20rpx 40rpx;
+  border-radius: 50rpx;
+  font-size: 28rpx;
+  display: inline-block;
+}
+
+.loading {
+  text-align: center;
+  padding: 40rpx;
+  color: #8e8e93;
+  font-size: 28rpx;
+}

@@ -42,11 +42,6 @@ function App() {
               <Route path="coupon-analytics" element={<CouponAnalyticsPage />} />
               <Route path="mall" element={<MallManagePage />} />
               <Route path="image-management" element={<ImageManagePage />} />
-<<<<<<< Updated upstream
-              <Route path="test-image" element={<TestImagePage />} />
-              <Route path="test-cos-upload" element={<TestCosUpload />} />
-=======
->>>>>>> Stashed changes
               <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Routes>

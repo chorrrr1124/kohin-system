@@ -1,0 +1,31 @@
+{
+  "envId": "cloudbase-3g4w6lls8a5ce59b",
+  "functionRoot": "./cloudfunctions",
+  "functions": {
+    "getShopProducts": {
+      "timeout": 60,
+      "runtime": "Nodejs16.13",
+      "memorySize": 256
+    },
+    "login": {
+      "timeout": 60,
+      "runtime": "Nodejs16.13",
+      "memorySize": 256
+    },
+    "syncUser": {
+      "timeout": 60,
+      "runtime": "Nodejs16.13",
+      "memorySize": 256
+    },
+    "getBrands": {
+      "timeout": 60,
+      "runtime": "Nodejs16.13",
+      "memorySize": 256
+    },
+    "getCategories": {
+      "timeout": 60,
+      "runtime": "Nodejs16.13",
+      "memorySize": 256
+    }
+  }
+}

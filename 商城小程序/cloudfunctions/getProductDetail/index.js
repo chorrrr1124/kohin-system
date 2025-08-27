@@ -31,8 +31,8 @@ exports.main = async (event, context) => {
       subtitle: product.subtitle || '',
       price: product.price,
       originalPrice: product.originalPrice || product.price,
-      image: product.image || '/images/placeholder.png',
-      images: product.images || [product.image || '/images/placeholder.png'],
+      image: product.image || '/images/placeholder.svg',
+      images: product.images || [product.image || '/images/placeholder.svg'],
       stock: product.stock || 0,
       sales: product.sales || 0,
       category: product.category,
@@ -78,4 +78,4 @@ function isNewProduct(createTime) {
 function calculateDiscount(originalPrice, currentPrice) {
   if (!originalPrice || originalPrice <= currentPrice) return null
   return Math.round((currentPrice / originalPrice) * 10)
-} 
+}

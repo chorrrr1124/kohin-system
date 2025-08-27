@@ -22,42 +22,89 @@ exports.main = async (event, context) => {
       .limit(limit)
       .get()
 
-    // 如果商城分类集合为空，返回默认分类
+    // 如果商城分类集合为空，从实际商品中提取分类
     if (!result.data || result.data.length === 0) {
-      result.data = [
-        { 
-          _id: '1', 
-          name: '热销', 
-          icon: '/images/category/hot.png', 
-          type: 'hot',
-          sort: 1,
-          status: 'active'
-        },
-        { 
-          _id: '2', 
-          name: '新品', 
-          icon: '/images/category/new.png', 
-          type: 'new',
-          sort: 2,
-          status: 'active'
-        },
-        { 
-          _id: '3', 
-          name: '特价', 
-          icon: '/images/category/sale.png', 
-          type: 'sale',
-          sort: 3,
-          status: 'active'
-        },
-        { 
-          _id: '4', 
-          name: '全部', 
-          icon: '/images/category/all.png', 
-          type: 'all',
-          sort: 4,
-          status: 'active'
+      // 获取所有上架商品
+      const productsResult = await db.collection('shopProducts')
+        .where({
+          onSale: true
+        })
+        .field({
+          category: true,
+          sales: true,
+          createTime: true
+        })
+        .get()
+      
+      const categories = []
+      const categorySet = new Set()
+      
+      // 从商品中提取分类
+      if (productsResult.data && productsResult.data.length > 0) {
+        productsResult.data.forEach(product => {
+          if (product.category && product.category.trim()) {
+            categorySet.add(product.category.trim())
+          }
+        })
+        
+        // 构建分类数据
+        let sortIndex = 1
+        Array.from(categorySet).sort().forEach(categoryName => {
+          categories.push({
+            _id: `cat_${sortIndex}`,
+            name: categoryName,
+            icon: '/images/category/all.png',
+            type: categoryName.toLowerCase(),
+            sort: sortIndex,
+            status: 'active'
+          })
+          sortIndex++
+        })
+        
+        // 如果有商品但没有分类，添加基本的动态分类
+        if (categorySet.size === 0) {
+          const hotProducts = productsResult.data.filter(p => (p.sales || 0) > 100)
+          const now = new Date()
+          const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+          const newProducts = productsResult.data.filter(p => 
+            p.createTime && new Date(p.createTime) > thirtyDaysAgo
+          )
+          
+          if (hotProducts.length > 0) {
+            categories.push({
+              _id: 'hot',
+              name: '热销',
+              icon: '/images/category/hot.png',
+              type: 'hot',
+              sort: 1,
+              status: 'active'
+            })
+          }
+          
+          if (newProducts.length > 0) {
+            categories.push({
+              _id: 'new',
+              name: '新品',
+              icon: '/images/category/new.png',
+              type: 'new',
+              sort: 2,
+              status: 'active'
+            })
+          }
         }
-      ]
+      }
+      
+      // 始终添加全部分类
+      categories.unshift({
+        _id: 'all',
+        name: '全部',
+        icon: '/images/category/all.png',
+        type: 'all',
+        sort: 0,
+        status: 'active'
+      })
+      
+      result.data = categories
     }
 
     return {
@@ -70,12 +117,9 @@ exports.main = async (event, context) => {
     return {
       success: false,
       data: [
-        { _id: '1', name: '热销', icon: '/images/category/hot.png', type: 'hot' },
-        { _id: '2', name: '新品', icon: '/images/category/new.png', type: 'new' },
-        { _id: '3', name: '特价', icon: '/images/category/sale.png', type: 'sale' },
-        { _id: '4', name: '全部', icon: '/images/category/all.png', type: 'all' }
+        { _id: 'all', name: '全部', icon: '/images/category/all.png', type: 'all' }
       ],
-      message: '获取分类失败，使用默认分类'
+      message: '获取分类失败，只返回全部分类'
     }
   }
-} 
+}

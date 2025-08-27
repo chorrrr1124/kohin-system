@@ -67,7 +67,7 @@ exports.main = async (event, context) => {
       category: item.category || item.type || '未分类',
       type: item.type || item.category || '未分类',
       images: item.images || [],
-      image: item.imagePath || (item.images && item.images.length > 0 ? item.images[0] : '/images/placeholder.png'),
+      image: item.imagePath || (item.images && item.images.length > 0 ? item.images[0] : '/images/placeholder.svg'),
       onSale: item.onSale !== false, // 默认为true
       brand: item.brand || '',
       specification: item.specification || item.description || '',
@@ -93,4 +93,4 @@ exports.main = async (event, context) => {
       message: err.message || '获取商品数据失败'
     }
   }
-} 
+}

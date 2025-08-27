@@ -1,3 +1,5 @@
 {
-  "usingComponents": {}
+  "usingComponents": {
+    "image-placeholder": "/components/image-placeholder/image-placeholder"
+  }
 }

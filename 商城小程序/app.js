@@ -32,17 +32,17 @@ App({
   // 全局图片错误处理
   handleImageError(imageSrc) {
     console.warn('图片加载失败:', imageSrc);
-    return '/images/placeholder.png';
+    return '/images/placeholder.svg';
   },
 
   // 确保图片URL的安全性，避免外部URL导致的问题
   validateImageUrl(url) {
-    if (!url) return '/images/placeholder.png';
+    if (!url) return '/images/placeholder.svg';
     
     // 如果是外部URL，替换为本地占位图
     if (url.startsWith('http://') || url.startsWith('https://')) {
       console.warn('检测到外部图片URL，已替换为本地占位图:', url);
-      return '/images/placeholder.png';
+      return '/images/placeholder.svg';
     }
     
     return url;
@@ -96,9 +96,6 @@ App({
     
     // 初始化地址
     this.initAddresses();
-    
-    // 初始化测试订单数据
-    this.initTestOrders();
   },
 
   // 一键静默登录（无需先授权用户信息）
@@ -444,64 +441,26 @@ App({
     if (!orders || orders.length === 0) {
       const testOrders = [
         {
-          orderId: 'ORD2024010101',
-          status: 'pending',
-          totalPrice: 299.00,
-          createTime: Date.now() - 86400000, // 1天前
-          items: [
-            {
-              _id: '1',
-              name: '苹果iPhone 15',
-              currentPrice: 299.00,
-              quantity: 1,
-              image: '/images/placeholder.png'
-            }
-          ],
-          address: {
-            name: '张三',
-            phone: '13800138000',
-            address: '广东省深圳市南山区科技园南区深南大道9999号A座2201'
-          }
-        },
-        {
-          orderId: 'ORD2024010102',
-          status: 'paid',
-          totalPrice: 1588.00,
-          createTime: Date.now() - 172800000, // 2天前
-          items: [
-            {
-              _id: '2',
-              name: '华为Mate 60',
-              currentPrice: 1588.00,
-              quantity: 1,
-              image: '/images/placeholder.png'
-            }
-          ],
-          address: {
-            name: '李四',
-            phone: '13900139000',
-            address: '北京市北京市海淀区中关村大街1号创业大厦8楼'
-          }
-        },
-        {
-          orderId: 'ORD2024010103',
+          id: 'order_001',
           status: 'completed',
-          totalPrice: 188.00,
-          createTime: Date.now() - 259200000, // 3天前
+          createTime: new Date().getTime() - 86400000, // 1天前
+          totalAmount: 68,
           items: [
             {
-              _id: '3',
-              name: '小米手环8',
-              currentPrice: 188.00,
+              id: 'product_001',
+              name: '柠檬蜂蜜茶',
+              price: 28,
               quantity: 1,
-              image: '/images/placeholder.png'
+              image: '/images/products/drink1.jpg'
+            },
+            {
+              id: 'product_002',
+              name: '芒果奶昔',
+              price: 32,
+              quantity: 1,
+              image: '/images/products/drink2.jpg'
             }
-          ],
-          address: {
-            name: '王五',
-            phone: '13700137000',
-            address: '上海市上海市浦东新区陆家嘴金融中心'
-          }
+          ]
         }
       ];
       wx.setStorageSync('orders', testOrders);
