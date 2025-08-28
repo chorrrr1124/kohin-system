@@ -146,6 +146,26 @@ tcb fn deploy
 tcb hosting deploy
 ```
 
+## 功能更新：协议与隐私政策
+
+### 新增内容
+- 新增页面：`商城小程序/pages/agreement/index`，用于展示《用户协议》与《隐私政策》全文。
+- 登录弹窗组件：`商城小程序/components/login-popup-system/` 勾选文案改为可点击链接，点击跳转至上述页面。
+- 路由注册：已在 `商城小程序/app.json` 添加 `pages/agreement/index`。
+
+### 配置方法
+- 云函数：页面通过 `wx.cloud.callFunction({ name: 'getPopupContent' })` 读取协议内容。
+- 数据结构：请在 `getPopupContent` 返回体的 `result.data` 中提供以下字段：
+  - `userAgreementHtml`：用户协议 HTML 内容
+  - `privacyPolicyHtml`：隐私政策 HTML 内容
+- 渲染：页面使用 `rich-text` 渲染协议 HTML；当字段缺失时会显示“暂未配置协议内容”的占位提示。
+
+### 交互说明
+- 登录弹窗中点击《用户协议》或《隐私政策》，分别跳转：
+  - `/pages/agreement/index?type=user`
+  - `/pages/agreement/index?type=privacy`
+- 页面标题将随 `type` 自动设置为“用户协议”或“隐私政策”。
+
 ## 开发指南
 
 详细的开发文档请参考：

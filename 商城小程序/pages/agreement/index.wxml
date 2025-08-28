@@ -1,0 +1,7 @@
+<view class="agreement-page">
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+  <view wx:elif="{{error}}" class="error">{{error}}</view>
+  <scroll-view wx:else scroll-y class="content-scroll">
+    <rich-text nodes="{{htmlNodes}}"></rich-text>
+  </scroll-view>
+</view> 

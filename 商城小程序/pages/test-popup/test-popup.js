@@ -1,356 +1,216 @@
 // 弹窗测试页面
 Page({
   data: {
+    // 弹窗显示状态
     showPrivacyPopup: false,
     showBenefitPopup: false,
     showPhonePopup: false,
-    popupDataStatus: {
-      privacy: '未加载',
-      benefit: '未加载',
-      phone: '未加载'
-    },
-    pageStyle: '', // 新增页面样式属性
-    touchBlocked: false // 触摸阻止状态
+    
+    // 手机号掩码
+    maskedPhone: '138****8888',
+    
+    // 设备信息
+    deviceInfo: {},
+    isRealDevice: false,
+    
+    // 测试结果
+    testResults: []
   },
 
   onLoad() {
-    console.log('测试页面加载完成')
+    // 获取设备信息
+    this.getDeviceInfo()
   },
 
-  // 测试隐私弹窗
+  // 获取设备信息
+  getDeviceInfo() {
+    try {
+      const systemInfo = wx.getSystemInfoSync()
+      
+      this.setData({
+        deviceInfo: systemInfo,
+        isRealDevice: systemInfo.platform !== 'devtools'
+      })
+      
+      console.log('测试页面设备信息:', systemInfo)
+    } catch (error) {
+      console.error('获取设备信息失败:', error)
+    }
+  },
+
+  // 测试隐私政策弹窗滚动
   testPrivacyPopup() {
-    console.log('测试隐私弹窗')
     this.setData({
       showPrivacyPopup: true,
       showBenefitPopup: false,
       showPhonePopup: false
     })
     
-    // 检查弹窗组件数据
-    setTimeout(() => {
-      this.checkPopupData('privacy')
-    }, 100)
+    // 记录测试
+    this.recordTest('隐私政策弹窗', '显示弹窗')
+    
+    console.log('测试隐私政策弹窗滚动')
   },
 
-  // 测试福利弹窗
+  // 测试注册福利弹窗滚动
   testBenefitPopup() {
-    console.log('测试福利弹窗')
     this.setData({
       showPrivacyPopup: false,
       showBenefitPopup: true,
       showPhonePopup: false
     })
     
-    // 检查弹窗组件数据
-    setTimeout(() => {
-      this.checkPopupData('benefit')
-    }, 100)
+    // 记录测试
+    this.recordTest('注册福利弹窗', '显示弹窗')
+    
+    console.log('测试注册福利弹窗滚动')
   },
 
-  // 测试手机号弹窗
+  // 测试手机号授权弹窗滚动
   testPhonePopup() {
-    console.log('测试手机号弹窗')
     this.setData({
       showPrivacyPopup: false,
       showBenefitPopup: false,
       showPhonePopup: true
     })
     
-    // 检查弹窗组件数据
-    setTimeout(() => {
-      this.checkPopupData('phone')
-    }, 100)
+    // 记录测试
+    this.recordTest('手机号授权弹窗', '显示弹窗')
+    
+    console.log('测试手机号授权弹窗滚动')
   },
 
-  // 测试所有弹窗
-  testAllPopups() {
-    console.log('测试所有弹窗')
-    this.testPrivacyPopup()
+  // 记录测试结果
+  recordTest(type, action, success = true, detail = '') {
+    const now = new Date()
+    const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
     
-    setTimeout(() => {
-      this.testBenefitPopup()
-    }, 2000)
+    const testResult = {
+      time,
+      type,
+      action,
+      success,
+      detail: detail || (success ? '操作成功' : '操作失败')
+    }
     
-    setTimeout(() => {
-      this.testPhonePopup()
-    }, 4000)
-  },
-
-  // 测试弹窗触摸阻止
-  testPopupTouchBlocking() {
-    console.log('测试弹窗触摸阻止')
-    
-    // 显示隐私弹窗
     this.setData({
-      showPrivacyPopup: true
-    })
-    
-    wx.showToast({
-      title: '隐私弹窗已显示，测试触摸阻止',
-      icon: 'none',
-      duration: 2000
-    })
-    
-    // 3秒后自动隐藏
-    setTimeout(() => {
-      this.setData({
-        showPrivacyPopup: false
-      })
-      wx.showToast({
-        title: '触摸阻止测试完成',
-        icon: 'success'
-      })
-    }, 3000)
-  },
-
-  // 测试弹窗按钮点击
-  testPopupButtonClick() {
-    console.log('测试弹窗按钮点击')
-    
-    // 显示福利弹窗
-    this.setData({
-      showBenefitPopup: true
-    })
-    
-    wx.showToast({
-      title: '福利弹窗已显示，测试按钮点击',
-      icon: 'none',
-      duration: 2000
-    })
-    
-    // 5秒后自动隐藏
-    setTimeout(() => {
-      this.setData({
-        showBenefitPopup: false
-      })
-      wx.showToast({
-        title: '按钮点击测试完成',
-        icon: 'success'
-      })
-    }, 5000)
-  },
-
-  // 触摸事件阻止方法
-  preventTouchMove(e) {
-    console.log('页面阻止触摸移动')
-    if (e && e.preventDefault) e.preventDefault()
-    if (e && e.stopPropagation) e.stopPropagation()
-    return false
-  },
-
-  preventTouchStart(e) {
-    console.log('页面阻止触摸开始')
-    if (e && e.preventDefault) e.preventDefault()
-    if (e && e.stopPropagation) e.stopPropagation()
-    return false
-  },
-
-  preventTouchEnd(e) {
-    console.log('页面阻止触摸结束')
-    if (e && e.preventDefault) e.preventDefault()
-    if (e && e.stopPropagation) e.stopPropagation()
-    return false
-  },
-
-  // 测试触摸事件阻止
-  testTouchEvents() {
-    console.log('测试触摸事件阻止')
-    
-    if (this.data.touchBlocked) {
-      // 如果已经阻止，则恢复
-      this.setData({
-        pageStyle: '',
-        touchBlocked: false
-      })
-      wx.showToast({
-        title: '触摸阻止已关闭',
-        icon: 'success'
-      })
-    } else {
-      // 设置页面样式阻止触摸
-      this.setData({
-        pageStyle: 'touch-action: none !important; overflow: hidden !important;',
-        touchBlocked: true
-      })
-      wx.showToast({
-        title: '触摸阻止已开启',
-        icon: 'success'
-      })
-    }
-  },
-
-  // 添加触摸事件监听
-  addTouchEventListeners() {
-    // 监听页面触摸事件
-    wx.onTouchStart((e) => {
-      console.log('页面触摸开始:', e)
-    })
-    
-    wx.onTouchMove((e) => {
-      console.log('页面触摸移动:', e)
-    })
-    
-    wx.onTouchEnd((e) => {
-      console.log('页面触摸结束:', e)
+      testResults: [testResult, ...this.data.testResults].slice(0, 10) // 保留最近10条
     })
   },
 
-  // 测试弹窗内容完整性
-  testPopupContentIntegrity() {
-    console.log('测试弹窗内容完整性')
-    
-    const popupSystem = this.selectComponent('#loginPopupSystem')
-    if (popupSystem) {
-      const popupContent = popupSystem.data.popupContent
-      
-      console.log('弹窗内容状态:')
-      console.log('- 隐私弹窗:', popupContent.privacy)
-      console.log('- 福利弹窗:', popupContent.benefit)
-      console.log('- 手机号弹窗:', popupContent.phone)
-      
-      // 检查按钮文字
-      if (popupContent.privacy) {
-        console.log('隐私弹窗按钮:')
-        console.log('  拒绝按钮:', popupContent.privacy.rejectButton)
-        console.log('  同意按钮:', popupContent.privacy.agreeButton)
-      }
-      
-      if (popupContent.benefit) {
-        console.log('福利弹窗按钮:')
-        console.log('  登录按钮:', popupContent.benefit.loginButton)
-        console.log('  跳过按钮:', popupContent.benefit.skipButton)
-      }
-      
-      if (popupContent.phone) {
-        console.log('手机号弹窗按钮:')
-        console.log('  允许按钮:', popupContent.phone.allowButton)
-        console.log('  不允许按钮:', popupContent.phone.rejectButton)
-        console.log('  其他号码按钮:', popupContent.phone.otherPhoneButton)
-      }
-    }
-  },
+  // ===== 弹窗事件处理 =====
 
-  // 调试弹窗显示状态
-  debugPopupStatus() {
-    console.log('=== 弹窗状态调试 ===')
-    
-    const popupSystem = this.selectComponent('#loginPopupSystem')
-    if (popupSystem) {
-      console.log('弹窗组件实例:', popupSystem)
-      console.log('弹窗组件数据:', popupSystem.data)
-      console.log('弹窗组件属性:', popupSystem.properties)
-      
-      // 检查弹窗显示状态
-      console.log('弹窗显示状态:')
-      console.log('- showPrivacyPopup:', this.data.showPrivacyPopup)
-      console.log('- showBenefitPopup:', this.data.showBenefitPopup)
-      console.log('- showPhonePopup:', this.data.showPhonePopup)
-      
-      // 检查内部状态
-      console.log('弹窗内部状态:')
-      console.log('- privacyVisible:', popupSystem.data.privacyVisible)
-      console.log('- benefitVisible:', popupSystem.data.benefitVisible)
-      console.log('- phoneVisible:', popupSystem.data.phoneVisible)
-      
-      // 检查弹窗内容
-      console.log('弹窗内容:')
-      console.log('- popupContent:', popupSystem.data.popupContent)
-      
-      // 强制同步状态
-      popupSystem.syncPopupVisibility()
-      
-      console.log('=== 调试完成 ===')
-    } else {
-      console.error('弹窗组件未找到!')
-    }
-  },
-
-  // 测试弹窗显示状态
-
-  // 检查弹窗数据
-  checkPopupData(type) {
-    const popupSystem = this.selectComponent('#loginPopupSystem')
-    if (popupSystem) {
-      const popupContent = popupSystem.data.popupContent
-      console.log(`${type}弹窗数据:`, popupContent[type])
-      
-      // 更新状态显示
-      const statusKey = `popupDataStatus.${type}`
-      const statusValue = popupContent[type] ? '已加载' : '未加载'
-      this.setData({
-        [statusKey]: statusValue
-      })
-      
-      // 检查按钮文字
-      if (popupContent[type]) {
-        const buttons = this.getButtonTexts(type, popupContent[type])
-        console.log(`${type}弹窗按钮文字:`, buttons)
-        
-        // 显示按钮文字状态
-        wx.showToast({
-          title: `按钮文字: ${buttons.join(', ')}`,
-          icon: 'none',
-          duration: 3000
-        })
-      }
-    }
-  },
-
-  // 获取按钮文字
-  getButtonTexts(type, content) {
-    switch (type) {
-      case 'privacy':
-        return [content.rejectButton, content.agreeButton]
-      case 'benefit':
-        return [content.loginButton, content.skipButton]
-      case 'phone':
-        return [content.allowButton, content.rejectButton, content.otherPhoneButton]
-      default:
-        return []
-    }
-  },
-
-  // 隐私弹窗事件处理
+  // 隐私政策同意
   onPrivacyAgree() {
     console.log('用户同意隐私政策')
-    this.setData({ showPrivacyPopup: false })
-    wx.showToast({ title: '已同意隐私政策', icon: 'success' })
+    this.recordTest('隐私政策弹窗', '同意', true, '用户点击同意按钮')
+    
+    // 延迟显示下一个弹窗
+    setTimeout(() => {
+      this.testBenefitPopup()
+    }, 500)
   },
 
+  // 隐私政策拒绝
   onPrivacyReject() {
     console.log('用户拒绝隐私政策')
-    this.setData({ showPrivacyPopup: false })
-    wx.showToast({ title: '已拒绝隐私政策', icon: 'error' })
+    this.recordTest('隐私政策弹窗', '拒绝', true, '用户点击拒绝按钮')
+    
+    // 关闭弹窗
+    this.setData({
+      showPrivacyPopup: false
+    })
   },
 
-  // 福利弹窗事件处理
+  // 注册福利登录
   onBenefitLogin() {
-    console.log('用户点击福利登录')
-    this.setData({ showBenefitPopup: false })
-    wx.showToast({ title: '跳转到登录流程', icon: 'success' })
+    console.log('用户点击注册福利登录')
+    this.recordTest('注册福利弹窗', '登录', true, '用户点击登录按钮')
+    
+    // 延迟显示下一个弹窗
+    setTimeout(() => {
+      this.testPhonePopup()
+    }, 500)
   },
 
+  // 注册福利跳过
   onBenefitSkip() {
-    console.log('用户跳过福利')
-    this.setData({ showBenefitPopup: false })
-    wx.showToast({ title: '已跳过福利', icon: 'none' })
+    console.log('用户跳过注册福利')
+    this.recordTest('注册福利弹窗', '跳过', true, '用户点击跳过按钮')
+    
+    // 关闭弹窗
+    this.setData({
+      showBenefitPopup: false
+    })
   },
 
-  // 手机号弹窗事件处理
+  // 手机号允许
   onPhoneAllow() {
     console.log('用户允许获取手机号')
-    this.setData({ showPhonePopup: false })
-    wx.showToast({ title: '已允许获取手机号', icon: 'success' })
+    this.recordTest('手机号授权弹窗', '允许', true, '用户允许获取手机号')
+    
+    // 关闭弹窗
+    this.setData({
+      showPhonePopup: false
+    })
   },
 
+  // 手机号拒绝
   onPhoneReject() {
     console.log('用户拒绝获取手机号')
-    this.setData({ showPhonePopup: false })
-    wx.showToast({ title: '已拒绝获取手机号', icon: 'error' })
+    this.recordTest('手机号授权弹窗', '拒绝', true, '用户拒绝获取手机号')
+    
+    // 关闭弹窗
+    this.setData({
+      showPhonePopup: false
+    })
   },
 
+  // 使用其他手机号
   onUseOtherPhone() {
     console.log('用户选择使用其他手机号')
-    wx.showToast({ title: '跳转到其他手机号输入', icon: 'success' })
+    this.recordTest('手机号授权弹窗', '其他号码', true, '用户选择使用其他手机号')
+    
+    // 关闭弹窗
+    this.setData({
+      showPhonePopup: false
+    })
+  },
+
+  // 流程完成
+  onFlowComplete() {
+    console.log('弹窗流程完成')
+    this.recordTest('弹窗系统', '流程完成', true, '所有弹窗流程已完成')
+  },
+
+  // 页面显示时检查弹窗状态
+  onShow() {
+    // 检查是否有弹窗显示
+    const hasPopup = this.data.showPrivacyPopup || this.data.showBenefitPopup || this.data.showPhonePopup
+    
+    if (hasPopup) {
+      console.log('页面显示，当前弹窗状态:', {
+        privacy: this.data.showPrivacyPopup,
+        benefit: this.data.showBenefitPopup,
+        phone: this.data.showPhonePopup
+      })
+    }
+  },
+
+  // 页面隐藏时记录
+  onHide() {
+    console.log('测试页面隐藏')
+  },
+
+  // 页面卸载时清理
+  onUnload() {
+    console.log('测试页面卸载')
+    
+    // 清理弹窗状态
+    this.setData({
+      showPrivacyPopup: false,
+      showBenefitPopup: false,
+      showPhonePopup: false
+    })
   }
 }) 

@@ -3,62 +3,19 @@
   position: relative;
 }
 
-/* 调试信息样式 */
-.debug-info {
-  position: fixed;
-  top: 0;
-  left: 0;
-  background: rgba(255, 0, 0, 0.8);
-  color: white;
-  padding: 10rpx;
-  font-size: 24rpx;
-  z-index: 10000;
-  display: flex;
-  flex-direction: column;
-  gap: 5rpx;
-}
-
-.debug-info text {
-  color: white;
-  font-size: 20rpx;
-}
-
-/* 全屏触摸阻止遮罩 */
-.fullscreen-touch-blocker {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 999;
-  touch-action: none !important;
-  -webkit-overflow-scrolling: none;
-  overscroll-behavior: none;
-  pointer-events: auto;
-  background: transparent;
-}
-
-/* 弹窗遮罩层 */
 .popup-mask {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100vw;
-  height: 100vh;
-  min-height: 100vh;
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
+  z-index: 9999;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  pointer-events: all;
-  touch-action: none !important;
-  -webkit-overflow-scrolling: none;
-  overscroll-behavior: none;
+  /* 防止弹窗显示时页面滚动 */
+  overflow: hidden;
 }
 
 .popup-container {
@@ -75,40 +32,15 @@
   /* 设置弹窗整体高度，确保内容区域有足够空间 */
   height: auto;
   min-height: 500rpx;
-  /* 阻止触摸事件传播 */
-  pointer-events: auto;
-  /* 阻止触摸滚动 */
-  touch-action: none !important;
-  /* 确保在iOS上也能阻止滚动 */
-  -webkit-overflow-scrolling: touch;
-  /* 阻止触摸反馈 */
-  -webkit-tap-highlight-color: transparent;
-  /* 确保弹窗容器阻止所有触摸事件 */
-  pointer-events: all;
-  /* 阻止触摸事件传播到父级 */
-  isolation: isolate;
 }
 
-/* 弹窗内容样式 */
-.popup-content {
-  position: relative;
-  background: #fff;
-  border-radius: 20rpx;
-  width: 90%;
-  max-width: 600rpx;
-  max-height: 80vh;
-  overflow: hidden;
-  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.3);
-  z-index: 1001;
-  display: flex;
-  flex-direction: column;
-}
-
+/* 通用样式 */
 .popup-header {
-  padding: 40rpx 40rpx 20rpx;
   text-align: center;
-  border-bottom: 2rpx solid #f0f0f0;
-  position: relative;
+  padding: 30rpx 40rpx 20rpx 40rpx;
+  background: #fff;
+  border-bottom: 1rpx solid #f0f0f0;
+  flex-shrink: 0;
 }
 
 .popup-title {
@@ -117,108 +49,28 @@
   color: #333;
 }
 
-.close-btn {
-  position: absolute;
-  top: 40rpx;
-  right: 40rpx;
-  width: 60rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: #f5f5f5;
-  cursor: pointer;
-}
-
-.close-icon {
-  font-size: 40rpx;
-  color: #999;
-  font-weight: bold;
-}
-
-.popup-body {
-  padding: 30rpx 40rpx;
-  flex: 1;
-  overflow-y: auto;
-  max-height: 400rpx;
-}
-
-.popup-text {
-  display: block;
-  font-size: 28rpx;
-  color: #666;
-  line-height: 1.6;
-  margin-bottom: 20rpx;
-}
-
-.phone-input {
-  width: 100%;
-  height: 80rpx;
-  border: 2rpx solid #e0e0e0;
-  border-radius: 10rpx;
-  padding: 0 20rpx;
-  font-size: 28rpx;
-  margin-top: 20rpx;
-}
-
-.popup-footer {
-  padding: 20rpx 40rpx 40rpx;
-  display: flex;
-  gap: 20rpx;
-  border-top: 2rpx solid #f0f0f0;
-}
-
-.popup-btn {
-  flex: 1;
-  height: 80rpx;
-  border: none;
-  border-radius: 10rpx;
-  font-size: 28rpx;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.reject-btn {
-  background: #fff;
-  color: #666;
-  border: 2rpx solid #e0e0e0;
-}
-
-.reject-btn:active {
-  background: #f5f5f5;
-}
-
-.agree-btn {
-  background: #07c160;
-  color: #fff;
-}
-
-.agree-btn:active {
-  background: #06ad56;
-}
-
-.primary-btn {
-  background: #07c160;
-  color: #fff;
-}
-
-.primary-btn:active {
-  background: #06ad56;
-}
-
-/* 弹窗类型特定样式 */
-.privacy-popup {
-  max-height: 70vh;
-}
-
-.benefit-popup {
-  max-height: 60vh;
-}
-
-.phone-popup {
-  max-height: 50vh;
+/* 弹窗内容区域 */
+.popup-content {
+  /* 调整高度为365px - 使用多种单位确保兼容性 */
+  height: 365rpx !important;
+  height: 365px !important;
+  min-height: 365rpx !important;
+  min-height: 365px !important;
+  /* 移除flex相关设置，避免真机兼容性问题 */
+  flex: none;
+  /* 确保内容区域有明确的高度 */
+  /* 移除所有overflow设置，让scroll-view自己处理 */
+  padding: 0;
+  /* 真机滚动优化 */
+  overflow: visible;
+  /* 确保内容区域在真机上正确显示 */
+  position: relative;
+  /* 强制设置高度，确保真机兼容性 */
+  box-sizing: border-box;
+  /* 真机强制高度设置 */
+  display: block !important;
+  /* 确保高度不被其他样式覆盖 */
+  line-height: 1;
 }
 
 /* scroll-view容器 - 真机兼容性关键修复 */
@@ -383,16 +235,21 @@
   color: #fff;
   max-width: 650rpx;
   animation: slideUp 0.3s ease-out;
+  border-radius: 24rpx 24rpx 0 0;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.25);
 }
 
 .benefit-popup .popup-header {
   position: relative;
+  background: transparent;
+  border-bottom: none;
+  padding: 40rpx 40rpx 20rpx 40rpx;
 }
 
 .new-badge {
   position: absolute;
-  top: -20rpx;
-  left: -20rpx;
+  top: -16rpx;
+  left: -16rpx;
   background: #f39c12;
   color: #fff;
   font-size: 20rpx;
@@ -405,58 +262,61 @@
 .benefit-titles {
   display: flex;
   flex-direction: column;
-  gap: 10rpx;
+  gap: 12rpx;
+  align-items: center;
 }
 
 .benefit-main-title {
-  font-size: 32rpx;
-  font-weight: 600;
+  font-size: 44rpx;
+  font-weight: 800;
 }
 
 .benefit-sub-title {
-  font-size: 24rpx;
-  opacity: 0.9;
+  font-size: 26rpx;
+  opacity: 0.92;
 }
 
 .benefit-content {
   text-align: center;
-  margin: 30rpx 0;
+  margin: 24rpx 0 12rpx 0;
 }
 
 .benefit-amount {
-  font-size: 48rpx;
-  font-weight: 700;
-  margin-bottom: 10rpx;
+  font-size: 56rpx;
+  font-weight: 800;
+  letter-spacing: 1rpx;
+  margin-bottom: 8rpx;
 }
 
 .benefit-description {
   font-size: 26rpx;
-  opacity: 0.9;
+  opacity: 0.95;
 }
 
 /* 福利弹窗按钮样式 - 固定在底部 */
 .benefit-popup .popup-actions {
-  background: transparent;
-  border-top: 1rpx solid rgba(255, 255, 255, 0.2);
-  padding: 20rpx 40rpx 30rpx 40rpx;
+  background: linear-gradient(180deg, rgba(255,255,255,0.0) 0%, rgba(0,0,0,0.08) 100%);
+  border-top: 1rpx solid rgba(255, 255, 255, 0.18);
+  padding: 24rpx 40rpx 36rpx 40rpx;
 }
 
 .benefit-login-btn {
   background: #fff;
   color: #27ae60;
-  font-weight: 600;
+  font-weight: 700;
+  box-shadow: 0 8rpx 20rpx rgba(0,0,0,0.15);
 }
 
 .benefit-skip-btn {
   background: transparent;
   color: #fff;
-  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  border: 2rpx solid rgba(255, 255, 255, 0.35);
 }
 
 .privacy-checkbox {
-  margin-top: 30rpx;
+  margin-top: 16rpx;
   padding: 20rpx;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 16rpx;
 }
 
@@ -464,17 +324,18 @@
   display: flex;
   align-items: center;
   gap: 16rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 10rpx;
 }
 
 .checkbox-text {
   font-size: 26rpx;
+  line-height: 1.4;
 }
 
 .privacy-detail {
   font-size: 22rpx;
-  opacity: 0.8;
-  line-height: 1.5;
+  opacity: 0.86;
+  line-height: 1.6;
 }
 
 /* 3. 手机号授权弹窗样式 */
@@ -656,4 +517,23 @@
   position: relative;
   /* 真机滚动优化 */
   overflow: visible;
+}
+
+/* 调试信息样式 */
+.debug-info {
+  background: rgba(0, 0, 0, 0.1) !important;
+  padding: 10rpx !important;
+  margin: 10rpx !important;
+  border-radius: 8rpx !important;
+  font-size: 20rpx !important;
+  color: #fff !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5rpx !important;
+}
+
+.debug-info text {
+  color: #fff !important;
+  font-size: 20rpx !important;
+  line-height: 1.2 !important;
 } 

@@ -26,7 +26,7 @@ exports.main = async (event, context) => {
         data: {
           brand: {
             name: '丘大叔柠檬茶',
-            logo: '/images/general/148L.png'
+            logo: '/images/logo.png'
           },
           privacy: {
             title: '温馨提示',

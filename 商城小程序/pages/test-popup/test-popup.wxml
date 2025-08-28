@@ -1,117 +1,68 @@
 <!-- 弹窗测试页面 -->
-<view class="container" 
-      style="{{pageStyle}}"
-      catchtouchmove="{{pageStyle ? 'preventTouchMove' : ''}}"
-      catchtouchstart="{{pageStyle ? 'preventTouchStart' : ''}}"
-      catchtouchend="{{pageStyle ? 'preventTouchEnd' : ''}}">
+<view class="container">
   <view class="header">
-    <text class="title">弹窗系统测试页面</text>
-    <text class="subtitle">测试按钮文字显示和背景滑动阻止</text>
+    <text class="title">弹窗滚动测试</text>
+    <text class="subtitle">测试弹窗组件的滚动功能和真机兼容性</text>
   </view>
 
-  <view class="test-section">
-    <text class="section-title">弹窗内容测试</text>
-    
+  <view class="test-buttons">
     <button class="test-btn primary" bindtap="testPrivacyPopup">
-      测试隐私弹窗
+      测试隐私政策弹窗滚动
     </button>
     
     <button class="test-btn secondary" bindtap="testBenefitPopup">
-      测试福利弹窗
+      测试注册福利弹窗滚动
     </button>
     
-    <button class="test-btn success" bindtap="testPhonePopup">
-      测试手机号弹窗
-    </button>
-    
-    <button class="test-btn warning" bindtap="testAllPopups">
-      测试所有弹窗
+    <button class="test-btn secondary" bindtap="testPhonePopup">
+      测试手机号授权弹窗滚动
     </button>
   </view>
 
-  <view class="test-section">
-    <text class="section-title">数据状态检查</text>
-    
-    <view class="status-item">
-      <text class="status-label">隐私弹窗数据:</text>
-      <text class="status-value">{{popupDataStatus.privacy}}</text>
-    </view>
-    
-    <view class="status-item">
-      <text class="status-label">福利弹窗数据:</text>
-      <text class="status-value">{{popupDataStatus.benefit}}</text>
-    </view>
-    
-    <view class="status-item">
-      <text class="status-label">手机号弹窗数据:</text>
-      <text class="status-value">{{popupDataStatus.phone}}</text>
-    </view>
+  <view class="instructions">
+    <text class="instruction-title">测试说明</text>
+    <text class="instruction-text">1. 点击上方按钮测试不同类型的弹窗</text>
+    <text class="instruction-text">2. 查看弹窗顶部的蓝色调试信息框</text>
+    <text class="instruction-text">3. 尝试在弹窗内容区域上下滑动</text>
+    <text class="instruction-text">4. 检查控制台是否有滚动事件日志</text>
+    <text class="instruction-text">5. 对比模拟器和真机的表现差异</text>
   </view>
 
-  <view class="test-section">
-    <text class="section-title">触摸事件测试</text>
-    
-    <text class="test-hint">在弹窗显示时，尝试滑动背景区域，应该无法滑动</text>
-    
-    <!-- 触摸状态显示 -->
-    <view class="touch-status">
-      <text class="status-label">触摸阻止状态:</text>
-      <text class="status-value {{touchBlocked ? 'blocked' : 'normal'}}">
-        {{touchBlocked ? '已阻止' : '正常'}}
+  <!-- 设备信息显示 -->
+  <view class="device-info" wx:if="{{deviceInfo.platform}}">
+    <text class="device-title">设备信息</text>
+    <text class="device-text">平台: {{deviceInfo.platform}}</text>
+    <text class="device-text">系统: {{deviceInfo.system}}</text>
+    <text class="device-text">版本: {{deviceInfo.version}}</text>
+    <text class="device-text">环境: {{isRealDevice ? '真机' : '模拟器'}}</text>
+    </view>
+
+  <!-- 测试结果 -->
+  <view class="test-results" wx:if="{{testResults.length > 0}}">
+    <text class="results-title">测试结果</text>
+    <view class="result-item" wx:for="{{testResults}}" wx:key="index">
+      <text class="result-time">{{item.time}}</text>
+      <text class="result-type">{{item.type}}</text>
+      <text class="result-status {{item.success ? 'success' : 'failed'}}">
+        {{item.success ? '成功' : '失败'}}
       </text>
+      <text class="result-detail">{{item.detail}}</text>
     </view>
-    
-    <!-- 触摸滚动测试区域 -->
-    <view class="touch-test-area">
-      <text class="test-hint">触摸滚动测试区域 - 在弹窗显示时应该无法滚动</text>
-      <view class="scrollable-content">
-        <text>这是可滚动的内容区域 1</text>
-        <text>这是可滚动的内容区域 2</text>
-        <text>这是可滚动的内容区域 3</text>
-        <text>这是可滚动的内容区域 4</text>
-        <text>这是可滚动的内容区域 5</text>
-        <text>这是可滚动的内容区域 6</text>
-        <text>这是可滚动的内容区域 7</text>
-        <text>这是可滚动的内容区域 8</text>
-        <text>这是可滚动的内容区域 9</text>
-        <text>这是可滚动的内容区域 10</text>
-      </view>
-    </view>
-    
-    <button class="test-btn info" bindtap="testTouchEvents">
-      {{touchBlocked ? '关闭触摸阻止' : '开启触摸阻止'}}
-    </button>
-    
-    <button class="test-btn warning" bindtap="testPopupContentIntegrity">
-      测试弹窗内容完整性
-    </button>
-    
-    <button class="test-btn danger" bindtap="debugPopupStatus">
-      调试弹窗显示状态
-    </button>
-    
-    <!-- 弹窗触摸阻止测试 -->
-    <button class="test-btn primary" bindtap="testPopupTouchBlocking">
-      测试弹窗触摸阻止
-    </button>
-    
-    <button class="test-btn success" bindtap="testPopupButtonClick">
-      测试弹窗按钮点击
-    </button>
+  </view>
   </view>
 
-  <!-- 弹窗系统组件 -->
-  <login-popup-system 
-    id="loginPopupSystem"
-    show-privacy-popup="{{showPrivacyPopup}}"
-    show-benefit-popup="{{showBenefitPopup}}"
-    show-phone-popup="{{showPhonePopup}}"
-    bind:privacy-agree="onPrivacyAgree"
-    bind:privacy-reject="onPrivacyReject"
-    bind:benefit-login="onBenefitLogin"
-    bind:benefit-skip="onBenefitSkip"
-    bind:phone-allow="onPhoneAllow"
-    bind:phone-reject="onPhoneReject"
-    bind:use-other-phone="onUseOtherPhone">
-  </login-popup-system>
-</view> 
+<!-- 登录弹窗系统组件 -->
+  <login-popup-system
+  showPrivacyPopup="{{showPrivacyPopup}}"
+  showBenefitPopup="{{showBenefitPopup}}"
+  showPhonePopup="{{showPhonePopup}}"
+  maskedPhone="{{maskedPhone}}"
+    bind:privacyAgree="onPrivacyAgree"
+    bind:privacyReject="onPrivacyReject"
+    bind:benefitLogin="onBenefitLogin"
+    bind:benefitSkip="onBenefitSkip"
+    bind:phoneAllow="onPhoneAllow"
+    bind:phoneReject="onPhoneReject"
+    bind:useOtherPhone="onUseOtherPhone"
+  bind:flowComplete="onFlowComplete">
+</login-popup-system> 

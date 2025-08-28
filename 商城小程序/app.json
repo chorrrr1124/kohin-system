@@ -9,7 +9,8 @@
     "pages/profile/profile",
     "pages/coupon/coupon",
     "pages/debug/debug",
-    "pages/test-popup/test-popup"
+    "pages/test-popup/test-popup",
+    "pages/agreement/index"
   ],
   "window": {
     "backgroundTextStyle": "light",

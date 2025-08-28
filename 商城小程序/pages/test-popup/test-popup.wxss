@@ -1,4 +1,4 @@
-/* 测试页面样式 */
+/* 弹窗测试页面样式 */
 .container {
   padding: 40rpx;
   background: #f5f5f5;
@@ -8,16 +8,12 @@
 .header {
   text-align: center;
   margin-bottom: 60rpx;
-  padding: 40rpx;
-  background: #fff;
-  border-radius: 20rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
 }
 
 .title {
   display: block;
   font-size: 48rpx;
-  font-weight: bold;
+  font-weight: 600;
   color: #333;
   margin-bottom: 20rpx;
 }
@@ -29,178 +25,159 @@
   line-height: 1.5;
 }
 
-.test-section {
-  background: #fff;
-  border-radius: 20rpx;
-  padding: 40rpx;
-  margin-bottom: 40rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
-}
-
-.section-title {
-  display: block;
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 30rpx;
-  text-align: center;
+.test-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+  margin-bottom: 60rpx;
 }
 
 .test-btn {
-  width: 100%;
-  height: 88rpx;
-  border-radius: 44rpx;
+  height: 100rpx;
+  border-radius: 50rpx;
   font-size: 32rpx;
   font-weight: 500;
-  margin-bottom: 20rpx;
   border: none;
-  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.test-btn::after {
+  border: none;
 }
 
 .test-btn.primary {
-  background: #007bff;
+  background: #07c160;
   color: #fff;
-}
-
-.test-btn.primary:active {
-  background: #0056b3;
 }
 
 .test-btn.secondary {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  color: #fff;
-}
-
-.test-btn.success {
-  background: #28a745;
-  color: #fff;
-}
-
-.test-btn.success:active {
-  background: #1e7e34;
-}
-
-.test-btn.warning {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-  color: #fff;
-}
-
-.test-btn.info {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-  color: #fff;
-}
-
-.test-btn:active {
-  transform: scale(0.98);
-  opacity: 0.9;
-}
-
-.status-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
-}
-
-.status-item:last-child {
-  border-bottom: none;
-}
-
-.status-label {
-  font-size: 28rpx;
+  background: #fff;
   color: #666;
+  border: 2rpx solid #ddd;
 }
 
-.status-value {
-  font-size: 28rpx;
-  color: #333;
-  font-weight: 500;
-  padding: 8rpx 20rpx;
-  background: #f8f9fa;
+.instructions {
+  background: #fff;
+  padding: 40rpx;
   border-radius: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+  margin-bottom: 40rpx;
 }
 
-.test-hint {
+.instruction-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.instruction-text {
   display: block;
   font-size: 26rpx;
-  color: #999;
-  text-align: center;
+  color: #666;
   line-height: 1.6;
-  margin-bottom: 30rpx;
-  padding: 20rpx;
-  background: #f8f9fa;
-  border-radius: 16rpx;
-} 
-
-/* 触摸状态显示样式 */
-.touch-status {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 20rpx 0;
-  padding: 20rpx;
-  background: #f8f9fa;
-  border-radius: 10rpx;
-  border: 2rpx solid #e9ecef;
+  margin-bottom: 15rpx;
 }
 
-.touch-status .status-label {
-  font-size: 28rpx;
-  color: #495057;
-  font-weight: 500;
+.instruction-text:last-child {
+  margin-bottom: 0;
 }
 
-.touch-status .status-value {
-  font-size: 28rpx;
-  font-weight: 600;
-  padding: 8rpx 16rpx;
+/* 设备信息样式 */
+.device-info {
+  background: #fff;
+  padding: 40rpx;
   border-radius: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+  margin-bottom: 40rpx;
 }
 
-.touch-status .status-value.normal {
+.device-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.device-text {
+  display: block;
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 12rpx;
+}
+
+.device-text:last-child {
+  margin-bottom: 0;
+}
+
+/* 测试结果样式 */
+.test-results {
+  background: #fff;
+  padding: 40rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.results-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.result-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  padding: 20rpx;
+  background: #f8f9fa;
+  border-radius: 12rpx;
+  margin-bottom: 16rpx;
+  border-left: 4rpx solid #dee2e6;
+}
+
+.result-item:last-child {
+  margin-bottom: 0;
+}
+
+.result-time {
+  font-size: 22rpx;
+  color: #999;
+  font-family: monospace;
+}
+
+.result-type {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.result-status {
+  font-size: 24rpx;
+  font-weight: 500;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  align-self: flex-start;
+}
+
+.result-status.success {
   background: #d4edda;
   color: #155724;
 }
 
-.touch-status .status-value.blocked {
+.result-status.failed {
   background: #f8d7da;
   color: #721c24;
 }
 
-/* 触摸测试区域样式 */
-.touch-test-area {
-  margin: 20rpx 0;
-  padding: 20rpx;
-  background: #f5f5f5;
-  border-radius: 10rpx;
-  border: 2rpx solid #ddd;
-}
-
-.touch-test-area .test-hint {
-  display: block;
-  margin-bottom: 20rpx;
+.result-detail {
+  font-size: 24rpx;
   color: #666;
-  font-size: 28rpx;
-}
-
-.scrollable-content {
-  height: 300rpx;
-  overflow-y: auto;
-  background: white;
-  padding: 20rpx;
-  border-radius: 8rpx;
-  border: 1rpx solid #e0e0e0;
-}
-
-.scrollable-content text {
-  display: block;
-  padding: 15rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
-  color: #333;
-  font-size: 28rpx;
-}
-
-.scrollable-content text:last-child {
-  border-bottom: none;
+  line-height: 1.4;
 } 
