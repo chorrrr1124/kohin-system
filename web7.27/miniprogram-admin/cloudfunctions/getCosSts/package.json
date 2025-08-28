@@ -1,4 +1,7 @@
 {
+  "engines": {
+    "node": "16.13"
+  },
   "dependencies": {
     "miniprogram-admin": "file:../.."
   }

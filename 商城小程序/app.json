@@ -8,7 +8,8 @@
     "pages/order/order",
     "pages/profile/profile",
     "pages/coupon/coupon",
-    "pages/debug/debug"
+    "pages/debug/debug",
+    "pages/test-popup/test-popup"
   ],
   "window": {
     "backgroundTextStyle": "light",

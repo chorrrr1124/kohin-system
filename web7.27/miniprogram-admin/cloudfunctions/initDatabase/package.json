@@ -3,6 +3,12 @@
   "version": "1.0.0",
   "description": "数据库初始化云函数",
   "main": "index.js",
+  "engines": {
+    "node": "16.13"
+  },
+  "cloudbase": {
+    "runtime": "Nodejs16.13"
+  },
   "dependencies": {
     "wx-server-sdk": "latest"
   }

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import DashboardPage from './pages/DashboardPage';
 import UsersPage from './pages/UsersPage';
@@ -7,9 +7,10 @@ import DepositsPage from './pages/DepositsPage';
 import ShopPage from './pages/ShopPage';
 import CouponManagePage from './pages/CouponManagePage';
 import CouponAnalyticsPage from './pages/CouponAnalyticsPage';
-import MallManagePage from './pages/MallManagePage';
+import InventoryManagePage from './pages/InventoryManagePage';
 import ImageManagePage from './pages/ImageManagePage';
 import SettingsPage from './pages/SettingsPage';
+import PopupContentManagePage from './pages/PopupContentManagePage';
 import LoginPage from './pages/LoginPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import { ToastContainer, useToast } from './components/Toast';
@@ -39,10 +40,11 @@ function App() {
               <Route path="deposits" element={<DepositsPage />} />
               <Route path="shop" element={<ShopPage />} />
               <Route path="coupons" element={<CouponManagePage />} />
-              <Route path="coupon-analytics" element={<CouponAnalyticsPage />} />
-              <Route path="mall" element={<MallManagePage />} />
+              <Route path="coupons/analytics" element={<CouponAnalyticsPage />} />
+              <Route path="inventory" element={<InventoryManagePage />} />
               <Route path="image-management" element={<ImageManagePage />} />
               <Route path="settings" element={<SettingsPage />} />
+              <Route path="popup-content" element={<PopupContentManagePage />} />
             </Route>
           </Routes>
           <ToastContainer toasts={toasts} removeToast={removeToast} />

@@ -5,7 +5,6 @@
     "pages/admin/admin",
     "pages/admin/products/products",
     "pages/admin/addProduct/addProduct",
-    "pages/admin/homepageSettings/homepageSettings",
     "pages/records/records",
     "pages/totalStock/totalStock",
     "pages/lowStock/lowStock",

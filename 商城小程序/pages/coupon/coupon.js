@@ -11,7 +11,11 @@ Page({
     this.loadCoupons();
   },
 
-  // 切换使用规则展开/折叠
+  onShow() {
+    this.loadCoupons();
+  },
+
+  // 展开/收起规则
   toggleRules(e) {
     const index = e.currentTarget.dataset.index;
     const coupons = this.data.coupons;
@@ -21,13 +25,22 @@ Page({
     });
   },
 
-  // 去使用
+  // 使用优惠券
   useCoupon(e) {
     const index = e.currentTarget.dataset.index;
-    // 根据业务跳转到下单页或商品列表
-    wx.showToast({
-      title: '功能开发中',
-      icon: 'none'
+    const coupon = this.data.coupons[index];
+    
+    wx.showModal({
+      title: '使用优惠券',
+      content: `确定要使用"${coupon.title}"吗？`,
+      success: (res) => {
+        if (res.confirm) {
+          // 跳转到商品页面选择商品
+          wx.switchTab({
+            url: '/pages/index/index'
+          });
+        }
+      }
     });
   },
 
@@ -57,34 +70,73 @@ Page({
       return;
     }
 
-    // 直接从coupons集合获取用户的优惠券
-    wx.cloud.database().collection('coupons')
-      .where({
+    // 使用云函数获取用户优惠券，避免直接访问数据库
+    wx.cloud.callFunction({
+      name: 'getData',
+      data: {
+        collection: 'user_coupons',
+        action: 'get',
+        where: {
         _openid: openid,
         status: 'unused'
+        },
+        limit: 50
+      }
       })
-      .get()
       .then(res => {
-        console.log('获取优惠券成功:', res);
-        if (res.data && res.data.length > 0) {
-          const coupons = res.data.map(coupon => ({
-            id: coupon._id,
-            type: coupon.type || 'fixed',
-            value: coupon.value || 0,
-            unit: (coupon.type === 'fixed' ? '元' : '折'),
-            title: coupon.name || '优惠券',
-            condition: coupon.minAmount > 0 ? `满${coupon.minAmount}元可用` : '无门槛',
-            validity: this.formatValidity(coupon.startTime, coupon.endTime),
+      console.log('获取用户优惠券成功:', res);
+      if (res.result && res.result.success && res.result.data && res.result.data.length > 0) {
+        // 获取优惠券模板信息
+        const couponIds = res.result.data.map(item => item.couponId);
+        
+        return wx.cloud.callFunction({
+          name: 'getData',
+          data: {
+            collection: 'mall_coupons',
+            action: 'get',
+            where: {
+              _id: wx.cloud.database().command.in(couponIds)
+            }
+          }
+        }).then(templateRes => {
+          return {
+            userCoupons: res.result.data,
+            templates: templateRes.result && templateRes.result.success ? templateRes.result.data : []
+          };
+        });
+      } else {
+        this.setData({ coupons: [], loading: false });
+        return null;
+      }
+    })
+    .then(data => {
+      if (data) {
+        const { userCoupons, templates } = data;
+        
+        // 合并用户优惠券和模板信息
+        const coupons = userCoupons.map(userCoupon => {
+          const template = templates.find(t => t._id === userCoupon.couponId);
+          if (template) {
+            return {
+              id: userCoupon._id,
+              type: template.type || 'fixed',
+              value: template.value || 0,
+              unit: (template.type === 'fixed' ? '元' : '折'),
+              title: template.name || '优惠券',
+              condition: template.minAmount > 0 ? `满${template.minAmount}元可用` : '无门槛',
+              validity: this.formatValidity(template.startTime, template.endTime),
             rules: [
-              coupon.description || '本券不可与其他优惠同享',
+                template.description || '本券不可与其他优惠同享',
               '请在有效期内使用'
             ],
             rulesExpanded: false,
             isUsed: false
-          }));
+            };
+          }
+          return null;
+        }).filter(Boolean);
+        
           this.setData({ coupons, loading: false });
-        } else {
-          this.setData({ coupons: [], loading: false });
         }
       })
       .catch(err => {

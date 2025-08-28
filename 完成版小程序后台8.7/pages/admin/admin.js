@@ -483,12 +483,7 @@ Page({
     });
   },
 
-  // 跳转到首页设置页面
-  navigateToHomepageSettings: function () {
-    wx.navigateTo({
-      url: './homepageSettings/homepageSettings'
-    });
-  },
+
   
   // 跳转到SKU页面
   navigateToTotalStock: function () {

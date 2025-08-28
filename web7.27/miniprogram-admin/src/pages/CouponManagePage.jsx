@@ -11,14 +11,15 @@ import {
   Users,
   TrendingUp
 } from 'lucide-react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import { app, ensureLogin } from '../utils/cloudbase';
+import { XMarkIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import { app, ensureLogin, auth, getDatabase } from '../utils/cloudbase';
 
 const CouponManagePage = () => {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState(null);
+
   const [formData, setFormData] = useState({
     name: '',
     type: 'fixed',
@@ -44,33 +45,7 @@ const CouponManagePage = () => {
     loadCoupons();
   }, []);
 
-  // 初始化数据库集合
-  const initializeDatabase = async () => {
-    try {
-      console.log('🔧 开始初始化数据库集合...');
-      
-      // 调用云函数初始化数据库
-      const result = await app.callFunction({
-        name: 'initDatabase',
-        data: {}
-      });
-      
-      console.log('✅ 数据库初始化结果:', result);
-      
-      if (result.result && result.result.success) {
-        alert('数据库初始化成功！正在重新加载数据...');
-        return true;
-      } else {
-        console.error('❌ 数据库初始化失败:', result);
-        alert('数据库初始化失败: ' + (result.result?.message || '未知错误'));
-        return false;
-      }
-    } catch (error) {
-      console.error('❌ 调用初始化云函数失败:', error);
-      alert('初始化失败: ' + error.message);
-      return false;
-    }
-  };
+  
 
   const loadCoupons = async () => {
     try {
@@ -80,40 +55,104 @@ const CouponManagePage = () => {
       await ensureLogin();
       console.log('✅ 登录成功');
       
-      const db = app.database();
+      const db = getDatabase();
       console.log('📊 数据库实例:', db);
       
-      const result = await db.collection('mall_coupons')
-        .orderBy('createTime', 'desc')
-        .get();
+      // 尝试直接查询数据库
+      try {
+        console.log('🔍 尝试查询mall_coupons集合...');
+        const result = await db.collection('mall_coupons').get();
       
       console.log('📋 数据库查询结果:', result);
       console.log('📊 查询到的优惠券数量:', result.data?.length || 0);
       console.log('📝 优惠券数据:', result.data);
       
+        if (result.data && result.data.length > 0) {
+          console.log('✅ 成功获取到优惠券数据');
       setCoupons(result.data || []);
       console.log('✅ 优惠券列表更新完成');
+          return; // 成功则直接返回
+        } else {
+          console.log('⚠️ mall_coupons集合中没有数据');
+        }
+        
+      } catch (dbError) {
+        console.log('⚠️ mall_coupons集合查询失败:', dbError);
+        console.log('⚠️ 错误代码:', dbError.code);
+        console.log('⚠️ 错误信息:', dbError.message);
+      
+        // 尝试查询 'coupons' 集合
+        try {
+          console.log('🔍 尝试查询coupons集合...');
+          const result = await db.collection('coupons')
+            .orderBy('createTime', 'desc')
+            .get();
+          
+          console.log('📋 使用coupons集合查询成功:', result);
+          if (result.data && result.data.length > 0) {
+            setCoupons(result.data || []);
+          return;
+        }
+        } catch (couponsError) {
+          console.log('⚠️ coupons集合也不存在:', couponsError.message);
+        }
+      }
+      
+      // 如果所有集合都没有数据，尝试创建测试数据
+      console.log('🔧 尝试创建测试优惠券...');
+      try {
+        // 尝试创建一个测试文档来创建集合
+        const testCoupon = {
+          name: '测试优惠券',
+          type: 'fixed',
+          value: 10,
+          minAmount: 100,
+          description: '自动创建的测试优惠券',
+          totalCount: 1,
+          usedCount: 0,
+          startTime: new Date(),
+          endTime: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30天后
+          status: 'active',
+          createTime: new Date(),
+          updateTime: new Date()
+        };
+        
+        console.log('📝 准备创建测试优惠券:', testCoupon);
+        const createResult = await db.collection('mall_coupons').add(testCoupon);
+        console.log('✅ 测试优惠券创建成功:', createResult);
+        
+        // 重新查询数据
+        const result = await db.collection('mall_coupons').get();
+        
+        setCoupons(result.data || []);
+        console.log('✅ 优惠券列表更新完成');
+        
+      } catch (createError) {
+        console.error('❌ 创建测试优惠券失败:', createError);
+        console.error('❌ 错误代码:', createError.code);
+        console.error('❌ 错误信息:', createError.message);
+        
+        // 如果创建失败，提示用户
+        if (createError.code === 'PERMISSION_DENIED') {
+          console.log('🔧 检测到权限问题，请联系管理员检查数据库权限');
+          alert('数据库权限不足，请联系管理员检查数据库权限设置');
+        }
+        
+        // 即使创建失败，也设置空数组，避免页面崩溃
+        setCoupons([]);
+        console.log('⚠️ 设置空优惠券列表');
+      }
+      
     } catch (error) {
       console.error('❌ 加载优惠券失败:', error);
       console.error('❌ 错误代码:', error.code);
       console.error('❌ 错误信息:', error.message);
       
-      // 如果是集合不存在的错误，尝试初始化数据库
-      if (error.code === 'DATABASE_COLLECTION_NOT_EXIST') {
-        console.log('🔧 检测到集合不存在，尝试初始化数据库...');
-        const initResult = await initializeDatabase();
-        if (initResult) {
-          console.log('🔄 数据库初始化成功，重新加载优惠券...');
-          // 重新尝试加载优惠券
-          setTimeout(() => {
-            loadCoupons();
-          }, 1000);
-          return;
-        }
-      }
-      
+      // 显示错误信息
       alert('加载优惠券失败: ' + error.message);
-      setCoupons([]); // 确保在错误时也设置空数组
+      
+      // 设置空数组，避免页面崩溃
+      setCoupons([]);
     } finally {
       setLoading(false);
     }
@@ -128,7 +167,7 @@ const CouponManagePage = () => {
       await ensureLogin();
       console.log('✅ 登录成功');
       
-      const db = app.database();
+      const db = getDatabase();
       console.log('📊 数据库实例:', db);
       
       const couponData = {
@@ -189,18 +228,11 @@ const CouponManagePage = () => {
       console.error('❌ 错误代码:', error.code);
       console.error('❌ 错误信息:', error.message);
       
-      // 如果是集合不存在的错误，尝试初始化数据库
+      // 如果是集合不存在的错误，提示用户
       if (error.code === 'DATABASE_COLLECTION_NOT_EXIST') {
-        console.log('🔧 检测到集合不存在，尝试初始化数据库...');
-        const initResult = await initializeDatabase();
-        if (initResult) {
-          console.log('🔄 数据库初始化成功，重新尝试保存优惠券...');
-          // 重新尝试保存优惠券
-          setTimeout(() => {
-            handleSubmit(formData);
-          }, 1000);
+        console.log('🔧 检测到集合不存在，请先创建数据库集合');
+        alert('数据库集合不存在，请联系管理员创建相应的数据库集合');
           return;
-        }
       }
       
       alert('保存失败: ' + error.message);
@@ -255,8 +287,8 @@ const CouponManagePage = () => {
     
     try {
       await ensureLogin();
-      const db = app.database();
-      await db.collection('mall_coupons').doc(couponId).remove();
+      const db = getDatabase();
+              await db.collection('mall_coupon').doc(couponId).remove();
       loadCoupons();
     } catch (error) {
       console.error('删除优惠券失败:', error);
@@ -267,9 +299,9 @@ const CouponManagePage = () => {
   const toggleStatus = async (coupon) => {
     try {
       await ensureLogin();
-      const db = app.database();
+      const db = getDatabase();
       const newStatus = coupon.status === 'active' ? 'inactive' : 'active';
-      await db.collection('mall_coupons')
+              await db.collection('mall_coupon')
         .doc(coupon._id)
         .update({ 
           status: newStatus,
@@ -357,13 +389,6 @@ const CouponManagePage = () => {
           <p className="text-gray-600 mt-1">管理商城优惠券，创建和编辑优惠活动</p>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={initializeDatabase}
-            className="btn btn-outline btn-sm gap-2"
-            title="初始化数据库集合"
-          >
-            🔧 初始化数据库
-          </button>
           <button
             onClick={handleAddNew}
             className="btn btn-primary gap-2"
@@ -1409,6 +1434,8 @@ const CouponManagePage = () => {
           </div>
         </div>
       )}
+      
+
     </div>
   );
 };

@@ -108,7 +108,7 @@ const DashboardPage = () => {
         // 产品统计
         Promise.all([
           db.collection('products').count(),
-          db.collection('products').where({ quantity: db.command.lte(10) }).get()
+        db.collection('products').where({ stock: db.command.lte(10) }).get()
         ]),
         
         // 最近订单

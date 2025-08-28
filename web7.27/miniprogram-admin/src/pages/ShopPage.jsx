@@ -70,7 +70,7 @@ const ShopPage = () => {
     try {
       await ensureLogin();
       const db = app.database();
-      const result = await db.collection('shopProducts')
+      const result = await db.collection('products')
         .where({
           stock: db.command.lte(stockThreshold),
           onSale: true
@@ -115,13 +115,13 @@ const ShopPage = () => {
       if (batchAction === 'delete') {
         // 批量删除
         for (const productId of selectedProducts) {
-          await db.collection('shopProducts').doc(productId).remove();
+          await db.collection('products').doc(productId).remove();
         }
       } else {
         // 批量更新状态
         const onSale = batchAction === 'onSale';
         for (const productId of selectedProducts) {
-          await db.collection('shopProducts').doc(productId).update({
+          await db.collection('products').doc(productId).update({
             onSale,
             updateTime: new Date()
           });
@@ -216,7 +216,7 @@ const ShopPage = () => {
     try {
       await ensureLogin();
       const db = app.database();
-      const result = await db.collection('shopProducts').get();
+      const result = await db.collection('products').get();
       
       const csvContent = [
         ['商品ID', '商品名称', '价格', '库存', '分类', '状态', '创建时间'].join(','),
@@ -265,7 +265,7 @@ const ShopPage = () => {
     try {
       await ensureLogin();
       const db = app.database();
-      const result = await db.collection('shopProducts')
+      const result = await db.collection('products')
         .field({ category: true })
         .get();
 
@@ -292,7 +292,7 @@ const ShopPage = () => {
       const db = app.database();
 
       // 构建查询条件
-      let query = db.collection('shopProducts');
+      let query = db.collection('products');
       
       if (searchTerm) {
         query = query.where({
@@ -396,7 +396,7 @@ const ShopPage = () => {
       await ensureLogin();
       const db = app.database();
       
-      await db.collection('shopProducts').add({
+      await db.collection('products').add({
         name: newProduct.name.trim(),
         price: parseFloat(newProduct.price),
         description: newProduct.description.trim(),
@@ -459,7 +459,7 @@ const ShopPage = () => {
       await ensureLogin();
       const db = app.database();
       
-      await db.collection('shopProducts').doc(editingProduct._id).update({
+      await db.collection('products').doc(editingProduct._id).update({
         name: newProduct.name.trim(),
         price: parseFloat(newProduct.price),
         description: newProduct.description.trim(),
@@ -504,7 +504,7 @@ const ShopPage = () => {
       const db = app.database();
       
       const newStatus = !currentStatus;
-      await db.collection('shopProducts').doc(productId).update({
+      await db.collection('products').doc(productId).update({
         onSale: newStatus,
         updateTime: new Date()
       });
@@ -528,7 +528,7 @@ const ShopPage = () => {
       await ensureLogin();
       const db = app.database();
       
-      await db.collection('shopProducts').doc(productId).remove();
+      await db.collection('products').doc(productId).remove();
 
       // 刷新列表
       fetchProducts();
@@ -550,13 +550,13 @@ const ShopPage = () => {
       if (batchAction === 'delete') {
         // 批量删除
         for (const productId of selectedProducts) {
-          await db.collection('shopProducts').doc(productId).remove();
+          await db.collection('products').doc(productId).remove();
         }
       } else {
         // 批量更新状态
         const onSale = batchAction === 'onSale';
         for (const productId of selectedProducts) {
-          await db.collection('shopProducts').doc(productId).update({
+          await db.collection('products').doc(productId).update({
             onSale,
             updateTime: new Date()
           });

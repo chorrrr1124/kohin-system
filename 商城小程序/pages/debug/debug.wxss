@@ -5,73 +5,220 @@
   min-height: 100vh;
 }
 
-.debug-title {
-  font-size: 36rpx;
-  font-weight: bold;
+.debug-header {
   text-align: center;
-  margin-bottom: 40rpx;
-  color: #333;
+  margin-bottom: 30rpx;
+  padding: 20rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16rpx;
+  color: white;
 }
 
-.test-section {
-  background-color: #fff;
+.debug-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.debug-subtitle {
+  display: block;
+  font-size: 24rpx;
+  opacity: 0.9;
+}
+
+.debug-section {
+  background: white;
   border-radius: 16rpx;
-  padding: 30rpx;
-  margin-bottom: 30rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
 .section-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  margin-bottom: 20rpx;
-  color: #2c3e50;
-  border-left: 8rpx solid #3498db;
-  padding-left: 20rpx;
-}
-
-.image-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-}
-
-.image-item {
-  border: 2rpx solid #e0e0e0;
-  border-radius: 12rpx;
-  padding: 20rpx;
-  background-color: #fafafa;
-}
-
-.image-path {
-  font-size: 24rpx;
-  color: #666;
-  margin-bottom: 10rpx;
-  word-break: break-all;
-  background-color: #f0f0f0;
-  padding: 10rpx;
-  border-radius: 8rpx;
-  font-family: monospace;
-}
-
-.test-image {
-  width: 200rpx;
-  height: 200rpx;
-  border-radius: 8rpx;
-  border: 2rpx solid #ddd;
-  margin: 10rpx 0;
-}
-
-.test-placeholder {
-  width: 200rpx;
-  height: 200rpx;
-  border-radius: 8rpx;
-  border: 2rpx solid #ddd;
-  margin: 10rpx 0;
-}
-
-.load-status {
   font-size: 28rpx;
   font-weight: bold;
-  margin-top: 10rpx;
+  color: #333;
+  margin-bottom: 20rpx;
+  padding-bottom: 10rpx;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+/* 状态显示 */
+.status-item, .info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.status-item:last-child, .info-item:last-child {
+  border-bottom: none;
+}
+
+.label {
+  font-size: 26rpx;
+  color: #666;
+  min-width: 120rpx;
+}
+
+.value {
+  font-size: 26rpx;
+  color: #333;
+  text-align: right;
+  flex: 1;
+  margin-left: 20rpx;
+}
+
+.value.success {
+  color: #52c41a;
+  font-weight: bold;
+}
+
+.value.error {
+  color: #ff4d4f;
+  font-weight: bold;
+}
+
+/* 按钮组 */
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.debug-btn {
+  flex: 1;
+  min-width: 160rpx;
+  height: 80rpx;
+  border-radius: 40rpx;
+  font-size: 26rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.debug-btn.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.debug-btn.warning {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.debug-btn.secondary {
+  background: #f0f0f0;
+  color: #666;
+}
+
+/* 输入组 */
+.input-group {
+  margin-bottom: 20rpx;
+}
+
+.debug-input {
+  width: 100%;
+  height: 80rpx;
+  border: 2rpx solid #e8e8e8;
+  border-radius: 40rpx;
+  padding: 0 24rpx;
+  margin-bottom: 16rpx;
+  font-size: 26rpx;
+  background: white;
+}
+
+.debug-input:focus {
+  border-color: #667eea;
+}
+
+/* 结果容器 */
+.result-container {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16rpx;
+  padding: 16rpx;
+  background: #f8f9fa;
+  border-radius: 8rpx;
+}
+
+.result-label {
+  font-size: 24rpx;
+  color: #666;
+  min-width: 80rpx;
+  margin-right: 16rpx;
+}
+
+.result-value {
+  font-size: 24rpx;
+  color: #333;
+  flex: 1;
+  word-break: break-all;
+}
+
+.result-value.success {
+  color: #52c41a;
+}
+
+.result-value.error {
+  color: #ff4d4f;
+}
+
+/* 日志容器 */
+.log-container {
+  max-height: 400rpx;
+  overflow-y: auto;
+  background: #f8f9fa;
+  border-radius: 8rpx;
+  padding: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.log-item {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 0;
+  border-bottom: 1rpx solid #e8e8e8;
+}
+
+.log-item:last-child {
+  border-bottom: none;
+}
+
+.log-time {
+  font-size: 20rpx;
+  color: #999;
+  min-width: 120rpx;
+  margin-right: 16rpx;
+}
+
+.log-message {
+  font-size: 22rpx;
+  color: #333;
+  flex: 1;
+}
+
+/* 响应式设计 */
+@media (max-width: 750rpx) {
+  .button-group {
+    flex-direction: column;
+}
+
+  .debug-btn {
+    min-width: auto;
+  }
+  
+  .status-item, .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .value {
+    margin-left: 0;
+    margin-top: 8rpx;
+    text-align: left;
+  }
 }

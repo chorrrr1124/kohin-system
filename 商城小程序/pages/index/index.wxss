@@ -97,6 +97,32 @@
   opacity: 0.9;
 }
 
+/* 测试弹窗按钮样式 */
+.test-section {
+  padding: 40rpx 30rpx;
+  text-align: center;
+}
+
+.test-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 50rpx;
+  padding: 20rpx 40rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  box-shadow: 0 8rpx 20rpx rgba(102, 126, 234, 0.3);
+}
+
+.test-btn::after {
+  border: none;
+}
+
+.test-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 10rpx rgba(102, 126, 234, 0.3);
+}
+
 
 
 /* 主要内容区域 */

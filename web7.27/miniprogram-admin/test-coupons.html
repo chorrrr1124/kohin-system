@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>优惠券数据测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/@cloudbase/js-sdk@latest/dist/index.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        .info { color: blue; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; background: #007bff; color: white; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 优惠券数据测试页面</h1>
+    
+    <div class="test-section">
+        <h2>1. 初始化CloudBase</h2>
+        <button onclick="initCloudBase()">初始化CloudBase</button>
+        <div id="init-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. 匿名登录</h2>
+        <button onclick="login()">执行匿名登录</button>
+        <div id="login-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 查询mall_coupons集合</h2>
+        <button onclick="queryMallCoupons()">查询mall_coupons</button>
+        <div id="query-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. 查询coupons集合</h2>
+        <button onclick="queryCoupons()">查询coupons</button>
+        <div id="coupons-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>5. 查询user_coupons集合</h2>
+        <button onclick="queryUserCoupons()">查询user_coupons</button>
+        <div id="user-coupons-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>6. 创建测试优惠券</h2>
+        <button onclick="createTestCoupon()">创建测试优惠券</button>
+        <div id="create-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>7. 完整测试流程</h2>
+        <button onclick="runFullTest()">运行完整测试</button>
+        <div id="full-test-result" class="result"></div>
+    </div>
+
+    <script>
+        let app = null;
+        let db = null;
+        let auth = null;
+        
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info';
+            element.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+        }
+        
+        function clearLog(elementId) {
+            document.getElementById(elementId).innerHTML = '';
+        }
+        
+        async function initCloudBase() {
+            clearLog('init-result');
+            try {
+                log('init-result', '🔧 开始初始化CloudBase...');
+                
+                app = cloudbase.init({
+                    env: 'cloudbase-3g4w6lls8a5ce59b'
+                });
+                
+                db = app.database();
+                auth = app.auth();
+                
+                log('init-result', '✅ CloudBase初始化成功', 'success');
+                log('init-result', `📊 数据库实例: ${db ? '已创建' : '未创建'}`);
+                log('init-result', `🔐 认证实例: ${auth ? '已创建' : '未创建'}`);
+                
+            } catch (error) {
+                log('init-result', `❌ 初始化失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function login() {
+            clearLog('login-result');
+            if (!auth) {
+                log('login-result', '❌ 请先初始化CloudBase', 'error');
+                return;
+            }
+            
+            try {
+                log('login-result', '🔐 开始匿名登录...');
+                
+                const loginState = await auth.getLoginState();
+                if (loginState && loginState.isLoggedIn) {
+                    log('login-result', '✅ 用户已登录', 'success');
+                    log('login-result', `👤 用户ID: ${loginState.user.uid}`);
+                } else {
+                    log('login-result', '🔐 执行匿名登录...');
+                    await auth.signInAnonymously();
+                    log('login-result', '✅ 匿名登录成功', 'success');
+                    
+                    const newState = await auth.getLoginState();
+                    log('login-result', `👤 新用户ID: ${newState.user.uid}`);
+                }
+                
+            } catch (error) {
+                log('login-result', `❌ 登录失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function queryMallCoupons() {
+            clearLog('query-result');
+            if (!db) {
+                log('query-result', '❌ 请先初始化CloudBase', 'error');
+                return;
+            }
+            
+            try {
+                log('query-result', '🔍 查询mall_coupons集合...');
+                
+                const result = await db.collection('mall_coupons').get();
+                
+                log('query-result', '✅ 查询成功', 'success');
+                log('query-result', `📊 数据数量: ${result.data?.length || 0}`);
+                log('query-result', `📋 请求ID: ${result.requestId}`);
+                
+                if (result.data && result.data.length > 0) {
+                    log('query-result', '📝 第一条数据:');
+                    log('query-result', `<pre>${JSON.stringify(result.data[0], null, 2)}</pre>`);
+                } else {
+                    log('query-result', '⚠️ 集合中没有数据', 'warning');
+                }
+                
+            } catch (error) {
+                log('query-result', `❌ 查询失败: ${error.message}`, 'error');
+                log('query-result', `❌ 错误代码: ${error.code || 'N/A'}`);
+            }
+        }
+        
+        async function queryCoupons() {
+            clearLog('coupons-result');
+            if (!db) {
+                log('coupons-result', '❌ 请先初始化CloudBase', 'error');
+                return;
+            }
+            
+            try {
+                log('coupons-result', '🔍 查询coupons集合...');
+                
+                const result = await db.collection('coupons').get();
+                
+                log('coupons-result', '✅ 查询成功', 'success');
+                log('coupons-result', `📊 数据数量: ${result.data?.length || 0}`);
+                
+                if (result.data && result.data.length > 0) {
+                    log('coupons-result', '📝 第一条数据:');
+                    log('coupons-result', `<pre>${JSON.stringify(result.data[0], null, 2)}</pre>`);
+                } else {
+                    log('coupons-result', '⚠️ 集合中没有数据', 'warning');
+                }
+                
+            } catch (error) {
+                log('coupons-result', `❌ 查询失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function queryUserCoupons() {
+            clearLog('user-coupons-result');
+            if (!db) {
+                log('user-coupons-result', '❌ 请先初始化CloudBase', 'error');
+                return;
+            }
+            
+            try {
+                log('user-coupons-result', '🔍 查询user_coupons集合...');
+                
+                const result = await db.collection('user_coupons').get();
+                
+                log('user-coupons-result', '✅ 查询成功', 'success');
+                log('user-coupons-result', `📊 数据数量: ${result.data?.length || 0}`);
+                
+                if (result.data && result.data.length > 0) {
+                    log('user-coupons-result', '📝 第一条数据:');
+                    log('user-coupons-result', `<pre>${JSON.stringify(result.data[0], null, 2)}</pre>`);
+                } else {
+                    log('user-coupons-result', '⚠️ 集合中没有数据', 'warning');
+                }
+                
+            } catch (error) {
+                log('user-coupons-result', `❌ 查询失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function createTestCoupon() {
+            clearLog('create-result');
+            if (!db) {
+                log('create-result', '❌ 请先初始化CloudBase', 'error');
+                return;
+            }
+            
+            try {
+                log('create-result', '🔧 创建测试优惠券...');
+                
+                const testCoupon = {
+                    name: '测试优惠券_' + Date.now(),
+                    type: 'fixed',
+                    value: 10,
+                    minAmount: 100,
+                    description: '通过测试页面创建的优惠券',
+                    totalCount: 1,
+                    usedCount: 0,
+                    startTime: new Date(),
+                    endTime: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                    status: 'active',
+                    createTime: new Date(),
+                    updateTime: new Date()
+                };
+                
+                log('create-result', '📝 准备创建的数据:');
+                log('create-result', `<pre>${JSON.stringify(testCoupon, null, 2)}</pre>`);
+                
+                const result = await db.collection('mall_coupons').add(testCoupon);
+                
+                log('create-result', '✅ 测试优惠券创建成功', 'success');
+                log('create-result', `📋 文档ID: ${result.id}`);
+                
+            } catch (error) {
+                log('create-result', `❌ 创建失败: ${error.message}`, 'error');
+                log('create-result', `❌ 错误代码: ${error.code || 'N/A'}`);
+            }
+        }
+        
+        async function runFullTest() {
+            clearLog('full-test-result');
+            log('full-test-result', '🚀 开始完整测试流程...');
+            
+            try {
+                // 1. 初始化
+                log('full-test-result', '1️⃣ 初始化CloudBase...');
+                if (!app) {
+                    await initCloudBase();
+                }
+                
+                // 2. 登录
+                log('full-test-result', '2️⃣ 执行登录...');
+                await login();
+                
+                // 3. 查询数据
+                log('full-test-result', '3️⃣ 查询优惠券数据...');
+                await queryMallCoupons();
+                
+                log('full-test-result', '✅ 完整测试完成', 'success');
+                
+            } catch (error) {
+                log('full-test-result', `❌ 完整测试失败: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -10,6 +10,13 @@
       "triggers": []
     },
     {
+      "name": "initInventory",
+      "runtime": "Nodejs18.15",
+      "memorySize": 256,
+      "timeout": 30,
+      "triggers": []
+    },
+    {
       "name": "autoIssueCoupon",
       "runtime": "Nodejs16.13",
       "memorySize": 256,

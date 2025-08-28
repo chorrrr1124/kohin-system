@@ -1,85 +1,310 @@
 // pages/debug/debug.js
-const imageService = require('../../utils/imageService')
-
 Page({
   data: {
-    testImages: [
-      '/images/products/drink1.jpg',
-      '/images/products/drink2.jpg', 
-      '/images/placeholder.svg',
-      'images/products/drink1.jpg', // 测试不带前缀的路径
-      'https://via.placeholder.com/300x300?text=测试图片' // 测试外部URL
-    ],
-    processedImages: [],
-    loadResults: []
+    userInfo: null,
+    testResult: null,
+    testCollection: 'products',
+    testWhere: '{}',
+    envId: '',
+    version: '',
+    systemInfo: {},
+    logs: []
   },
 
   onLoad() {
-    this.testImageProcessing()
-    this.testCloudFunction()
+    this.getSystemInfo()
+    this.getEnvInfo()
+    this.addLog('页面加载完成')
   },
 
-  // 测试图片处理
-  testImageProcessing() {
-    const processedImages = this.data.testImages.map(img => {
-      const processed = imageService.buildImageUrl(img)
-      console.log(`原始: ${img} -> 处理后: ${processed}`)
-      return processed
-    })
-    
-    this.setData({ processedImages })
+  onShow() {
+    this.checkLoginStatus()
   },
 
-  // 测试云函数
-  async testCloudFunction() {
-    try {
-      console.log('开始测试云函数...')
-      const result = await wx.cloud.callFunction({
-        name: 'getShopProducts',
-        data: {
-          limit: 3,
-          onSale: true
-        }
-      })
-      
-      console.log('云函数返回结果:', result)
-      
-      if (result.result && result.result.success) {
-        const products = result.result.data
-        console.log('商品数据:', products)
-        
-        // 检查每个商品的图片字段
-        products.forEach((product, index) => {
-          console.log(`商品${index + 1}:`, {
-            name: product.name,
-            image: product.image,
-            imagePath: product.imagePath,
-            images: product.images
-          })
-        })
-      }
-    } catch (error) {
-      console.error('云函数调用失败:', error)
+  // 获取系统信息
+  getSystemInfo() {
+    const systemInfo = wx.getSystemInfoSync()
+    this.setData({ systemInfo })
+  },
+
+  // 获取环境信息
+  getEnvInfo() {
+    const envId = wx.cloud.DYNAMIC_CURRENT_ENV || '未配置'
+    this.setData({ envId })
+  },
+
+  // 检查登录状态
+  checkLoginStatus() {
+    const userInfo = wx.getStorageSync('userInfo')
+    if (userInfo) {
+      this.setData({ userInfo })
+      this.addLog('检测到已登录用户')
+    } else {
+      this.addLog('用户未登录')
     }
   },
 
-  // 图片加载成功
-  onImageLoad(e) {
-    const index = e.currentTarget.dataset.index
-    console.log(`图片${index}加载成功:`, e.detail)
+  // 测试登录
+  testLogin() {
+    this.addLog('开始测试登录...')
     
-    const loadResults = [...this.data.loadResults]
-    loadResults[index] = { status: 'success', detail: e.detail }
-    this.setData({ loadResults })
+    wx.cloud.callFunction({
+      name: 'login',
+      success: (res) => {
+        this.addLog('登录成功: ' + JSON.stringify(res.result))
+        this.setData({ userInfo: res.result })
+      },
+      fail: (err) => {
+        this.addLog('登录失败: ' + err.errMsg)
+      }
+    })
   },
 
-  // 图片加载失败
-  onImageError(e) {
-    const index = e.currentTarget.dataset.index
-    console.log(`图片${index}加载失败:`, e.detail)
+  // 测试数据访问（通过云函数）
+  testGetData() {
+    this.addLog('开始测试数据访问...')
     
-    const loadResults = [...this.data.loadResults]
-    loadResults[index] = { status: 'error', detail: e.detail }
-    this.setData({ loadResults })
+    wx.cloud.callFunction({
+      name: 'getData',
+      data: {
+        collection: 'products',
+        action: 'get',
+        limit: 5
+      },
+      success: (res) => {
+        this.addLog('数据访问成功')
+        this.setData({ testResult: res.result })
+      },
+      fail: (err) => {
+        this.addLog('数据访问失败: ' + err.errMsg)
+        this.setData({ 
+          testResult: { 
+            success: false, 
+            error: err.errMsg 
+          } 
+        })
+      }
+    })
+  },
+
+  // 测试创建数据
+  testCreateData() {
+    this.addLog('开始测试创建数据...')
+    
+    const testData = {
+      name: '测试商品_' + Date.now(),
+      price: Math.floor(Math.random() * 100) + 1,
+      description: '这是一个测试商品',
+      category: 'test'
+    }
+    
+    wx.cloud.callFunction({
+      name: 'getData',
+        data: {
+        collection: 'testProducts',
+        action: 'add',
+        data: testData
+      },
+      success: (res) => {
+        this.addLog('数据创建成功: ' + JSON.stringify(res.result))
+        this.setData({ testResult: res.result })
+      },
+      fail: (err) => {
+        this.addLog('数据创建失败: ' + err.errMsg)
+        this.setData({ 
+          testResult: { 
+            success: false, 
+            error: err.errMsg 
+          } 
+        })
+      }
+    })
+  },
+
+  // 测试直接数据库访问（可能被免费版本限制）
+  testDatabaseDirect() {
+    this.addLog('开始测试直接数据库访问...')
+    
+    try {
+      const db = wx.cloud.database()
+      db.collection('products').limit(5).get({
+        success: (res) => {
+          this.addLog('直接数据库访问成功')
+          this.setData({ 
+            testResult: { 
+              success: true, 
+              data: res.data 
+            } 
+          })
+        },
+        fail: (err) => {
+          this.addLog('直接数据库访问失败: ' + err.errMsg)
+          this.setData({ 
+            testResult: { 
+              success: false, 
+              error: err.errMsg 
+            } 
+          })
+        }
+      })
+    } catch (error) {
+      this.addLog('直接数据库访问异常: ' + error.message)
+      this.setData({ 
+        testResult: { 
+          success: false, 
+          error: error.message 
+        } 
+      })
+    }
+  },
+
+  // 自定义查询
+  testCustomQuery() {
+    this.addLog('开始自定义查询...')
+    
+    let where = {}
+    try {
+      if (this.data.testWhere && this.data.testWhere !== '{}') {
+        where = JSON.parse(this.data.testWhere)
+      }
+    } catch (error) {
+      this.addLog('查询条件格式错误: ' + error.message)
+      return
+    }
+    
+    wx.cloud.callFunction({
+      name: 'getData',
+      data: {
+        collection: this.data.testCollection,
+        action: 'get',
+        where: where,
+        limit: 10
+      },
+      success: (res) => {
+        this.addLog('自定义查询成功')
+        this.setData({ testResult: res.result })
+      },
+      fail: (err) => {
+        this.addLog('自定义查询失败: ' + err.errMsg)
+        this.setData({ 
+          testResult: { 
+            success: false, 
+            error: err.errMsg 
+          } 
+        })
+      }
+    })
+  },
+
+  // 初始化数据库
+  initDatabase() {
+    this.addLog('开始初始化数据库...')
+    
+    wx.showModal({
+      title: '确认操作',
+      content: '这将创建所有必要的数据库集合，确定要继续吗？',
+      success: (res) => {
+        if (res.confirm) {
+          wx.cloud.callFunction({
+            name: 'initDatabase',
+            success: (res) => {
+              this.addLog('数据库初始化成功: ' + JSON.stringify(res.result))
+              wx.showToast({
+                title: '数据库初始化成功',
+                icon: 'success'
+              })
+              this.setData({ testResult: res.result })
+            },
+            fail: (err) => {
+              this.addLog('数据库初始化失败: ' + err.errMsg)
+              wx.showToast({
+                title: '初始化失败',
+                icon: 'error'
+              })
+              this.setData({ 
+                testResult: { 
+                  success: false, 
+                  error: err.errMsg 
+                } 
+              })
+            }
+          })
+        }
+      }
+    })
+  },
+
+  // 检查集合状态
+  checkCollections() {
+    this.addLog('开始检查集合状态...')
+    
+    const collections = ['coupons', 'mall_coupons', 'user_coupons', 'users', 'orders', 'products', 'categories']
+    const results = {}
+    let completed = 0
+    
+    collections.forEach(collection => {
+      wx.cloud.callFunction({
+        name: 'getData',
+        data: {
+          collection: collection,
+          action: 'count'
+        },
+        success: (res) => {
+          results[collection] = {
+            exists: res.result.success,
+            count: res.result.total || 0,
+            error: res.result.error || null
+          }
+        },
+        fail: (err) => {
+          results[collection] = {
+            exists: false,
+            count: 0,
+            error: err.errMsg
+          }
+        },
+        complete: () => {
+          completed++
+          if (completed === collections.length) {
+            this.addLog('集合状态检查完成')
+            this.setData({ 
+              testResult: { 
+                success: true, 
+                data: results 
+              } 
+            })
+          }
+        }
+      })
+    })
+  },
+
+  // 输入事件处理
+  onCollectionInput(e) {
+    this.setData({ testCollection: e.detail.value })
+  },
+
+  onWhereInput(e) {
+    this.setData({ testWhere: e.detail.value })
+  },
+
+  // 添加日志
+  addLog(message) {
+    const logs = this.data.logs
+    const time = new Date().toLocaleTimeString()
+    logs.unshift({ time, message })
+    
+    // 限制日志数量
+    if (logs.length > 20) {
+      logs.splice(20)
+    }
+    
+    this.setData({ logs })
+  },
+
+  // 清空日志
+  clearLogs() {
+    this.setData({ logs: [] })
+    this.addLog('日志已清空')
   }
 })

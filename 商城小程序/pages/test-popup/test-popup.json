@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "弹窗内容管理测试",
+  "usingComponents": {
+    "login-popup-system": "/components/login-popup-system/login-popup-system"
+  }
+} 

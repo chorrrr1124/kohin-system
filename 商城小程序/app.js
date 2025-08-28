@@ -121,17 +121,15 @@ App({
     }
   },
 
-  // 显示登录授权弹窗
+  // 显示登录授权弹窗系统
   showLoginModal() {
     // 获取当前页面
     const pages = getCurrentPages();
     const currentPage = pages[pages.length - 1];
     
-    if (currentPage && currentPage.setData) {
-      // 显示登录弹窗组件
-      currentPage.setData({
-        showLoginModal: true
-      });
+    if (currentPage && currentPage.showLoginPopupFlow) {
+      // 显示新的弹窗系统
+      currentPage.showLoginPopupFlow();
     } else {
       // 如果无法获取当前页面，使用原有的系统弹窗作为备选
       wx.showModal({

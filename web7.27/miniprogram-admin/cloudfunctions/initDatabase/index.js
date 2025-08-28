@@ -30,22 +30,19 @@ exports.main = async (event, context) => {
     // 6. 创建系统管理集合
     await createSystemCollections()
     
-    // 7. 插入初始数据
-    await insertInitialData()
-    
     return {
       success: true,
-      message: '数据库初始化成功',
+      message: '数据库集合创建成功',
       data: {
         collections: ['coupons', 'users', 'orders', 'products', 'categories', 'operationLogs', 'systemSettings']
       }
     }
     
   } catch (error) {
-    console.error('数据库初始化失败:', error)
+    console.error('数据库集合创建失败:', error)
     return {
       success: false,
-      message: '数据库初始化失败',
+      message: '数据库集合创建失败',
       error: error.message
     }
   }
@@ -113,10 +110,10 @@ async function createProductsCollection() {
   try {
     await db.createCollection('products')
     
-    console.log('商品集合创建成功')
+    console.log('商城产品集合创建成功')
   } catch (error) {
     if (error.message.includes('collection already exists') || error.message.includes('Table exist')) {
-      console.log('商品集合已存在')
+      console.log('商城产品集合已存在')
     } else {
       throw error
     }
@@ -157,94 +154,5 @@ async function createSystemCollections() {
     } else {
       throw error
     }
-  }
-}
-
-// 插入初始数据
-async function insertInitialData() {
-  try {
-    // 插入示例优惠券数据
-    const couponsCollection = db.collection('mall_coupons')
-    const existingCoupons = await couponsCollection.get()
-    
-    if (existingCoupons.data.length === 0) {
-      const sampleCoupons = [
-        {
-          name: '新用户专享',
-          description: '新用户注册即可获得',
-          type: 'fixed',
-          value: 10,
-          minAmount: 50,
-          totalCount: 1000,
-          usedCount: 0,
-          status: 'active',
-          startTime: new Date(),
-          endTime: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30天后过期
-          createTime: new Date()
-        },
-        {
-          name: '满减优惠券',
-          description: '满100减20',
-          type: 'fixed',
-          value: 20,
-          minAmount: 100,
-          totalCount: 500,
-          usedCount: 0,
-          status: 'active',
-          startTime: new Date(),
-          endTime: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60天后过期
-          createTime: new Date()
-        }
-      ]
-      
-      await couponsCollection.add({
-        data: sampleCoupons
-      })
-      
-      console.log('示例优惠券数据插入成功')
-    }
-    
-    // 插入示例分类数据
-    const categoriesCollection = db.collection('categories')
-    const existingCategories = await categoriesCollection.get()
-    
-    if (existingCategories.data.length === 0) {
-      const sampleCategories = [
-        {
-          name: '数码产品',
-          description: '手机、电脑、相机等数码产品',
-          icon: '📱',
-          sort: 1,
-          status: 'active',
-          createTime: new Date()
-        },
-        {
-          name: '服装鞋帽',
-          description: '男装、女装、鞋子、帽子等',
-          icon: '👕',
-          sort: 2,
-          status: 'active',
-          createTime: new Date()
-        },
-        {
-          name: '家居用品',
-          description: '家具、装饰、厨具等家居用品',
-          icon: '🏠',
-          sort: 3,
-          status: 'active',
-          createTime: new Date()
-        }
-      ]
-      
-      await categoriesCollection.add({
-        data: sampleCategories
-      })
-      
-      console.log('示例分类数据插入成功')
-    }
-    
-  } catch (error) {
-    console.error('插入初始数据失败:', error)
-    throw error
   }
 }

@@ -1,7 +1,7 @@
 {
-  "name": "homepageManagement",
+  "name": "getPopupContent",
   "version": "1.0.0",
-  "description": "首页管理云函数",
+  "description": "获取弹窗内容的云函数",
   "main": "index.js",
   "dependencies": {
     "wx-server-sdk": "~2.6.3"

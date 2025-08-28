@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "定时检查优惠券发放条件云函数",
   "main": "index.js",
+  "engines": {
+    "node": "16.13"
+  },
   "dependencies": {
     "wx-server-sdk": "~2.6.3"
   }

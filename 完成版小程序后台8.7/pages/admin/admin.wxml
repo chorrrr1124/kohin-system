@@ -39,10 +39,6 @@
         <view class="action-icon">➕</view>
         <view class="action-label">添加产品</view>
       </view>
-      <view class="action-button homepage-settings" bindtap="navigateToHomepageSettings">
-        <view class="action-icon">🏠</view>
-        <view class="action-label">首页设置</view>
-      </view>
     </view>
   </view>
 

@@ -1,2 +1,138 @@
 <!--pages/order/submit/submit.wxml-->
-<text>pages/order/submit/submit.wxml</text>
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <view class="page-title">确认订单</view>
+    <view class="page-subtitle">请确认订单信息并提交</view>
+  </view>
+
+  <!-- 收货地址 -->
+  <view class="address-section" bindtap="selectAddress">
+    <view class="section-header">
+      <view class="section-title">收货地址</view>
+      <view class="section-action">选择地址 ></view>
+    </view>
+    
+    <view wx:if="{{selectedAddress}}" class="address-info">
+      <view class="address-name">{{selectedAddress.name}} {{selectedAddress.phone}}</view>
+      <view class="address-detail">{{selectedAddress.province}}{{selectedAddress.city}}{{selectedAddress.district}}{{selectedAddress.detail}}</view>
+    </view>
+    
+    <view wx:else class="address-placeholder">
+      <view class="placeholder-icon">📍</view>
+      <view class="placeholder-text">请选择收货地址</view>
+    </view>
+  </view>
+
+  <!-- 商品列表 -->
+  <view class="products-section">
+    <view class="section-header">
+      <view class="section-title">商品信息</view>
+      <view class="section-count">共{{cartItems.length}}件</view>
+    </view>
+    
+    <view class="product-list">
+      <view 
+        class="product-item" 
+        wx:for="{{cartItems}}" 
+        wx:key="id"
+      >
+        <!-- 商品图片 -->
+        <image 
+          class="product-image" 
+          src="{{item.imagePath || '/images/placeholder.png'}}"
+          mode="aspectFill"
+        ></image>
+        
+        <!-- 商品信息 -->
+        <view class="product-info">
+          <view class="product-name">{{item.name}}</view>
+          <view class="product-meta" wx:if="{{item.brand}}">
+            <text class="meta-label">品牌：</text>
+            <text class="meta-value">{{item.brand}}</text>
+          </view>
+          <view class="product-meta" wx:if="{{item.specification}}">
+            <text class="meta-label">规格：</text>
+            <text class="meta-value">{{item.specification}}</text>
+          </view>
+          <view class="product-price">
+            <text class="price-symbol">¥</text>
+            <text class="price-value">{{item.price}}</text>
+          </view>
+        </view>
+        
+        <!-- 数量信息 -->
+        <view class="product-quantity">
+          <text class="quantity-label">数量：</text>
+          <text class="quantity-value">{{item.quantity}}</text>
+        </view>
+        
+        <!-- 小计 -->
+        <view class="product-subtotal">
+          <text class="subtotal-label">小计：</text>
+          <text class="subtotal-value">¥{{item.price * item.quantity}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 订单信息 -->
+  <view class="order-info-section">
+    <view class="section-header">
+      <view class="section-title">订单信息</view>
+    </view>
+    
+    <view class="info-item">
+      <text class="info-label">商品总价：</text>
+      <text class="info-value">¥{{totalAmount}}</text>
+    </view>
+    
+    <view class="info-item">
+      <text class="info-label">运费：</text>
+      <text class="info-value">¥0.00</text>
+    </view>
+    
+    <view class="info-item total">
+      <text class="info-label">实付金额：</text>
+      <text class="info-value total-amount">¥{{totalAmount}}</text>
+    </view>
+  </view>
+
+  <!-- 备注信息 -->
+  <view class="remark-section">
+    <view class="section-header">
+      <view class="section-title">订单备注</view>
+    </view>
+    <textarea 
+      class="remark-input" 
+      placeholder="请输入订单备注（选填）" 
+      bindinput="onRemarkInput"
+      value="{{remark}}"
+      maxlength="200"
+    ></textarea>
+    <view class="remark-count">{{remark.length}}/200</view>
+  </view>
+
+  <!-- 底部提交区域 -->
+  <view class="bottom-submit">
+    <view class="submit-info">
+      <text class="submit-label">实付金额：</text>
+      <text class="submit-amount">¥{{totalAmount}}</text>
+    </view>
+    <button 
+      class="submit-btn {{canSubmit ? '' : 'disabled'}}" 
+      bindtap="submitOrder"
+      disabled="{{!canSubmit}}"
+    >
+      提交订单
+    </button>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{submitting}}" class="loading-overlay">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <view class="loading-text">正在提交订单...</view>
+    </view>
+  </view>
+</view>

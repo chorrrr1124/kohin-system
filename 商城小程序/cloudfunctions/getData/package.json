@@ -1,0 +1,19 @@
+{
+  "name": "getData",
+  "version": "1.0.0",
+  "description": "通用数据访问云函数，解决免费版本数据访问限制",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~3.0.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "cloudbase",
+    "miniprogram",
+    "database"
+  ],
+  "author": "KOHIN System",
+  "license": "ISC"
+} 
