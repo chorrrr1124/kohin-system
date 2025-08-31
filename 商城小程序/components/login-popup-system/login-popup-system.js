@@ -324,20 +324,132 @@ Component({
     
     // 获取手机号事件处理
     onPhoneNumberGet(e) {
-      console.log('手机号获取事件:', e);
+      console.log('手机号获取事件:', e.detail);
       
       if (e.detail.errMsg === 'getPhoneNumber:ok') {
-        // 获取成功，触发事件给父组件处理
-        this.triggerEvent('phoneNumberGet', {
-          code: e.detail.code,
-          encryptedData: e.detail.encryptedData,
-          iv: e.detail.iv
+        // 获取成功，显示加载状态
+        wx.showLoading({
+          title: '验证中...',
+          mask: true
         });
+        
+        // 调用云函数解密手机号
+        this.decryptPhoneNumber(e.detail.code);
+      } else if (e.detail.errno === 1400001) {
+        // 额度不足
+        wx.showModal({
+          title: '提示',
+          content: '该功能使用次数已达上限，请联系客服',
+          showCancel: false
+        });
+        this.triggerEvent('phoneNumberQuotaExceeded');
       } else {
-        // 获取失败
-        console.log('用户拒绝授权手机号');
-        this.triggerEvent('phoneNumberReject');
+        // 用户拒绝或其他错误
+        console.log('用户拒绝授权手机号或发生错误:', e.detail);
+        this.handlePhoneNumberError(e.detail.errno);
+        this.triggerEvent('phoneNumberReject', { errno: e.detail.errno });
       }
+    },
+
+    // 解密手机号
+    async decryptPhoneNumber(code) {
+      try {
+        const result = await wx.cloud.callFunction({
+          name: 'decryptPhoneNumber',
+          data: { code }
+        });
+        
+        console.log('手机号解密结果:', result);
+        
+        if (result.result && result.result.success) {
+          const phoneNumber = result.result.phoneNumber;
+          const countryCode = result.result.countryCode;
+          
+          // 保存手机号到本地存储
+          wx.setStorageSync('userPhone', phoneNumber);
+          wx.setStorageSync('userCountryCode', countryCode);
+          
+          // 更新组件状态
+          this.setData({
+            showPhonePopup: false,
+            phoneAuthorized: true,
+            maskedPhone: this.maskPhoneNumber(phoneNumber)
+          });
+          
+          wx.hideLoading();
+          wx.showToast({
+            title: '手机号验证成功',
+            icon: 'success'
+          });
+          
+          // 触发成功事件
+          this.triggerEvent('phoneNumberSuccess', {
+            phoneNumber: phoneNumber,
+            countryCode: countryCode
+          });
+          
+          // 完成登录流程
+          this.completeFlow();
+          
+        } else {
+          throw new Error(result.result?.error || '手机号解密失败');
+        }
+        
+      } catch (error) {
+        console.error('手机号解密失败:', error);
+        wx.hideLoading();
+        
+        wx.showToast({
+          title: '手机号验证失败，请重试',
+          icon: 'none'
+        });
+        
+        this.triggerEvent('phoneNumberError', {
+          error: error.message
+        });
+      }
+    },
+
+    // 处理手机号获取错误
+    handlePhoneNumberError(errno) {
+      let message = '获取手机号失败，请重试';
+      
+      switch (errno) {
+        case 1400001:
+          message = '该功能使用次数已达上限，请联系客服';
+          break;
+        case 40013:
+        case 40029:
+          message = '授权已过期，请重新获取';
+          break;
+        case 45011:
+          message = '请求过于频繁，请稍后重试';
+          break;
+        case 40226:
+          message = '需要完成实名认证';
+          break;
+        default:
+          message = '获取手机号失败，请重试';
+      }
+      
+      wx.showToast({
+        title: message,
+        icon: 'none'
+      });
+    },
+
+    // 手机号掩码处理
+    maskPhoneNumber(phoneNumber) {
+      if (!phoneNumber || phoneNumber.length < 7) {
+        return phoneNumber;
+      }
+      
+      // 保留前3位和后4位，中间用*代替
+      const prefix = phoneNumber.substring(0, 3);
+      const suffix = phoneNumber.substring(phoneNumber.length - 4);
+      const masked = '*'.repeat(phoneNumber.length - 7);
+      
+      return `${prefix}${masked}${suffix}`;
     },
 
     // 允许获取手机号（保留兼容性）

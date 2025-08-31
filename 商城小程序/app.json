@@ -10,6 +10,7 @@
     "pages/coupon/coupon",
     "pages/debug/debug",
     "pages/test-popup/test-popup",
+    "pages/phone-demo/phone-demo",
     "pages/agreement/index"
   ],
   "window": {

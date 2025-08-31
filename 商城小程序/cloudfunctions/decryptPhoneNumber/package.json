@@ -1,9 +1,21 @@
 {
   "name": "decryptPhoneNumber",
   "version": "1.0.0",
-  "description": "解密微信小程序手机号",
+  "description": "解密微信手机号",
   "main": "index.js",
   "dependencies": {
-    "wx-server-sdk": "~2.6.3"
-  }
+    "wx-server-sdk": "latest"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "wechat",
+    "miniprogram",
+    "cloud",
+    "phone",
+    "decrypt"
+  ],
+  "author": "",
+  "license": "ISC"
 } 

@@ -1,0 +1,103 @@
+<!-- 手机号获取功能演示页面 -->
+<view class="container">
+  <view class="header">
+    <text class="title">手机号获取功能演示</text>
+    <text class="subtitle">测试微信小程序手机号快速验证组件</text>
+  </view>
+
+  <!-- 当前状态 -->
+  <view class="status-section">
+    <view class="status-card">
+      <view class="status-header">
+        <text class="status-title">当前状态</text>
+        <text class="status-badge {{phoneStatus === '已获取' ? 'success' : 'pending'}}">{{phoneStatus}}</text>
+      </view>
+      
+      <view class="phone-display" wx:if="{{userPhone}}">
+        <text class="phone-label">手机号：</text>
+        <text class="phone-number">{{maskedPhone}}</text>
+        <view class="phone-actions">
+          <button class="action-btn" bindtap="showFullPhone">查看完整</button>
+          <button class="action-btn" bindtap="copyPhone">复制</button>
+          <button class="action-btn danger" bindtap="clearPhone">清除</button>
+        </view>
+      </view>
+      
+      <view class="no-phone" wx:else>
+        <text class="no-phone-text">暂无手机号信息</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-section">
+    <button class="primary-btn" bindtap="showPhonePopup">
+      <text class="btn-icon">📱</text>
+      <text class="btn-text">获取手机号</text>
+    </button>
+    
+    <button class="secondary-btn" bindtap="testCloudFunction">
+      <text class="btn-icon">🔧</text>
+      <text class="btn-text">测试云函数</text>
+    </button>
+  </view>
+
+  <!-- 历史记录 -->
+  <view class="history-section" wx:if="{{phoneHistory.length > 0}}">
+    <view class="history-header">
+      <text class="history-title">操作历史</text>
+      <text class="history-count">({{phoneHistory.length}})</text>
+    </view>
+    
+    <view class="history-list">
+      <view class="history-item" wx:for="{{phoneHistory}}" wx:key="timestamp">
+        <view class="history-time">{{item.timestamp}}</view>
+        <view class="history-status">
+          <text class="status-text {{item.status}}">
+            {{item.status === 'success' ? '成功' : 
+              item.status === 'error' ? '失败' : 
+              item.status === 'rejected' ? '拒绝' : 
+              item.status === 'quota_exceeded' ? '额度不足' : 
+              item.status === 'use_other' ? '使用其他' : '未知'}}
+          </text>
+        </view>
+        <view class="history-detail" wx:if="{{item.phoneNumber}}">
+          <text class="detail-label">手机号：</text>
+          <text class="detail-value">{{item.phoneNumber}}</text>
+        </view>
+        <view class="history-detail" wx:if="{{item.error}}">
+          <text class="detail-label">错误：</text>
+          <text class="detail-value error">{{item.error}}</text>
+        </view>
+        <view class="history-detail" wx:if="{{item.errno}}">
+          <text class="detail-label">错误码：</text>
+          <text class="detail-value error">{{item.errno}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能说明 -->
+  <view class="info-section">
+    <view class="info-card">
+      <text class="info-title">功能说明</text>
+      <view class="info-content">
+        <text class="info-item">• 使用微信官方手机号快速验证组件</text>
+        <text class="info-item">• 支持云函数解密手机号数据</text>
+        <text class="info-item">• 完整的错误处理和用户提示</text>
+        <text class="info-item">• 手机号掩码显示保护隐私</text>
+        <text class="info-item">• 操作历史记录和状态跟踪</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 登录弹窗组件 -->
+  <login-popup-system
+    show-phone-popup="{{showPhonePopup}}"
+    bind:phoneNumberSuccess="onPhoneNumberSuccess"
+    bind:phoneNumberError="onPhoneNumberError"
+    bind:phoneNumberReject="onPhoneNumberReject"
+    bind:phoneNumberQuotaExceeded="onPhoneNumberQuotaExceeded"
+    bind:useOtherPhone="onUseOtherPhone"
+  />
+</view> 

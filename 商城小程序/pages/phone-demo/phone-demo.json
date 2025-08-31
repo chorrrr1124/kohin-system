@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "手机号获取演示",
+  "navigationBarBackgroundColor": "#07c160",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#f5f5f5",
+  "usingComponents": {
+    "login-popup-system": "/components/login-popup-system/login-popup-system"
+  }
+} 
