@@ -62,7 +62,11 @@
 }
 
 /* 确保子组件可以正常接收触摸事件 */
-.carousel-content > * {
+.carousel-content .promotion-swiper {
+  pointer-events: auto;
+}
+
+.carousel-content .swiper-container {
   pointer-events: auto;
 }
 
