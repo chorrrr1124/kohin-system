@@ -1,7 +1,7 @@
 // 手机号获取功能演示页面
 Page({
   data: {
-    showPhonePopup: false,
+
     userPhone: '',
     maskedPhone: '',
     phoneStatus: '未获取',
@@ -24,13 +24,7 @@ Page({
     this.addDebugInfo('页面加载完成');
   },
 
-  // 显示手机号弹窗
-  showPhonePopup() {
-    this.addDebugInfo('显示手机号弹窗');
-    this.setData({
-      showPhonePopup: true
-    });
-  },
+
 
   // 手机号获取成功
   onPhoneNumberSuccess(e) {
@@ -43,7 +37,7 @@ Page({
       userPhone: phoneNumber,
       maskedPhone: this.maskPhoneNumber(phoneNumber),
       phoneStatus: '获取成功',
-      showPhonePopup: false
+
     });
 
     // 添加到历史记录

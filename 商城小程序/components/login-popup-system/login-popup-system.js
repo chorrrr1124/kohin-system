@@ -9,10 +9,7 @@ Component({
       type: Boolean,
       value: false
     },
-    showPhonePopup: {
-      type: Boolean,
-      value: false
-    },
+
     // 手机号掩码显示
     maskedPhone: {
       type: String,
@@ -24,7 +21,6 @@ Component({
     // 弹窗显示状态
     privacyVisible: false,
     benefitVisible: false,
-    phoneVisible: false,
 
     // 流程步骤
     currentStep: 0,
@@ -62,24 +58,14 @@ Component({
         loginButton: '手机号一键登录',
         skipButton: '暂时跳过'
       },
-      phone: {
-        title: '获取手机号',
-        greeting: '申请获取并验证手机号',
-        description: '为了提供更好的服务，我们需要获取您的手机号',
-        currentPhone: '当前微信绑定号码',
-        infoIcon: 'i',
-        allowButton: '允许',
-        rejectButton: '不允许',
-        otherPhoneButton: '使用其它号码'
-      }
+
     },
     
     // 用户信息
     userInfo: null,
     hasUserInfo: false,
     
-    // 手机号授权状态
-    phoneAuthorized: false,
+
     
     // 隐私政策同意状态
     privacyAgreed: false,
@@ -218,11 +204,7 @@ Component({
         this.triggerEvent('benefitMaskClose')
         return
       }
-      if (this.data.showPhonePopup) {
-        this.setData({ showPhonePopup: false })
-        this.triggerEvent('phoneMaskClose')
-        return
-      }
+
     },
     swallow() {},
 
@@ -486,32 +468,7 @@ Component({
       return `${prefix}${masked}${suffix}`;
     },
 
-    // 允许获取手机号（保留兼容性）
-    onPhoneAllow() {
-      // 这个方法现在由 onPhoneNumberGet 处理
-      // 保留是为了向后兼容
-    },
 
-    // 拒绝获取手机号
-    onPhoneReject() {
-      this.setData({
-        showPhonePopup: false
-      });
-      
-      // 用户拒绝，关闭所有弹窗
-      this.closeAllPopups();
-      this.triggerEvent('phoneReject');
-    },
-
-    // 使用其他手机号
-    onUseOtherPhone() {
-      this.setData({
-        showPhonePopup: false
-      });
-      
-      // 触发使用其他手机号事件
-      this.triggerEvent('useOtherPhone');
-    },
 
     // 直接获取手机号（从注册福利弹窗调用）
     getPhoneNumberDirectly() {
@@ -577,12 +534,6 @@ Component({
           showBenefitPopup: true,
           currentStep: nextStep
         });
-      } else if (nextStep === 2) {
-        // 显示手机号授权弹窗
-        this.setData({
-          showPhonePopup: true,
-          currentStep: nextStep
-        });
       }
     },
 
@@ -591,7 +542,6 @@ Component({
       this.setData({
         showPrivacyPopup: false,
         showBenefitPopup: false,
-        showPhonePopup: false,
         currentStep: 0
       });
     },
@@ -620,8 +570,8 @@ Component({
 
   observers: {
     // 监听弹窗显示状态变化
-    'showPrivacyPopup, showBenefitPopup, showPhonePopup': function(showPrivacyPopup, showBenefitPopup, showPhonePopup) {
-      if (showPrivacyPopup || showBenefitPopup || showPhonePopup) {
+    'showPrivacyPopup, showBenefitPopup': function(showPrivacyPopup, showBenefitPopup) {
+      if (showPrivacyPopup || showBenefitPopup) {
         // 弹窗显示后的处理
       }
     }

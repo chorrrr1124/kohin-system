@@ -10,7 +10,7 @@ Page({
     // 登录弹窗系统状态
     showPrivacyPopup: false,
     showBenefitPopup: false,
-    showPhonePopup: false,
+
     maskedPhone: '',
 
     userInfo: {
@@ -637,8 +637,7 @@ Page({
     console.log('用户拒绝隐私政策');
     this.setData({
       showPrivacyPopup: false,
-      showBenefitPopup: false,
-      showPhonePopup: false
+      showBenefitPopup: false
     });
     
     // 用户拒绝，无法继续使用
@@ -652,16 +651,8 @@ Page({
   // 注册福利登录
   onBenefitLogin() {
     console.log('用户点击注册福利登录');
-    this.setData({
-      showBenefitPopup: false
-    });
-    
-    // 延迟显示下一个弹窗
-    setTimeout(() => {
-      this.setData({
-        showPhonePopup: true
-      });
-    }, 300);
+    // 直接获取手机号，无需显示手机号授权弹窗
+    console.log('直接获取手机号，跳过手机号授权弹窗');
   },
 
   // 暂时跳过注册福利
@@ -732,10 +723,7 @@ Page({
             maskedPhone: this.maskPhoneNumber(phoneNumber)
           });
           
-          // 关闭弹窗，完成流程
-          this.setData({
-            showPhonePopup: false
-          });
+
           
           // 完成整个流程
           this.onFlowComplete();
@@ -774,22 +762,7 @@ Page({
     });
   },
 
-  // 拒绝获取手机号
-  onPhoneReject() {
-    console.log('用户拒绝获取手机号');
-    this.setData({
-      showPrivacyPopup: false,
-      showBenefitPopup: false,
-      showPhonePopup: false
-    });
-    
-    // 用户拒绝，无法继续使用
-    wx.showToast({
-      title: '需要授权手机号才能使用',
-      icon: 'none',
-      duration: 2000
-    });
-  },
+
 
   // 使用其他手机号
   onUseOtherPhone() {
@@ -808,8 +781,7 @@ Page({
     // 重置弹窗状态
     this.setData({
       showPrivacyPopup: false,
-      showBenefitPopup: false,
-      showPhonePopup: false
+      showBenefitPopup: false
     });
     
     // 可以在这里执行登录后的逻辑

@@ -4,7 +4,7 @@ Page({
     // 弹窗显示状态
     showPrivacyPopup: false,
     showBenefitPopup: false,
-    showPhonePopup: false,
+
     
     // 手机号掩码
     maskedPhone: '138****8888',
@@ -67,18 +67,7 @@ Page({
   },
 
   // 测试手机号授权弹窗滚动
-  testPhonePopup() {
-    this.setData({
-      showPrivacyPopup: false,
-      showBenefitPopup: false,
-      showPhonePopup: true
-    })
-    
-    // 记录测试
-    this.recordTest('手机号授权弹窗', '显示弹窗')
-    
-    console.log('测试手机号授权弹窗滚动')
-  },
+
 
   // 记录测试结果
   recordTest(type, action, success = true, detail = '') {
@@ -127,10 +116,8 @@ Page({
     console.log('用户点击注册福利登录')
     this.recordTest('注册福利弹窗', '登录', true, '用户点击登录按钮')
     
-    // 延迟显示下一个弹窗
-    setTimeout(() => {
-      this.testPhonePopup()
-    }, 500)
+    // 直接获取手机号，无需显示手机号授权弹窗
+    console.log('直接获取手机号，跳过手机号授权弹窗')
   },
 
   // 注册福利跳过
@@ -144,37 +131,12 @@ Page({
     })
   },
 
-  // 手机号允许
-  onPhoneAllow() {
-    console.log('用户允许获取手机号')
-    this.recordTest('手机号授权弹窗', '允许', true, '用户允许获取手机号')
-    
-    // 关闭弹窗
-    this.setData({
-      showPhonePopup: false
-    })
-  },
 
-  // 手机号拒绝
-  onPhoneReject() {
-    console.log('用户拒绝获取手机号')
-    this.recordTest('手机号授权弹窗', '拒绝', true, '用户拒绝获取手机号')
-    
-    // 关闭弹窗
-    this.setData({
-      showPhonePopup: false
-    })
-  },
-
-  // 使用其他手机号
   onUseOtherPhone() {
     console.log('用户选择使用其他手机号')
     this.recordTest('手机号授权弹窗', '其他号码', true, '用户选择使用其他手机号')
     
-    // 关闭弹窗
-    this.setData({
-      showPhonePopup: false
-    })
+
   },
 
   // 流程完成
@@ -186,13 +148,13 @@ Page({
   // 页面显示时检查弹窗状态
   onShow() {
     // 检查是否有弹窗显示
-    const hasPopup = this.data.showPrivacyPopup || this.data.showBenefitPopup || this.data.showPhonePopup
+    const hasPopup = this.data.showPrivacyPopup || this.data.showBenefitPopup
     
     if (hasPopup) {
       console.log('页面显示，当前弹窗状态:', {
         privacy: this.data.showPrivacyPopup,
         benefit: this.data.showBenefitPopup,
-        phone: this.data.showPhonePopup
+
       })
     }
   },
@@ -209,8 +171,7 @@ Page({
     // 清理弹窗状态
     this.setData({
       showPrivacyPopup: false,
-      showBenefitPopup: false,
-      showPhonePopup: false
+      showBenefitPopup: false
     })
   }
 }) 

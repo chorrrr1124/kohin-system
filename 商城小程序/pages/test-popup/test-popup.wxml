@@ -14,9 +14,7 @@
       测试注册福利弹窗滚动
     </button>
     
-    <button class="test-btn secondary" bindtap="testPhonePopup">
-      测试手机号授权弹窗滚动
-    </button>
+
   </view>
 
   <view class="instructions">
@@ -26,6 +24,7 @@
     <text class="instruction-text">3. 尝试在弹窗内容区域上下滑动</text>
     <text class="instruction-text">4. 检查控制台是否有滚动事件日志</text>
     <text class="instruction-text">5. 对比模拟器和真机的表现差异</text>
+    <text class="instruction-text">6. 注册福利弹窗中的"手机号一键登录"会直接获取手机号</text>
   </view>
 
   <!-- 设备信息显示 -->
@@ -55,14 +54,10 @@
   <login-popup-system
   showPrivacyPopup="{{showPrivacyPopup}}"
   showBenefitPopup="{{showBenefitPopup}}"
-  showPhonePopup="{{showPhonePopup}}"
   maskedPhone="{{maskedPhone}}"
     bind:privacyAgree="onPrivacyAgree"
     bind:privacyReject="onPrivacyReject"
     bind:benefitLogin="onBenefitLogin"
     bind:benefitSkip="onBenefitSkip"
-    bind:phoneAllow="onPhoneAllow"
-    bind:phoneReject="onPhoneReject"
-    bind:useOtherPhone="onUseOtherPhone"
   bind:flowComplete="onFlowComplete">
 </login-popup-system> 
