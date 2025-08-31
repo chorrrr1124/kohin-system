@@ -31,19 +31,19 @@ Page({
     // 轮播图数据 
     carouselImages: [
       {
-        url: '/images/banners/banner1.jpg',
+        url: '/images/banner/banner1.jpg',
         gradient: 'linear-gradient(135deg, rgba(76, 175, 80, 0.85) 0%, rgba(139, 195, 74, 0.85) 50%, rgba(205, 220, 57, 0.85) 100%)',
         title: '夏日消暑·就喝「丘大叔」',
         subtitle: 'Lemon tea for Uncle Q'
       },
       {
-        url: '/images/banners/banner2.jpg',
+        url: '/images/banner/banner2.jpg',
         gradient: 'linear-gradient(135deg, rgba(33, 150, 243, 0.85) 0%, rgba(63, 81, 181, 0.85) 50%, rgba(103, 58, 183, 0.85) 100%)',
         title: '新品推荐',
         subtitle: 'Fresh & Natural'
       },
       {
-        url: '/images/banners/banner3.jpg',
+        url: '/images/banner/banner3.jpg',
         gradient: 'linear-gradient(135deg, rgba(255, 152, 0, 0.85) 0%, rgba(255, 87, 34, 0.85) 50%, rgba(244, 67, 54, 0.85) 100%)',
         title: '会员专享',
         subtitle: 'VIP Exclusive'
@@ -70,10 +70,16 @@ Page({
 
   onLoad() {
     console.log('页面加载成功');
+    console.log('开始初始化首页...');
+    
     // 获取系统信息，设置状态栏高度
     this.setStatusBarHeight();
-    this.loadPageData();
-    this.loadUserInfo();
+    
+    // 延迟加载数据，确保组件已经渲染
+    setTimeout(() => {
+      this.loadPageData();
+      this.loadUserInfo();
+    }, 100);
   },
 
   // 设置状态栏高度
