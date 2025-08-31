@@ -1,5 +1,12 @@
 <!-- components/gradient-carousel/gradient-carousel.wxml -->
-<view class="carousel-container" style="height: {{height}}">
+<view 
+  class="carousel-container" 
+  style="height: {{height}}"
+  bindtouchstart="onTouchStart"
+  bindtouchmove="onTouchMove"
+  bindtouchend="onTouchEnd"
+  bindtouchcancel="onTouchCancel"
+>
   <!-- 背景图片容器 - 淡入淡出效果 -->
   <view class="background-container">
     <view 
