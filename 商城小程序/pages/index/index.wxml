@@ -97,11 +97,4 @@
     <text>加载中...</text>
   </view>
 
-  <!-- 调试信息 -->
-  <view class="debug-info" style="padding: 20rpx; background: #f0f0f0; margin: 20rpx; border-radius: 10rpx;">
-    <text>轮播图数量: {{carouselImages.length}}</text>
-    <text style="display: block; margin-top: 10rpx;">商品数量: {{recommendProducts.length}}</text>
-    <text style="display: block; margin-top: 10rpx;">加载状态: {{loading}}</text>
-  </view>
-
 </view>

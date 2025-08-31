@@ -57,6 +57,13 @@
   z-index: 2;
   display: flex;
   flex-direction: column;
+  /* 确保触摸事件能正确传递到子元素 */
+  pointer-events: none;
+}
+
+/* 确保子组件可以正常接收触摸事件 */
+.carousel-content > * {
+  pointer-events: auto;
 }
 
 /* 自定义指示器 */
