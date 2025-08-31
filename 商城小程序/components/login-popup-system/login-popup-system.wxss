@@ -1,0 +1,539 @@
+/* 登录弹窗系统样式 */
+.popup-system {
+  position: relative;
+}
+
+.popup-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  /* 防止弹窗显示时页面滚动 */
+  overflow: hidden;
+}
+
+.popup-container {
+  width: 100%;
+  background: #fff;
+  border-radius: 20rpx 20rpx 0 0;
+  position: relative;
+  /* 移除63vh限制，确保内容区域能够正确显示365px高度 */
+  /* max-height: 63vh; */
+  display: flex;
+  flex-direction: column;
+  /* 确保弹窗内容可以滚动 */
+  overflow: hidden;
+  /* 设置弹窗整体高度，确保内容区域有足够空间 */
+  height: auto;
+  min-height: 500rpx;
+}
+
+/* 通用样式 */
+.popup-header {
+  text-align: center;
+  padding: 30rpx 40rpx 20rpx 40rpx;
+  background: #fff;
+  border-bottom: 1rpx solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.popup-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 弹窗内容区域 */
+.popup-content {
+  /* 调整高度为365px - 使用多种单位确保兼容性 */
+  height: 365rpx !important;
+  height: 365px !important;
+  min-height: 365rpx !important;
+  min-height: 365px !important;
+  /* 移除flex相关设置，避免真机兼容性问题 */
+  flex: none;
+  /* 确保内容区域有明确的高度 */
+  /* 移除所有overflow设置，让scroll-view自己处理 */
+  padding: 0;
+  /* 真机滚动优化 */
+  overflow: visible;
+  /* 确保内容区域在真机上正确显示 */
+  position: relative;
+  /* 强制设置高度，确保真机兼容性 */
+  box-sizing: border-box;
+  /* 真机强制高度设置 */
+  display: block !important;
+  /* 确保高度不被其他样式覆盖 */
+  line-height: 1;
+}
+
+/* scroll-view容器 - 真机兼容性关键修复 */
+.scroll-view-container {
+  /* 真机兼容性：使用100%高度，确保scroll-view有正确的高度 */
+  height: 100% !important;
+  height: 365rpx !important;
+  height: 365px !important;
+  width: 100% !important;
+  /* 真机滚动优化 */
+  -webkit-overflow-scrolling: touch;
+  /* 触摸滚动优化 */
+  touch-action: pan-y;
+  /* 确保滚动区域正确识别 */
+  will-change: scroll-position;
+  /* 真机滚动必须的设置 */
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  /* 真机兼容性：强制设置最小高度 */
+  min-height: 365rpx !important;
+  min-height: 365px !important;
+  /* 强制设置最大高度，确保不超过父容器 */
+  max-height: 365rpx !important;
+  max-height: 365px !important;
+  /* 确保scroll-view在真机上正确渲染 */
+  position: relative;
+  /* 真机滚动优化 */
+  transform: translateZ(0);
+  /* 真机滚动性能优化 */
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  -webkit-perspective: 1000;
+}
+
+/* 滚动内容 - 真机兼容性修复 */
+.scroll-content {
+  /* 真机兼容性：设置足够的内容高度来触发滚动 */
+  min-height: 120%;
+  /* 添加内边距 */
+  padding: 20rpx 40rpx 40rpx 40rpx;
+  /* 确保内容不会被裁剪 */
+  box-sizing: border-box;
+  /* 真机兼容性：确保内容正确显示 */
+  position: relative;
+  /* 真机滚动优化 */
+  transform: translateZ(0);
+}
+
+.popup-actions {
+  display: flex;
+  gap: 20rpx;
+  justify-content: center;
+  padding: 20rpx 40rpx 30rpx 40rpx;
+  background: #fff;
+  border-top: 1rpx solid #f0f0f0;
+  flex-shrink: 0;
+  /* 确保按钮固定在底部，不悬浮 */
+  position: relative;
+  z-index: 10;
+}
+
+.btn {
+  flex: 1;
+  height: 80rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn::after {
+  border: none;
+}
+
+.btn-primary {
+  background: #07c160;
+  color: #fff;
+}
+
+.btn-secondary {
+  background: #fff;
+  color: #666;
+  border: 2rpx solid #ddd;
+}
+
+/* 1. 隐私政策弹窗样式 - 从下往上弹出 */
+.privacy-popup {
+  max-width: 100%;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.privacy-text {
+  font-size: 28rpx;
+  line-height: 1.6;
+  color: #333;
+}
+
+.welcome-text {
+  font-weight: 500;
+  margin-bottom: 20rpx;
+}
+
+.agreement-text {
+  margin-bottom: 20rpx;
+}
+
+.required-info,
+.minimal-principle,
+.agreement-meaning {
+  margin-bottom: 20rpx;
+}
+
+.required-mark {
+  color: #ff4757;
+  font-weight: 600;
+}
+
+.additional-info {
+  margin-top: 30rpx;
+  border-top: 1rpx solid #f0f0f0;
+  padding-top: 20rpx;
+}
+
+.info-section {
+  margin-bottom: 25rpx;
+}
+
+.section-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12rpx;
+  line-height: 1.4;
+}
+
+.section-content {
+  display: block;
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.6;
+  text-align: justify;
+}
+
+/* 2. 新会员福利弹窗样式 */
+.benefit-popup {
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+  color: #fff;
+  max-width: 650rpx;
+  animation: slideUp 0.3s ease-out;
+  border-radius: 24rpx 24rpx 0 0;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.25);
+}
+
+.benefit-popup .popup-header {
+  position: relative;
+  background: transparent;
+  border-bottom: none;
+  padding: 40rpx 40rpx 20rpx 40rpx;
+}
+
+.new-badge {
+  position: absolute;
+  top: -16rpx;
+  left: -16rpx;
+  background: #f39c12;
+  color: #fff;
+  font-size: 20rpx;
+  font-weight: 600;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  text-align: center;
+}
+
+.benefit-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  align-items: center;
+}
+
+.benefit-main-title {
+  font-size: 44rpx;
+  font-weight: 800;
+}
+
+.benefit-sub-title {
+  font-size: 26rpx;
+  opacity: 0.92;
+}
+
+.benefit-content {
+  text-align: center;
+  margin: 24rpx 0 12rpx 0;
+}
+
+.benefit-amount {
+  font-size: 56rpx;
+  font-weight: 800;
+  letter-spacing: 1rpx;
+  margin-bottom: 8rpx;
+}
+
+.benefit-description {
+  font-size: 26rpx;
+  opacity: 0.95;
+}
+
+/* 福利弹窗按钮样式 - 固定在底部 */
+.benefit-popup .popup-actions {
+  background: linear-gradient(180deg, rgba(255,255,255,0.0) 0%, rgba(0,0,0,0.08) 100%);
+  border-top: 1rpx solid rgba(255, 255, 255, 0.18);
+  padding: 24rpx 40rpx 36rpx 40rpx;
+}
+
+.benefit-login-btn {
+  background: #fff;
+  color: #27ae60;
+  font-weight: 700;
+  box-shadow: 0 8rpx 20rpx rgba(0,0,0,0.15);
+}
+
+.benefit-skip-btn {
+  background: transparent;
+  color: #fff;
+  border: 2rpx solid rgba(255, 255, 255, 0.35);
+}
+
+.privacy-checkbox {
+  margin-top: 16rpx;
+  padding: 20rpx;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 16rpx;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 10rpx;
+}
+
+.checkbox-text {
+  font-size: 26rpx;
+  line-height: 1.4;
+}
+
+.privacy-detail {
+  font-size: 22rpx;
+  opacity: 0.86;
+  line-height: 1.6;
+}
+
+/* 3. 手机号授权弹窗样式 */
+.phone-popup {
+  max-width: 650rpx;
+  animation: slideUp 0.3s ease-out;
+}
+
+.phone-popup .popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx 40rpx 20rpx 40rpx;
+}
+
+.brand-info {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.brand-logo {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 12rpx;
+}
+
+.brand-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.info-icon {
+  width: 40rpx;
+  height: 40rpx;
+  background: #f0f0f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  color: #666;
+  font-style: italic;
+}
+
+.phone-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+
+.phone-desc {
+  font-size: 26rpx;
+  color: #666;
+  text-align: center;
+  line-height: 1.5;
+  margin-bottom: 30rpx;
+}
+
+.phone-display {
+  background: #f8f9fa;
+  padding: 20rpx;
+  border-radius: 16rpx;
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+
+.phone-number {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.phone-source {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.phone-btn {
+  background: #07c160;
+  color: #fff;
+}
+
+.use-other-phone {
+  color: #07c160;
+  font-size: 26rpx;
+  text-decoration: underline;
+  text-align: center;
+  margin-top: 20rpx;
+  cursor: pointer;
+}
+
+/* 响应式设计 */
+@media (max-width: 750rpx) {
+  .popup-container {
+    max-height: 65vh;
+  }
+  
+  .popup-header,
+  .popup-actions {
+    padding-left: 30rpx;
+    padding-right: 30rpx;
+  }
+  
+  /* 真机兼容性：调整内容区域高度 */
+  .popup-content {
+    height: 365rpx !important;
+    min-height: 365rpx;
+  }
+}
+
+/* 滚动条样式 */
+.scroll-view-container::-webkit-scrollbar {
+  width: 8rpx;
+  background: transparent;
+}
+
+.scroll-view-container::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4rpx;
+}
+
+.scroll-view-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4rpx;
+  min-height: 60rpx;
+}
+
+.scroll-view-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* 真机滚动优化 - 关键修复 */
+.scroll-view-container {
+  /* 触摸滚动优化 */
+  touch-action: pan-y;
+  /* 确保滚动区域正确识别 */
+  will-change: scroll-position;
+  /* 真机滚动必须的设置 */
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  /* 真机兼容性：强制设置最小高度 */
+  min-height: 365rpx !important;
+  /* 确保scroll-view在真机上正确渲染 */
+  position: relative;
+  /* 真机滚动优化 */
+  transform: translateZ(0);
+  /* 真机滚动性能优化 */
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  -webkit-perspective: 1000;
+}
+
+/* 真机兼容性：确保内容有足够的高度来触发滚动 */
+.scroll-content {
+  /* 设置足够的内容高度来触发滚动 */
+  min-height: 120%;
+  /* 真机滚动优化 */
+  padding-bottom: 40rpx;
+  /* 真机兼容性：确保内容正确显示 */
+  position: relative;
+  /* 真机滚动优化 */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* 真机兼容性：强制设置弹窗内容区域高度 */
+.popup-content {
+  /* 使用固定高度而不是flex，避免真机兼容性问题 */
+  height: 365rpx !important;
+  min-height: 365rpx;
+  /* 移除flex相关设置 */
+  flex: none;
+  /* 确保内容区域在真机上正确显示 */
+  position: relative;
+  /* 真机滚动优化 */
+  overflow: visible;
+}
+
+/* 调试信息样式 */
+.debug-info {
+  background: rgba(0, 0, 0, 0.1) !important;
+  padding: 10rpx !important;
+  margin: 10rpx !important;
+  border-radius: 8rpx !important;
+  font-size: 20rpx !important;
+  color: #fff !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5rpx !important;
+}
+
+.debug-info text {
+  color: #fff !important;
+  font-size: 20rpx !important;
+  line-height: 1.2 !important;
+} 

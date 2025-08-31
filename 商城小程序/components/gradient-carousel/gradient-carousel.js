@@ -40,25 +40,12 @@ Component({
     defaultGradient: {
       type: String,
       value: 'linear-gradient(135deg, rgba(76, 175, 80, 0.85) 0%, rgba(139, 195, 74, 0.85) 50%, rgba(205, 220, 57, 0.85) 100%)'
-    },
-    // 触摸灵敏度阈值
-    touchThreshold: {
-      type: Number,
-      value: 50
     }
   },
 
   data: {
     currentIndex: 0,
-    imageLoadedCount: 0,
-    // 触摸相关状态
-    touchStartX: 0,
-    touchStartY: 0,
-    touchEndX: 0,
-    touchEndY: 0,
-    isTouching: false,
-    touchDirection: '', // 'left', 'right', 'up', 'down'
-    slideOffset: 0 // 滑动偏移量，用于动画效果
+    imageLoadedCount: 0
   },
 
   observers: {
@@ -139,19 +126,19 @@ Component({
     useDefaultImages() {
       const defaultImages = [
         {
-          url: '/images/banner/banner1.jpg',
+          url: '/images/banners/banner1.jpg',
           gradient: 'linear-gradient(135deg, rgba(76, 175, 80, 0.85) 0%, rgba(139, 195, 74, 0.85) 50%, rgba(205, 220, 57, 0.85) 100%)',
           title: '夏日消暑',
           subtitle: 'Lemon tea for Uncle Q'
         },
         {
-          url: '/images/banner/banner2.jpg', 
+          url: '/images/banners/banner2.jpg', 
           gradient: 'linear-gradient(135deg, rgba(33, 150, 243, 0.85) 0%, rgba(63, 81, 181, 0.85) 50%, rgba(103, 58, 183, 0.85) 100%)',
           title: '新品推荐',
           subtitle: 'Fresh & Natural'
         },
         {
-          url: '/images/banner/banner3.jpg',
+          url: '/images/banners/banner3.jpg',
           gradient: 'linear-gradient(135deg, rgba(255, 152, 0, 0.85) 0%, rgba(255, 87, 34, 0.85) 50%, rgba(244, 67, 54, 0.85) 100%)',
           title: '会员专享',
           subtitle: 'VIP Exclusive'
@@ -295,139 +282,6 @@ Component({
     // 获取当前图片信息
     getCurrentImage() {
       return this.data.images[this.data.currentIndex];
-    },
-
-    // 触摸开始事件
-    onTouchStart(e) {
-      if (this.data.images.length <= 1) return;
-      
-      const touch = e.touches[0];
-      this.setData({
-        touchStartX: touch.clientX,
-        touchStartY: touch.clientY,
-        isTouching: true,
-        slideOffset: 0
-      });
-      
-      // 触摸时暂停自动播放
-      if (this.properties.autoplay) {
-        this.clearAutoPlay();
-      }
-    },
-
-    // 触摸移动事件
-    onTouchMove(e) {
-      if (!this.data.isTouching || this.data.images.length <= 1) return;
-      
-      const touch = e.touches[0];
-      const currentX = touch.clientX;
-      const currentY = touch.clientY;
-      
-      // 计算触摸移动距离
-      const deltaX = currentX - this.data.touchStartX;
-      const deltaY = currentY - this.data.touchStartY;
-      
-      // 判断滑动方向
-      if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        // 水平滑动
-        if (Math.abs(deltaX) > 10) { // 防止误触
-          const direction = deltaX > 0 ? 'right' : 'left';
-          const offset = deltaX * 0.3; // 滑动跟随效果，系数0.3让跟随更平滑
-          
-          this.setData({
-            touchDirection: direction,
-            slideOffset: offset
-          });
-          
-          // 设置动态CSS变量
-          this.setSlideOffset(offset);
-        }
-      } else {
-        // 垂直滑动
-        if (Math.abs(deltaY) > 10) {
-          this.setData({
-            touchDirection: deltaY > 0 ? 'down' : 'up'
-          });
-        }
-      }
-    },
-
-    // 触摸结束事件
-    onTouchEnd(e) {
-      if (!this.data.isTouching || this.data.images.length <= 1) return;
-      
-      const touch = e.changedTouches[0];
-      this.setData({
-        touchEndX: touch.clientX,
-        touchEndY: touch.clientY,
-        isTouching: false
-      });
-      
-      // 计算滑动距离
-      const deltaX = this.data.touchEndX - this.data.touchStartX;
-      const deltaY = this.data.touchEndY - this.data.touchStartY;
-      
-      // 判断是否为有效的滑动
-      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > this.properties.touchThreshold) {
-        // 水平滑动且超过阈值
-        if (deltaX > 0) {
-          // 向右滑动，显示上一张
-          this.prevSlide();
-        } else {
-          // 向左滑动，显示下一张
-          this.nextSlide();
-        }
-      }
-      
-      // 重置触摸状态
-      this.setData({
-        touchStartX: 0,
-        touchStartY: 0,
-        touchEndX: 0,
-        touchEndY: 0,
-        touchDirection: '',
-        slideOffset: 0
-      });
-      
-      // 触摸结束后恢复自动播放
-      if (this.properties.autoplay) {
-        setTimeout(() => {
-          this.startAutoPlay();
-        }, 1000);
-      }
-    },
-
-    // 设置滑动偏移量
-    setSlideOffset(offset) {
-      const query = this.createSelectorQuery();
-      query.select('.background-item.active').fields({
-        node: true,
-        size: true,
-      }, (res) => {
-        if (res && res.node) {
-          res.node.style.setProperty('--slide-offset', `${offset}px`);
-        }
-      }).exec();
-    },
-
-    // 触摸取消事件
-    onTouchCancel(e) {
-      this.setData({
-        isTouching: false,
-        touchStartX: 0,
-        touchStartY: 0,
-        touchEndX: 0,
-        touchEndY: 0,
-        touchDirection: '',
-        slideOffset: 0
-      });
-      
-      // 恢复自动播放
-      if (this.properties.autoplay) {
-        setTimeout(() => {
-          this.startAutoPlay();
-        }, 1000);
-      }
     }
   }
 }); 

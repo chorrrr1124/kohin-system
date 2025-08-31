@@ -1,6 +1,14 @@
 // 弹窗测试页面
 Page({
   data: {
+    // 弹窗显示状态
+    showPrivacyPopup: false,
+    showBenefitPopup: false,
+    showPhonePopup: false,
+    
+    // 手机号掩码
+    maskedPhone: '138****8888',
+    
     // 设备信息
     deviceInfo: {},
     isRealDevice: false,
@@ -30,6 +38,48 @@ Page({
     }
   },
 
+  // 测试隐私政策弹窗滚动
+  testPrivacyPopup() {
+    this.setData({
+      showPrivacyPopup: true,
+      showBenefitPopup: false,
+      showPhonePopup: false
+    })
+    
+    // 记录测试
+    this.recordTest('隐私政策弹窗', '显示弹窗')
+    
+    console.log('测试隐私政策弹窗滚动')
+  },
+
+  // 测试注册福利弹窗滚动
+  testBenefitPopup() {
+    this.setData({
+      showPrivacyPopup: false,
+      showBenefitPopup: true,
+      showPhonePopup: false
+    })
+    
+    // 记录测试
+    this.recordTest('注册福利弹窗', '显示弹窗')
+    
+    console.log('测试注册福利弹窗滚动')
+  },
+
+  // 测试手机号授权弹窗滚动
+  testPhonePopup() {
+    this.setData({
+      showPrivacyPopup: false,
+      showBenefitPopup: false,
+      showPhonePopup: true
+    })
+    
+    // 记录测试
+    this.recordTest('手机号授权弹窗', '显示弹窗')
+    
+    console.log('测试手机号授权弹窗滚动')
+  },
+
   // 记录测试结果
   recordTest(type, action, success = true, detail = '') {
     const now = new Date()
@@ -48,14 +98,101 @@ Page({
     })
   },
 
+  // ===== 弹窗事件处理 =====
+
+  // 隐私政策同意
+  onPrivacyAgree() {
+    console.log('用户同意隐私政策')
+    this.recordTest('隐私政策弹窗', '同意', true, '用户点击同意按钮')
+    
+    // 延迟显示下一个弹窗
+    setTimeout(() => {
+      this.testBenefitPopup()
+    }, 500)
+  },
+
+  // 隐私政策拒绝
+  onPrivacyReject() {
+    console.log('用户拒绝隐私政策')
+    this.recordTest('隐私政策弹窗', '拒绝', true, '用户点击拒绝按钮')
+    
+    // 关闭弹窗
+    this.setData({
+      showPrivacyPopup: false
+    })
+  },
+
+  // 注册福利登录
+  onBenefitLogin() {
+    console.log('用户点击注册福利登录')
+    this.recordTest('注册福利弹窗', '登录', true, '用户点击登录按钮')
+    
+    // 延迟显示下一个弹窗
+    setTimeout(() => {
+      this.testPhonePopup()
+    }, 500)
+  },
+
+  // 注册福利跳过
+  onBenefitSkip() {
+    console.log('用户跳过注册福利')
+    this.recordTest('注册福利弹窗', '跳过', true, '用户点击跳过按钮')
+    
+    // 关闭弹窗
+    this.setData({
+      showBenefitPopup: false
+    })
+  },
+
+  // 手机号允许
+  onPhoneAllow() {
+    console.log('用户允许获取手机号')
+    this.recordTest('手机号授权弹窗', '允许', true, '用户允许获取手机号')
+    
+    // 关闭弹窗
+    this.setData({
+      showPhonePopup: false
+    })
+  },
+
+  // 手机号拒绝
+  onPhoneReject() {
+    console.log('用户拒绝获取手机号')
+    this.recordTest('手机号授权弹窗', '拒绝', true, '用户拒绝获取手机号')
+    
+    // 关闭弹窗
+    this.setData({
+      showPhonePopup: false
+    })
+  },
+
+  // 使用其他手机号
+  onUseOtherPhone() {
+    console.log('用户选择使用其他手机号')
+    this.recordTest('手机号授权弹窗', '其他号码', true, '用户选择使用其他手机号')
+    
+    // 关闭弹窗
+    this.setData({
+      showPhonePopup: false
+    })
+  },
+
+  // 流程完成
+  onFlowComplete() {
+    console.log('弹窗流程完成')
+    this.recordTest('弹窗系统', '流程完成', true, '所有弹窗流程已完成')
+  },
+
   // 页面显示时检查弹窗状态
   onShow() {
     // 检查是否有弹窗显示
-    const hasPopup = false // No longer checking for popups
+    const hasPopup = this.data.showPrivacyPopup || this.data.showBenefitPopup || this.data.showPhonePopup
     
     if (hasPopup) {
       console.log('页面显示，当前弹窗状态:', {
-        // Removed popup status as they are removed
+        privacy: this.data.showPrivacyPopup,
+        benefit: this.data.showBenefitPopup,
+        phone: this.data.showPhonePopup
       })
     }
   },
@@ -70,6 +207,10 @@ Page({
     console.log('测试页面卸载')
     
     // 清理弹窗状态
-    // Removed popup state cleanup
+    this.setData({
+      showPrivacyPopup: false,
+      showBenefitPopup: false,
+      showPhonePopup: false
+    })
   }
 }) 

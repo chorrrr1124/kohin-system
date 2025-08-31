@@ -52,6 +52,11 @@
 
   <!-- 主要内容区域 -->
   <view class="main-content">
+    <!-- 测试弹窗按钮 -->
+    <view class="test-section">
+      <button class="test-btn" bindtap="testPopupSystem">测试弹窗系统</button>
+    </view>
+    
     <!-- 推荐商品 -->
     <view class="recommend-section" wx:if="{{recommendProducts.length > 0}}">
       <view class="section-title">
@@ -92,9 +97,27 @@
     </view>
   </view>
   
+
+  
   <!-- 加载状态 -->
   <view class="loading" wx:if="{{loading}}">
     <text>加载中...</text>
   </view>
+
+  <!-- 登录弹窗系统 -->
+  <login-popup-system
+    show-privacy-popup="{{showPrivacyPopup}}"
+    show-benefit-popup="{{showBenefitPopup}}"
+    show-phone-popup="{{showPhonePopup}}"
+    masked-phone="{{maskedPhone}}"
+    bind:privacyAgree="onPrivacyAgree"
+    bind:privacyReject="onPrivacyReject"
+    bind:benefitLogin="onBenefitLogin"
+    bind:benefitSkip="onBenefitSkip"
+    bind:phoneAllow="onPhoneAllow"
+    bind:phoneReject="onPhoneReject"
+    bind:useOtherPhone="onUseOtherPhone"
+    bind:flowComplete="onFlowComplete"
+  />
 
 </view>

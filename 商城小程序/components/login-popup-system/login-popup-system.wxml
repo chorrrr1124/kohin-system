@@ -1,0 +1,160 @@
+<!-- 登录弹窗系统组件 -->
+<view class="popup-system">
+  
+  <!-- 1. 用户协议和隐私政策弹窗 -->
+  <view class="popup-mask" wx:if="{{showPrivacyPopup}}" catchtouchmove="preventTouchMove" bindtap="onMaskTap">
+    <view class="popup-container privacy-popup" catchtouchmove="preventTouchMove" catchtap="swallow">
+      
+      <view class="popup-header">
+        <text class="popup-title">{{popupContent.privacy.title}}</text>
+      </view>
+      
+      <view class="popup-content" style="height: 365px !important; min-height: 365px !important; max-height: 365px !important;">
+        <scroll-view 
+          class="scroll-view-container" 
+          style="height: 365px !important; min-height: 365px !important; max-height: 365px !important;"
+          scroll-y="true" 
+          enhanced="true"
+          show-scrollbar="true"
+          bounces="false"
+          scroll-anchoring="true"
+          scroll-with-animation="true"
+          enable-back-to-top="false"
+          fast-deceleration="true">
+          <view class="scroll-content">
+            <view class="privacy-text">
+              <view class="welcome-text">{{popupContent.privacy.greeting}}</view>
+              
+              <view class="agreement-text">
+                {{popupContent.privacy.agreementIntro}}
+              </view>
+              
+              <view class="required-info">
+                <text class="required-mark">*</text>
+                {{popupContent.privacy.necessaryInfo}}
+              </view>
+              
+              <view class="minimal-principle">
+                <text class="required-mark">*</text>
+                {{popupContent.privacy.minimalPrinciple}}
+              </view>
+              
+              <view class="agreement-meaning">
+                <text class="required-mark">*</text>
+                {{popupContent.privacy.agreementScope}}
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+      
+      <view class="popup-actions">
+        <button class="btn btn-secondary" bindtap="onPrivacyReject">{{popupContent.privacy.rejectButton}}</button>
+        <button class="btn btn-primary" bindtap="onPrivacyAgree">{{popupContent.privacy.agreeButton}}</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 2. 新会员注册福利弹窗 -->
+  <view class="popup-mask" wx:if="{{showBenefitPopup}}" catchtouchmove="preventTouchMove" bindtap="onMaskTap">
+    <view class="popup-container benefit-popup" catchtouchmove="preventTouchMove" catchtap="swallow">
+      
+      <view class="popup-header">
+        <view class="new-badge">{{popupContent.benefit.newBadge}}</view>
+        <view class="benefit-titles">
+          <text class="benefit-sub-title">{{popupContent.benefit.subTitle}}</text>
+          <text class="benefit-main-title">{{popupContent.benefit.titlePrefix}}{{popupContent.benefit.title}}</text>
+        </view>
+      </view>
+      
+      <view class="popup-content" style="height: 365px !important; min-height: 365px !important; max-height: 365px !important;">
+        <scroll-view 
+          class="scroll-view-container" 
+          style="height: 365px !important; min-height: 365px !important; max-height: 365px !important;"
+          scroll-y="true" 
+          enhanced="true"
+          show-scrollbar="true"
+          bounces="false"
+          scroll-anchoring="true"
+          scroll-with-animation="true"
+          enable-back-to-top="false"
+          fast-deceleration="true">
+          <view class="scroll-content">
+            <view class="benefit-content">
+              <view class="benefit-amount">{{popupContent.benefit.benefitDetails}}</view>
+              <view class="benefit-description">{{popupContent.benefit.benefitDescription}}</view>
+            </view>
+            
+            <view class="privacy-checkbox">
+              <checkbox-group bindchange="onPrivacyCheckboxChange">
+                <label class="checkbox-label">
+                  <checkbox value="agreed" checked="{{privacyAgreed}}" />
+                  <text class="checkbox-text">我已阅读并同意</text>
+                  <text class="checkbox-link" data-type="user" bindtap="openAgreement">《用户协议》</text>
+                  <text class="checkbox-text">和</text>
+                  <text class="checkbox-link" data-type="privacy" bindtap="openAgreement">《隐私政策》</text>
+                </label>
+              </checkbox-group>
+              <view class="privacy-detail">
+                {{popupContent.benefit.privacyDetail}}
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+      
+      <!-- 将按钮移到scroll-view外部，固定在底部 -->
+      <view class="popup-actions benefit-actions">
+        <button class="btn benefit-login-btn" bindtap="onBenefitLogin">{{popupContent.benefit.loginButton}}</button>
+        <button class="btn benefit-skip-btn" bindtap="onBenefitSkip">{{popupContent.benefit.skipButton}}</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 3. 手机号授权弹窗 -->
+  <view class="popup-mask" wx:if="{{showPhonePopup}}" catchtouchmove="preventTouchMove" bindtap="onMaskTap">
+    <view class="popup-container phone-popup" catchtouchmove="preventTouchMove" catchtap="swallow">
+      
+      <view class="popup-header">
+        <view class="brand-info">
+          <image class="brand-logo" src="/images/logo.png" mode="aspectFit"></image>
+          <text class="brand-name">{{popupContent.brand.name}}</text>
+        </view>
+        <view class="info-icon">{{popupContent.phone.infoIcon}}</view>
+      </view>
+      
+      <view class="popup-content" style="height: 365px !important; min-height: 365px !important; max-height: 365px !important;">
+        <scroll-view 
+          class="scroll-view-container" 
+          style="height: 365px !important; min-height: 365px !important; max-height: 365px !important;"
+          scroll-y="true" 
+          enhanced="true"
+          show-scrollbar="true"
+          bounces="false"
+          scroll-anchoring="true"
+          scroll-with-animation="true"
+          enable-back-to-top="false"
+          fast-deceleration="true">
+          <view class="scroll-content">
+            <view class="phone-title">{{popupContent.phone.greeting}}</view>
+            <view class="phone-desc">
+              {{popupContent.phone.description}}
+            </view>
+            
+            <view class="phone-display" wx:if="{{maskedPhone}}">
+              <text class="phone-number">{{maskedPhone}}</text>
+              <text class="phone-source">{{popupContent.phone.currentPhone}}</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+      
+      <view class="popup-actions">
+        <button class="btn btn-primary phone-btn" bindtap="onPhoneAllow">{{popupContent.phone.allowButton}}</button>
+        <button class="btn btn-secondary phone-btn" bindtap="onPhoneReject">{{popupContent.phone.rejectButton}}</button>
+        <text class="use-other-phone" bindtap="onUseOtherPhone">{{popupContent.phone.otherPhoneButton}}</text>
+      </view>
+    </view>
+  </view>
+
+</view> 

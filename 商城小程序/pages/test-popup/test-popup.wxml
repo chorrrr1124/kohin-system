@@ -2,13 +2,30 @@
 <view class="container">
   <view class="header">
     <text class="title">弹窗滚动测试</text>
-    <text class="subtitle">弹窗系统已移除，此页面仅用于设备信息显示</text>
+    <text class="subtitle">测试弹窗组件的滚动功能和真机兼容性</text>
+  </view>
+
+  <view class="test-buttons">
+    <button class="test-btn primary" bindtap="testPrivacyPopup">
+      测试隐私政策弹窗滚动
+    </button>
+    
+    <button class="test-btn secondary" bindtap="testBenefitPopup">
+      测试注册福利弹窗滚动
+    </button>
+    
+    <button class="test-btn secondary" bindtap="testPhonePopup">
+      测试手机号授权弹窗滚动
+    </button>
   </view>
 
   <view class="instructions">
-    <text class="instruction-title">说明</text>
-    <text class="instruction-text">登录弹窗系统已被移除，不再显示弹窗</text>
-    <text class="instruction-text">此页面现在仅用于显示设备信息和测试结果</text>
+    <text class="instruction-title">测试说明</text>
+    <text class="instruction-text">1. 点击上方按钮测试不同类型的弹窗</text>
+    <text class="instruction-text">2. 查看弹窗顶部的蓝色调试信息框</text>
+    <text class="instruction-text">3. 尝试在弹窗内容区域上下滑动</text>
+    <text class="instruction-text">4. 检查控制台是否有滚动事件日志</text>
+    <text class="instruction-text">5. 对比模拟器和真机的表现差异</text>
   </view>
 
   <!-- 设备信息显示 -->
@@ -32,4 +49,20 @@
       <text class="result-detail">{{item.detail}}</text>
     </view>
   </view>
-</view> 
+  </view>
+
+<!-- 登录弹窗系统组件 -->
+  <login-popup-system
+  showPrivacyPopup="{{showPrivacyPopup}}"
+  showBenefitPopup="{{showBenefitPopup}}"
+  showPhonePopup="{{showPhonePopup}}"
+  maskedPhone="{{maskedPhone}}"
+    bind:privacyAgree="onPrivacyAgree"
+    bind:privacyReject="onPrivacyReject"
+    bind:benefitLogin="onBenefitLogin"
+    bind:benefitSkip="onBenefitSkip"
+    bind:phoneAllow="onPhoneAllow"
+    bind:phoneReject="onPhoneReject"
+    bind:useOtherPhone="onUseOtherPhone"
+  bind:flowComplete="onFlowComplete">
+</login-popup-system> 
