@@ -675,15 +675,103 @@ Page({
     this.onFlowComplete();
   },
 
-  // 允许获取手机号
+  // 手机号获取成功事件
+  onPhoneNumberGet(e) {
+    console.log('手机号获取成功:', e.detail);
+    
+    if (e.detail.code) {
+      // 将code发送到云函数解密
+      this.decryptPhoneNumber(e.detail.code);
+    } else {
+      wx.showToast({
+        title: '获取手机号失败',
+        icon: 'none'
+      });
+    }
+  },
+
+  // 手机号获取拒绝事件
+  onPhoneNumberReject() {
+    console.log('用户拒绝授权手机号');
+    wx.showToast({
+      title: '需要授权手机号才能使用',
+      icon: 'none'
+    });
+  },
+
+  // 允许获取手机号（保留兼容性）
   onPhoneAllow() {
     console.log('用户允许获取手机号');
-    this.setData({
-      showPhonePopup: false
+    // 这个方法现在由 onPhoneNumberGet 处理
+  },
+
+  // 解密手机号
+  decryptPhoneNumber(code) {
+    wx.showLoading({
+      title: '验证中...'
     });
     
-    // 完成整个流程
-    this.onFlowComplete();
+    // 调用云函数解密手机号
+    wx.cloud.callFunction({
+      name: 'decryptPhoneNumber',
+      data: {
+        code: code
+      },
+      success: (res) => {
+        wx.hideLoading();
+        console.log('解密手机号成功:', res);
+        
+        if (res.result && res.result.phoneNumber) {
+          const phoneNumber = res.result.phoneNumber;
+          
+          // 保存手机号到本地存储
+          wx.setStorageSync('lastPhoneNumber', phoneNumber);
+          
+          // 更新显示的掩码手机号
+          this.setData({
+            maskedPhone: this.maskPhoneNumber(phoneNumber)
+          });
+          
+          // 关闭弹窗，完成流程
+          this.setData({
+            showPhonePopup: false
+          });
+          
+          // 完成整个流程
+          this.onFlowComplete();
+          
+          // 可以在这里调用登录接口
+          this.loginWithPhone(phoneNumber);
+          
+        } else {
+          wx.showToast({
+            title: '手机号验证失败',
+            icon: 'none'
+          });
+        }
+      },
+      fail: (err) => {
+        wx.hideLoading();
+        console.error('解密手机号失败:', err);
+        wx.showToast({
+          title: '手机号验证失败，请重试',
+          icon: 'none'
+        });
+      }
+    });
+  },
+
+  // 使用手机号登录
+  loginWithPhone(phoneNumber) {
+    console.log('使用手机号登录:', phoneNumber);
+    
+    // 这里可以调用登录接口
+    // 比如保存用户信息到数据库等
+    
+    wx.showToast({
+      title: '登录成功',
+      icon: 'success'
+    });
   },
 
   // 拒绝获取手机号

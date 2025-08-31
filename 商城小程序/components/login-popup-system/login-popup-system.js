@@ -322,15 +322,28 @@ Component({
 
     // ===== 手机号授权弹窗事件 =====
     
-    // 允许获取手机号
-    onPhoneAllow() {
-      this.setData({
-        showPhonePopup: false
-      });
+    // 获取手机号事件处理
+    onPhoneNumberGet(e) {
+      console.log('手机号获取事件:', e);
       
-      // 完成整个流程
-      this.completeFlow();
-      this.triggerEvent('phoneAllow');
+      if (e.detail.errMsg === 'getPhoneNumber:ok') {
+        // 获取成功，触发事件给父组件处理
+        this.triggerEvent('phoneNumberGet', {
+          code: e.detail.code,
+          encryptedData: e.detail.encryptedData,
+          iv: e.detail.iv
+        });
+      } else {
+        // 获取失败
+        console.log('用户拒绝授权手机号');
+        this.triggerEvent('phoneNumberReject');
+      }
+    },
+
+    // 允许获取手机号（保留兼容性）
+    onPhoneAllow() {
+      // 这个方法现在由 onPhoneNumberGet 处理
+      // 保留是为了向后兼容
     },
 
     // 拒绝获取手机号

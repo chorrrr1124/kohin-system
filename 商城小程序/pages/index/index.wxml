@@ -118,6 +118,8 @@
     bind:phoneReject="onPhoneReject"
     bind:useOtherPhone="onUseOtherPhone"
     bind:flowComplete="onFlowComplete"
+    bind:phoneNumberGet="onPhoneNumberGet"
+    bind:phoneNumberReject="onPhoneNumberReject"
   />
 
 </view>

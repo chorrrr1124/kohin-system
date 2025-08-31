@@ -150,7 +150,13 @@
       </view>
       
       <view class="popup-actions">
-        <button class="btn btn-primary phone-btn" bindtap="onPhoneAllow">{{popupContent.phone.allowButton}}</button>
+        <button 
+          class="btn btn-primary phone-btn" 
+          open-type="getPhoneNumber" 
+          bindgetphonenumber="onPhoneNumberGet"
+          data-action="allow">
+          {{popupContent.phone.allowButton}}
+        </button>
         <button class="btn btn-secondary phone-btn" bindtap="onPhoneReject">{{popupContent.phone.rejectButton}}</button>
         <text class="use-other-phone" bindtap="onUseOtherPhone">{{popupContent.phone.otherPhoneButton}}</text>
       </view>
