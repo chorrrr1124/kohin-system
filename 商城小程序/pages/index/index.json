@@ -4,8 +4,7 @@
     "gradient-carousel": "/components/gradient-carousel/gradient-carousel",
     "floating-user-card": "/components/floating-user-card/floating-user-card",
     "t-swiper": "/miniprogram_npm/tdesign-miniprogram/miniprogram_dist/swiper/swiper",
-    "login-modal": "/components/login-modal/login-modal",
-    "login-popup-system": "/components/login-popup-system/login-popup-system"
+    "login-modal": "/components/login-modal/login-modal"
   },
   "navigationBarTitleText": "优品商城",
   "navigationStyle": "custom",

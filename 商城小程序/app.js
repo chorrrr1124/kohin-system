@@ -70,10 +70,8 @@ App({
       const hasEverLoggedIn = wx.getStorageSync('hasEverLoggedIn');
       
       if (!hasEverLoggedIn) {
-        // 首次启动，延迟弹出登录弹窗
-        setTimeout(() => {
-          this.showLoginModal();
-        }, 1000);
+        // 首次启动，静默处理，不弹出弹窗
+        console.log('首次启动，静默处理登录');
         // 未登录状态下初始化空购物车
         this.initCart();
       } else {
@@ -83,11 +81,7 @@ App({
           // 登录成功后初始化购物车
           await this.initCart();
         } catch (err) {
-          console.warn('静默登录失败，将弹出授权登录弹窗', err);
-          // 延迟一下再弹出登录弹窗，确保小程序完全启动
-          setTimeout(() => {
-            this.showLoginModal();
-          }, 1000);
+          console.warn('静默登录失败，用户需要手动登录', err);
           // 未登录状态下初始化空购物车
           this.initCart();
         }
@@ -118,37 +112,6 @@ App({
     } catch (e) {
       console.error('loginWithOpenId 失败:', e);
       throw e;
-    }
-  },
-
-  // 显示登录授权弹窗系统
-  showLoginModal() {
-    // 获取当前页面
-    const pages = getCurrentPages();
-    const currentPage = pages[pages.length - 1];
-    
-    if (currentPage && currentPage.showLoginPopupFlow) {
-      // 显示新的弹窗系统
-      currentPage.showLoginPopupFlow();
-    } else {
-      // 如果无法获取当前页面，使用原有的系统弹窗作为备选
-      wx.showModal({
-        title: '登录提示',
-        content: '为了给您提供更好的服务，请先登录授权',
-        confirmText: '立即登录',
-        cancelText: '稍后再说',
-        success: (res) => {
-          if (res.confirm) {
-            this.login().catch(err => {
-              console.error('用户授权登录失败:', err);
-              wx.showToast({
-                title: '登录失败，请稍后重试',
-                icon: 'none'
-              });
-            });
-          }
-        }
-      });
     }
   },
 
