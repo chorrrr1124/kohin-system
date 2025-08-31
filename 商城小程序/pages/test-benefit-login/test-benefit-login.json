@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "注册福利登录测试",
+  "usingComponents": {
+    "login-popup-system": "/components/login-popup-system/login-popup-system"
+  }
+} 

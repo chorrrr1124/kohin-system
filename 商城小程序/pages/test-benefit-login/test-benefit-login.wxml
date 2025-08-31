@@ -1,0 +1,52 @@
+<!--pages/test-benefit-login/test-benefit-login.wxml-->
+<view class="container">
+  <view class="header">
+    <text class="title">注册福利登录测试</text>
+    <text class="subtitle">测试手机号一键登录功能</text>
+  </view>
+
+  <view class="content">
+    <view class="test-section">
+      <text class="section-title">测试操作</text>
+      <button class="test-btn" bindtap="showBenefitPopup">显示注册福利弹窗</button>
+      <button class="test-btn clear-btn" bindtap="clearStatus">清除状态</button>
+    </view>
+
+    <view class="status-section">
+      <text class="section-title">当前状态</text>
+      <view class="status-item">
+        <text class="status-label">登录状态:</text>
+        <text class="status-value">{{loginStatus || '未登录'}}</text>
+      </view>
+      <view class="status-item" wx:if="{{userPhone}}">
+        <text class="status-label">手机号:</text>
+        <text class="status-value">{{userPhone}}</text>
+      </view>
+    </view>
+
+    <view class="info-section">
+      <text class="section-title">功能说明</text>
+      <view class="info-item">
+        <text class="info-text">• 点击"显示注册福利弹窗"按钮</text>
+      </view>
+      <view class="info-item">
+        <text class="info-text">• 在弹窗中点击"手机号一键登录"</text>
+      </view>
+      <view class="info-item">
+        <text class="info-text">• 系统将直接获取并验证手机号</text>
+      </view>
+      <view class="info-item">
+        <text class="info-text">• 成功后显示手机号并完成登录</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 注册福利弹窗组件 -->
+  <login-popup-system
+    show-benefit-popup="{{showBenefitPopup}}"
+    bind:benefitLogin="onBenefitLogin"
+    bind:phoneNumberSuccess="onPhoneNumberSuccess"
+    bind:phoneNumberError="onPhoneNumberError"
+    bind:benefitSkip="onBenefitSkip">
+  </login-popup-system>
+</view> 

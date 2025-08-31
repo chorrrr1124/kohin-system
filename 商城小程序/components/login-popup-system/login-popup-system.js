@@ -289,14 +289,10 @@ Component({
         return;
       }
       
-      this.setData({
-        showBenefitPopup: false
-      });
+      console.log('用户点击注册福利登录，开始获取手机号');
       
-      // 延迟显示下一个弹窗
-      setTimeout(() => {
-        this.showNextPopup();
-      }, 300);
+      // 直接获取手机号，不显示手机号授权弹窗
+      this.getPhoneNumberDirectly();
       
       this.triggerEvent('benefitLogin');
     },
@@ -377,6 +373,11 @@ Component({
           
           wx.hideLoading();
           
+          // 关闭注册福利弹窗
+          this.setData({
+            showBenefitPopup: false
+          });
+          
           wx.showToast({
             title: '手机号验证成功',
             icon: 'success'
@@ -429,6 +430,11 @@ Component({
           title: toastMessage,
           icon: 'none',
           duration: 3000
+        });
+        
+        // 关闭注册福利弹窗
+        this.setData({
+          showBenefitPopup: false
         });
         
         this.triggerEvent('phoneNumberError', {
@@ -505,6 +511,58 @@ Component({
       
       // 触发使用其他手机号事件
       this.triggerEvent('useOtherPhone');
+    },
+
+    // 直接获取手机号（从注册福利弹窗调用）
+    getPhoneNumberDirectly() {
+      console.log('=== 开始直接获取手机号 ===');
+      
+      // 检查是否支持获取手机号
+      if (!wx.getPhoneNumber) {
+        wx.showToast({
+          title: '当前微信版本过低，无法获取手机号',
+          icon: 'none'
+        });
+        return;
+      }
+      
+      // 显示加载提示
+      wx.showLoading({
+        title: '获取手机号中...',
+        mask: true
+      });
+      
+      // 调用微信API获取手机号
+      wx.getPhoneNumber({
+        success: (res) => {
+          console.log('微信获取手机号成功:', res);
+          
+          if (res.errMsg === 'getPhoneNumber:ok') {
+            // 获取成功，解密手机号
+            this.decryptPhoneNumber(res.code);
+          } else {
+            wx.hideLoading();
+            this.handlePhoneNumberError(res.errno || 0);
+          }
+        },
+        fail: (err) => {
+          console.error('微信获取手机号失败:', err);
+          wx.hideLoading();
+          
+          if (err.errno === 1400001) {
+            wx.showModal({
+              title: '提示',
+              content: '该功能使用次数已达上限，请联系客服',
+              showCancel: false
+            });
+          } else {
+            wx.showToast({
+              title: '获取手机号失败，请重试',
+              icon: 'none'
+            });
+          }
+        }
+      });
     },
 
     // ===== 流程控制方法 =====
