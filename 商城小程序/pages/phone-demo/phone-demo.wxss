@@ -164,6 +164,68 @@
   font-weight: 500;
 }
 
+/* 调试信息 */
+.debug-section {
+  margin-bottom: 40rpx;
+}
+
+.debug-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.debug-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.debug-count {
+  font-size: 24rpx;
+  color: #999;
+  margin-left: 8rpx;
+}
+
+.debug-actions {
+  display: flex;
+  gap: 12rpx;
+}
+
+.debug-btn {
+  padding: 8rpx 16rpx;
+  border-radius: 12rpx;
+  font-size: 22rpx;
+  background: #f0f0f0;
+  border: 1rpx solid #e0e0e0;
+  color: #666;
+}
+
+.debug-list {
+  background: #1e1e1e;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+
+.debug-item {
+  padding: 8rpx 0;
+  border-bottom: 1rpx solid #333;
+}
+
+.debug-item:last-child {
+  border-bottom: none;
+}
+
+.debug-text {
+  font-size: 24rpx;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  line-height: 1.4;
+}
+
 /* 历史记录 */
 .history-section {
   margin-bottom: 40rpx;

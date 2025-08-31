@@ -42,6 +42,24 @@
     </button>
   </view>
 
+  <!-- 调试信息 -->
+  <view class="debug-section" wx:if="{{debugInfo.length > 0}}">
+    <view class="debug-header">
+      <text class="debug-title">调试信息</text>
+      <text class="debug-count">({{debugInfo.length}})</text>
+      <view class="debug-actions">
+        <button class="debug-btn" bindtap="clearDebugInfo">清除</button>
+        <button class="debug-btn" bindtap="copyDebugInfo">复制</button>
+      </view>
+    </view>
+    
+    <view class="debug-list">
+      <view class="debug-item" wx:for="{{debugInfo}}" wx:key="*this">
+        <text class="debug-text">{{item}}</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 历史记录 -->
   <view class="history-section" wx:if="{{phoneHistory.length > 0}}">
     <view class="history-header">
@@ -87,6 +105,7 @@
         <text class="info-item">• 完整的错误处理和用户提示</text>
         <text class="info-item">• 手机号掩码显示保护隐私</text>
         <text class="info-item">• 操作历史记录和状态跟踪</text>
+        <text class="info-item">• 实时调试信息显示</text>
       </view>
     </view>
   </view>

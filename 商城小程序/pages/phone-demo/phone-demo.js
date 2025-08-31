@@ -5,7 +5,8 @@ Page({
     userPhone: '',
     maskedPhone: '',
     phoneStatus: '未获取',
-    phoneHistory: []
+    phoneHistory: [],
+    debugInfo: []
   },
 
   onLoad() {
@@ -18,10 +19,14 @@ Page({
         phoneStatus: '已获取'
       });
     }
+    
+    // 添加调试信息
+    this.addDebugInfo('页面加载完成');
   },
 
   // 显示手机号弹窗
   showPhonePopup() {
+    this.addDebugInfo('显示手机号弹窗');
     this.setData({
       showPhonePopup: true
     });
@@ -31,6 +36,7 @@ Page({
   onPhoneNumberSuccess(e) {
     const { phoneNumber, countryCode } = e.detail;
     
+    this.addDebugInfo(`手机号获取成功: ${phoneNumber}`);
     console.log('手机号获取成功:', phoneNumber, countryCode);
     
     this.setData({
@@ -56,6 +62,7 @@ Page({
 
   // 手机号获取失败
   onPhoneNumberError(e) {
+    this.addDebugInfo(`手机号获取失败: ${e.detail.error}`);
     console.log('手机号获取失败:', e.detail);
     
     this.addToHistory({
@@ -74,6 +81,7 @@ Page({
 
   // 用户拒绝授权
   onPhoneNumberReject(e) {
+    this.addDebugInfo('用户拒绝授权手机号');
     console.log('用户拒绝授权手机号:', e.detail);
     
     this.addToHistory({
@@ -92,6 +100,7 @@ Page({
 
   // 额度不足
   onPhoneNumberQuotaExceeded() {
+    this.addDebugInfo('手机号获取额度不足');
     console.log('手机号获取额度不足');
     
     this.addToHistory({
@@ -110,6 +119,7 @@ Page({
 
   // 使用其他手机号
   onUseOtherPhone() {
+    this.addDebugInfo('用户选择使用其他手机号');
     console.log('用户选择使用其他手机号');
     
     this.addToHistory({
@@ -153,6 +163,24 @@ Page({
     });
   },
 
+  // 添加调试信息
+  addDebugInfo(message) {
+    const debugInfo = this.data.debugInfo;
+    const timestamp = new Date().toLocaleTimeString();
+    debugInfo.unshift(`${timestamp}: ${message}`);
+    
+    // 只保留最近20条调试信息
+    if (debugInfo.length > 20) {
+      debugInfo.pop();
+    }
+    
+    this.setData({
+      debugInfo: debugInfo
+    });
+    
+    console.log(`[DEBUG] ${timestamp}: ${message}`);
+  },
+
   // 清除手机号
   clearPhone() {
     wx.showModal({
@@ -168,6 +196,8 @@ Page({
             maskedPhone: '',
             phoneStatus: '未获取'
           });
+          
+          this.addDebugInfo('手机号已清除');
           
           wx.showToast({
             title: '手机号已清除',
@@ -191,6 +221,7 @@ Page({
     wx.setClipboardData({
       data: this.data.userPhone,
       success: () => {
+        this.addDebugInfo('手机号已复制到剪贴板');
         wx.showToast({
           title: '手机号已复制',
           icon: 'success'
@@ -218,6 +249,7 @@ Page({
 
   // 测试云函数
   testCloudFunction() {
+    this.addDebugInfo('开始测试云函数');
     wx.showLoading({
       title: '测试中...'
     });
@@ -227,6 +259,7 @@ Page({
       data: { test: true },
       success: (res) => {
         wx.hideLoading();
+        this.addDebugInfo('云函数测试成功');
         console.log('云函数测试结果:', res);
         
         wx.showModal({
@@ -237,12 +270,46 @@ Page({
       },
       fail: (err) => {
         wx.hideLoading();
+        this.addDebugInfo(`云函数测试失败: ${err.message}`);
         console.error('云函数测试失败:', err);
         
         wx.showModal({
           title: '云函数测试失败',
           content: err.message || '未知错误',
           showCancel: false
+        });
+      }
+    });
+  },
+
+  // 清除调试信息
+  clearDebugInfo() {
+    this.setData({
+      debugInfo: []
+    });
+    wx.showToast({
+      title: '调试信息已清除',
+      icon: 'success'
+    });
+  },
+
+  // 复制调试信息
+  copyDebugInfo() {
+    const debugText = this.data.debugInfo.join('\n');
+    if (!debugText) {
+      wx.showToast({
+        title: '暂无调试信息',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    wx.setClipboardData({
+      data: debugText,
+      success: () => {
+        wx.showToast({
+          title: '调试信息已复制',
+          icon: 'success'
         });
       }
     });

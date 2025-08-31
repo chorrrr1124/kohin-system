@@ -354,29 +354,29 @@ Component({
     // 解密手机号
     async decryptPhoneNumber(code) {
       try {
+        console.log('=== 开始解密手机号 ===');
+        console.log('code长度:', code.length);
+        console.log('code前10位:', code.substring(0, 10) + '...');
+        
         const result = await wx.cloud.callFunction({
           name: 'decryptPhoneNumber',
-          data: { code }
+          data: { code: code }
         });
-        
-        console.log('手机号解密结果:', result);
-        
+
+        console.log('云函数返回结果:', JSON.stringify(result, null, 2));
+
         if (result.result && result.result.success) {
-          const phoneNumber = result.result.phoneNumber;
-          const countryCode = result.result.countryCode;
+          const { phoneNumber, countryCode } = result.result;
           
-          // 保存手机号到本地存储
+          console.log('手机号解密成功:', phoneNumber);
+          console.log('国家代码:', countryCode);
+          
+          // 保存到本地存储
           wx.setStorageSync('userPhone', phoneNumber);
           wx.setStorageSync('userCountryCode', countryCode);
           
-          // 更新组件状态
-          this.setData({
-            showPhonePopup: false,
-            phoneAuthorized: true,
-            maskedPhone: this.maskPhoneNumber(phoneNumber)
-          });
-          
           wx.hideLoading();
+          
           wx.showToast({
             title: '手机号验证成功',
             icon: 'success'
@@ -392,20 +392,48 @@ Component({
           this.completeFlow();
           
         } else {
-          throw new Error(result.result?.error || '手机号解密失败');
+          console.error('云函数返回失败:', result.result);
+          const errorMsg = result.result?.error || '手机号解密失败';
+          const errorDetail = result.result?.detail || '未知错误';
+          
+          console.error('错误信息:', errorMsg);
+          console.error('错误详情:', errorDetail);
+          
+          throw new Error(`${errorMsg}: ${errorDetail}`);
         }
         
       } catch (error) {
-        console.error('手机号解密失败:', error);
+        console.error('=== 手机号解密失败 ===');
+        console.error('错误类型:', error.constructor.name);
+        console.error('错误消息:', error.message);
+        console.error('错误堆栈:', error.stack);
+        
         wx.hideLoading();
         
+        // 根据错误类型显示不同的提示
+        let toastMessage = '手机号验证失败，请重试';
+        
+        if (error.message) {
+          if (error.message.includes('额度不足') || error.message.includes('已达上限')) {
+            toastMessage = '功能使用次数已达上限';
+          } else if (error.message.includes('无效的code') || error.message.includes('已过期')) {
+            toastMessage = '授权已过期，请重新获取';
+          } else if (error.message.includes('过于频繁')) {
+            toastMessage = '请求过于频繁，请稍后重试';
+          } else if (error.message.includes('实名认证')) {
+            toastMessage = '需要完成实名认证';
+          }
+        }
+        
         wx.showToast({
-          title: '手机号验证失败，请重试',
-          icon: 'none'
+          title: toastMessage,
+          icon: 'none',
+          duration: 3000
         });
         
         this.triggerEvent('phoneNumberError', {
-          error: error.message
+          error: error.message,
+          detail: error.stack
         });
       }
     },
