@@ -724,9 +724,9 @@ Page({
           });
           
 
-          
-          // 完成整个流程
-          this.onFlowComplete();
+    
+    // 完成整个流程
+    this.onFlowComplete();
           
           // 可以在这里调用登录接口
           this.loginWithPhone(phoneNumber);
@@ -789,6 +789,13 @@ Page({
     wx.showToast({
       title: '欢迎使用小程序',
       icon: 'success'
+    });
+  },
+
+  // 跳转到手机号测试页面
+  goToPhoneTest() {
+    wx.navigateTo({
+      url: '/pages/phone-test/phone-test'
     });
   }
 });

@@ -52,9 +52,10 @@
 
   <!-- 主要内容区域 -->
   <view class="main-content">
-    <!-- 测试弹窗按钮 -->
+    <!-- 测试按钮区域 -->
     <view class="test-section">
       <button class="test-btn" bindtap="testPopupSystem">测试弹窗系统</button>
+      <button class="test-btn phone-test-btn" bindtap="goToPhoneTest">手机号测试</button>
     </view>
     
     <!-- 推荐商品 -->

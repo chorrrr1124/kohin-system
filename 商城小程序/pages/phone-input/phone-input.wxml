@@ -1,0 +1,69 @@
+<view class="container">
+  <!-- 标题区域 -->
+  <view class="title-section">
+    <view class="title">手机号登录</view>
+    <view class="subtitle">请输入您的手机号，我们将发送验证码到您的手机</view>
+  </view>
+
+  <!-- 表单卡片 -->
+  <view class="form-card">
+    <!-- 手机号输入 -->
+    <view class="input-group">
+      <view class="input-label">手机号</view>
+      <view class="input-wrapper">
+        <input 
+          class="phone-input" 
+          type="number" 
+          placeholder="请输入11位手机号"
+          maxlength="11"
+          value="{{phone}}"
+          bindinput="onPhoneInput"
+          bindblur="onPhoneBlur"
+        />
+      </view>
+      <view class="error-tip" wx:if="{{phoneError}}">{{phoneError}}</view>
+    </view>
+
+    <!-- 验证码输入 -->
+    <view class="input-group">
+      <view class="input-label">验证码</view>
+      <view class="code-section">
+        <view class="code-input-wrapper">
+          <input 
+            class="code-input" 
+            type="number" 
+            placeholder="请输入6位验证码"
+            maxlength="6"
+            value="{{code}}"
+            bindinput="onCodeInput"
+            bindblur="onCodeBlur"
+          />
+        </view>
+        <button 
+          class="send-code-btn {{countdown > 0 ? 'disabled' : ''}}"
+          bindtap="sendCode"
+          disabled="{{countdown > 0 || !phone || phoneError}}"
+        >
+          {{countdown > 0 ? countdown + 's' : '发送验证码'}}
+        </button>
+      </view>
+      <view class="error-tip" wx:if="{{codeError}}">{{codeError}}</view>
+    </view>
+
+    <!-- 登录按钮 -->
+    <button 
+      class="login-btn {{loading ? 'loading' : ''}}"
+      bindtap="login"
+      disabled="{{loading || !phone || !code || phoneError || codeError}}"
+    >
+      {{loading ? '登录中...' : '立即登录'}}
+    </button>
+  </view>
+
+  <!-- 底部提示 -->
+  <view class="bottom-tips">
+    <view class="tips-text">
+      登录即表示同意《用户协议》和《隐私政策》
+    </view>
+  </view>
+</view> 

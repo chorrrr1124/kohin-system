@@ -1,0 +1,444 @@
+/* 手机号测试页面样式 */
+.container {
+  padding: 40rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 60rpx;
+}
+
+.title {
+  display: block;
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 20rpx;
+}
+
+.subtitle {
+  display: block;
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.test-section {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 40rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 30rpx;
+  text-align: center;
+}
+
+.step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.step-number {
+  width: 60rpx;
+  height: 60rpx;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.step-text {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.5;
+}
+
+.action-section {
+  text-align: center;
+  margin-bottom: 40rpx;
+}
+
+.get-phone-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  border: none;
+  border-radius: 50rpx;
+  padding: 30rpx 80rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.get-phone-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+}
+
+.result-section {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 40rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.result-card {
+  background: #f8f9fa;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  border: 2rpx solid #e9ecef;
+}
+
+.result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #e9ecef;
+}
+
+.result-item:last-child {
+  border-bottom: none;
+}
+
+.label {
+  font-size: 28rpx;
+  color: #666;
+  font-weight: 500;
+}
+
+.value {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+  text-align: right;
+  max-width: 60%;
+  word-break: break-all;
+}
+
+.value.success {
+  color: #28a745;
+}
+
+.value.error {
+  color: #dc3545;
+}
+
+.value.detail {
+  font-size: 24rpx;
+  color: #6c757d;
+  font-weight: normal;
+}
+
+.info-section {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  padding: 40rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.info-icon {
+  font-size: 32rpx;
+  flex-shrink: 0;
+}
+
+.info-text {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* 响应式设计 */
+@media (max-width: 750rpx) {
+  .container {
+    padding: 20rpx;
+  }
+  
+  .test-section,
+  .result-section,
+  .info-section {
+    padding: 30rpx;
+  }
+  
+  .title {
+    font-size: 40rpx;
+  }
+  
+  .get-phone-btn {
+    padding: 25rpx 60rpx;
+    font-size: 28rpx;
+  }
+}
+
+/* 冷却时间提示样式 */
+.cooldown-tip {
+  margin-top: 20rpx;
+  text-align: center;
+  color: #ff6b35;
+  font-size: 24rpx;
+  font-weight: 500;
+  background: rgba(255, 107, 53, 0.1);
+  padding: 16rpx 24rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(255, 107, 53, 0.2);
+}
+
+.get-phone-btn[disabled] {
+  background: #ccc !important;
+  color: #999 !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+}
+
+/* 诊断按钮样式 */
+.diagnosis-btn {
+  margin-top: 20rpx;
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  color: white;
+  border: none;
+  border-radius: 50rpx;
+  padding: 25rpx 60rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+  box-shadow: 0 8rpx 24rpx rgba(255, 152, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.diagnosis-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 12rpx rgba(255, 152, 0, 0.3);
+}
+
+.diagnosis-btn:disabled {
+  background: #ccc !important;
+  color: #999 !important;
+  box-shadow: none !important;
+}
+
+/* 手动输入按钮样式 */
+.manual-input-btn {
+  margin-top: 20rpx;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  border: none;
+  border-radius: 50rpx;
+  padding: 25rpx 60rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+  box-shadow: 0 8rpx 24rpx rgba(76, 175, 80, 0.3);
+  transition: all 0.3s ease;
+}
+
+.manual-input-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.3);
+}
+
+/* 提示信息样式 */
+.tips-section {
+  margin-top: 40rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  backdrop-filter: blur(10rpx);
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.tips-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.tips-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.tip-item {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.4;
+  padding-left: 20rpx;
+  position: relative;
+}
+
+.tip-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12rpx;
+  width: 6rpx;
+  height: 6rpx;
+  background: #4CAF50;
+  border-radius: 50%;
+}
+
+/* 诊断弹窗样式 */
+.diagnosis-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.diagnosis-content {
+  background: white;
+  border-radius: 24rpx;
+  width: 90%;
+  max-width: 600rpx;
+  max-height: 80%;
+  overflow: hidden;
+}
+
+.diagnosis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 40rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.diagnosis-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.diagnosis-close {
+  font-size: 48rpx;
+  color: #999;
+  cursor: pointer;
+  padding: 10rpx;
+}
+
+.diagnosis-body {
+  padding: 40rpx;
+  max-height: 600rpx;
+  overflow-y: auto;
+}
+
+.diagnosis-summary {
+  margin-bottom: 40rpx;
+  padding: 30rpx;
+  background: #f8f9fa;
+  border-radius: 16rpx;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.summary-label {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.summary-value {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.summary-value.success {
+  color: #4CAF50;
+}
+
+.summary-value.error {
+  color: #f44336;
+}
+
+.diagnosis-issues,
+.diagnosis-suggestions {
+  margin-bottom: 40rpx;
+}
+
+.issues-title,
+.suggestions-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.issue-item,
+.suggestion-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16rpx;
+  padding: 16rpx;
+  background: #fff;
+  border-radius: 12rpx;
+}
+
+.issue-icon {
+  margin-right: 16rpx;
+  font-size: 32rpx;
+}
+
+.suggestion-icon {
+  margin-right: 16rpx;
+  font-size: 32rpx;
+}
+
+.issue-text,
+.suggestion-text {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.diagnosis-error {
+  padding: 30rpx;
+  background: #ffebee;
+  border-radius: 16rpx;
+  border-left: 8rpx solid #f44336;
+}
+
+.error-text {
+  color: #f44336;
+  font-size: 28rpx;
+} 

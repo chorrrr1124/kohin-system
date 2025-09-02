@@ -97,10 +97,13 @@
   opacity: 0.9;
 }
 
-/* 测试弹窗按钮样式 */
+/* 测试按钮区域样式 */
 .test-section {
   padding: 40rpx 30rpx;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
 }
 
 .test-btn {
@@ -112,6 +115,7 @@
   font-size: 28rpx;
   font-weight: 500;
   box-shadow: 0 8rpx 20rpx rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
 }
 
 .test-btn::after {
@@ -121,6 +125,15 @@
 .test-btn:active {
   transform: translateY(2rpx);
   box-shadow: 0 4rpx 10rpx rgba(102, 126, 234, 0.3);
+}
+
+.phone-test-btn {
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  box-shadow: 0 8rpx 20rpx rgba(76, 175, 80, 0.3);
+}
+
+.phone-test-btn:active {
+  box-shadow: 0 4rpx 10rpx rgba(76, 175, 80, 0.3);
 }
 
 

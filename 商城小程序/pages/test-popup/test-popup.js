@@ -27,10 +27,10 @@ Page({
     try {
       const systemInfo = wx.getSystemInfoSync()
       
-      this.setData({
+    this.setData({
         deviceInfo: systemInfo,
         isRealDevice: systemInfo.platform !== 'devtools'
-      })
+    })
       
       console.log('测试页面设备信息:', systemInfo)
     } catch (error) {

@@ -12,6 +12,8 @@
     "pages/test-popup/test-popup",
     "pages/test-benefit-login/test-benefit-login",
     "pages/phone-demo/phone-demo",
+    "pages/phone-test/phone-test",
+    "pages/phone-input/phone-input",
     "pages/agreement/index"
   ],
   "window": {
@@ -62,6 +64,11 @@
   "cloud": true,
   "style": "v2",
   "sitemapLocation": "sitemap.json",
+  "permission": {
+    "scope.phoneNumber": {
+      "desc": "用于获取您的手机号码，提供更好的服务体验"
+    }
+  },
   "usingComponents": {
     "benefit-card": "/components/benefit-card/benefit-card"
   }

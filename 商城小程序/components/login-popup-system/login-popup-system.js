@@ -335,6 +335,7 @@ Component({
         console.log('=== 开始解密手机号 ===');
         console.log('code长度:', code.length);
         console.log('code前10位:', code.substring(0, 10) + '...');
+        console.log('云开发环境:', wx.cloud.DYNAMIC_CURRENT_ENV);
         
         const result = await wx.cloud.callFunction({
           name: 'decryptPhoneNumber',
@@ -353,36 +354,32 @@ Component({
           wx.setStorageSync('userPhone', phoneNumber);
           wx.setStorageSync('userCountryCode', countryCode);
           
-          wx.hideLoading();
-          
-          // 关闭注册福利弹窗
-          this.setData({
-            showBenefitPopup: false
-          });
-          
-          wx.showToast({
-            title: '手机号验证成功',
-            icon: 'success'
-          });
-          
-          // 触发成功事件
-          this.triggerEvent('phoneNumberSuccess', {
-            phoneNumber: phoneNumber,
-            countryCode: countryCode
-          });
-          
-          // 完成登录流程
-          this.completeFlow();
+          // 调用新的成功处理方法
+          this.handlePhoneNumberSuccess(phoneNumber);
           
         } else {
           console.error('云函数返回失败:', result.result);
           const errorMsg = result.result?.error || '手机号解密失败';
           const errorDetail = result.result?.detail || '未知错误';
+          const errCode = result.result?.errCode;
           
           console.error('错误信息:', errorMsg);
           console.error('错误详情:', errorDetail);
+          console.error('错误代码:', errCode);
           
-          throw new Error(`${errorMsg}: ${errorDetail}`);
+          // 根据错误代码提供更具体的提示
+          let userMessage = errorMsg;
+          if (errCode === '1400001') {
+            userMessage = '功能使用次数已达上限，请联系客服';
+          } else if (errCode === '40013' || errCode === '40029') {
+            userMessage = '授权已过期，请重新获取';
+          } else if (errCode === '45011') {
+            userMessage = '请求过于频繁，请稍后重试';
+          } else if (errCode === '40226') {
+            userMessage = '需要完成实名认证';
+          }
+          
+          throw new Error(userMessage);
         }
         
       } catch (error) {
@@ -393,23 +390,9 @@ Component({
         
         wx.hideLoading();
         
-        // 根据错误类型显示不同的提示
-        let toastMessage = '手机号验证失败，请重试';
-        
-        if (error.message) {
-          if (error.message.includes('额度不足') || error.message.includes('已达上限')) {
-            toastMessage = '功能使用次数已达上限';
-          } else if (error.message.includes('无效的code') || error.message.includes('已过期')) {
-            toastMessage = '授权已过期，请重新获取';
-          } else if (error.message.includes('过于频繁')) {
-            toastMessage = '请求过于频繁，请稍后重试';
-          } else if (error.message.includes('实名认证')) {
-            toastMessage = '需要完成实名认证';
-          }
-        }
-        
+        // 显示错误提示
         wx.showToast({
-          title: toastMessage,
+          title: error.message || '手机号验证失败，请重试',
           icon: 'none',
           duration: 3000
         });
@@ -424,6 +407,38 @@ Component({
           detail: error.stack
         });
       }
+    },
+
+    // 处理手机号获取成功
+    handlePhoneNumberSuccess(phoneNumber) {
+      console.log('手机号获取成功:', phoneNumber);
+      
+      wx.hideLoading();
+      
+      // 获取国家代码
+      const countryCode = wx.getStorageSync('userCountryCode') || '+86';
+      
+      // 显示成功提示
+      wx.showToast({
+        title: '手机号获取成功',
+        icon: 'success',
+        duration: 2000
+      });
+      
+      // 关闭注册福利弹窗
+      this.setData({
+        showBenefitPopup: false
+      });
+      
+      // 触发成功事件
+      this.triggerEvent('phoneNumberSuccess', {
+        phoneNumber: phoneNumber,
+        countryCode: countryCode,
+        maskedPhone: this.maskPhoneNumber(phoneNumber)
+      });
+      
+      // 完成流程
+      this.completeFlow();
     },
 
     // 处理手机号获取错误
@@ -474,10 +489,34 @@ Component({
     getPhoneNumberDirectly() {
       console.log('=== 开始直接获取手机号 ===');
       
+      // 检查微信版本和基础库版本
+      const systemInfo = wx.getSystemInfoSync();
+      const version = systemInfo.version || '';
+      const SDKVersion = systemInfo.SDKVersion || '';
+      
+      console.log('微信版本:', version);
+      console.log('基础库版本:', SDKVersion);
+      console.log('系统信息:', systemInfo);
+      
       // 检查是否支持获取手机号
       if (!wx.getPhoneNumber) {
+        console.log('wx.getPhoneNumber API 不存在，使用降级方案');
+        this.showFallbackOption();
+        return;
+      }
+      
+      // 检查基础库版本（您的版本3.9.3已经足够新）
+      if (this.compareVersion(SDKVersion, '2.19.0') < 0) {
+        console.log('基础库版本过低，使用降级方案');
+        this.showFallbackOption();
+        return;
+      }
+      
+      // 检查云开发环境
+      if (!wx.cloud) {
+        console.error('云开发环境未初始化');
         wx.showToast({
-          title: '当前微信版本过低，无法获取手机号',
+          title: '云开发环境未初始化',
           icon: 'none'
         });
         return;
@@ -493,12 +532,13 @@ Component({
       wx.getPhoneNumber({
         success: (res) => {
           console.log('微信获取手机号成功:', res);
+          wx.hideLoading();
           
           if (res.errMsg === 'getPhoneNumber:ok') {
             // 获取成功，解密手机号
             this.decryptPhoneNumber(res.code);
           } else {
-            wx.hideLoading();
+            console.error('微信API返回错误:', res);
             this.handlePhoneNumberError(res.errno || 0);
           }
         },
@@ -506,20 +546,276 @@ Component({
           console.error('微信获取手机号失败:', err);
           wx.hideLoading();
           
+          // 详细记录错误信息
+          console.error('错误详情:', {
+            errMsg: err.errMsg,
+            errno: err.errno,
+            error: err.error,
+            stack: err.stack
+          });
+          
+          // 处理特定错误码
           if (err.errno === 1400001) {
             wx.showModal({
               title: '提示',
               content: '该功能使用次数已达上限，请联系客服',
               showCancel: false
             });
-          } else {
-            wx.showToast({
-              title: '获取手机号失败，请重试',
-              icon: 'none'
+          } else if (err.errno === 40226) {
+            wx.showModal({
+              title: '实名认证',
+              content: '需要完成实名认证才能获取手机号',
+              showCancel: false
             });
+          } else {
+            // 其他错误，显示降级方案
+            console.log('获取手机号失败，显示降级方案');
+            this.showFallbackOption();
           }
         }
       });
+    },
+
+
+
+    // 显示降级方案
+    showFallbackOption() {
+      // 在开发环境中提供诊断选项
+      const isDev = wx.getAccountInfoSync().miniProgram.envVersion === 'develop';
+      
+      if (isDev) {
+        wx.showActionSheet({
+          itemList: ['手动输入手机号', '运行诊断', '稍后再说'],
+          success: (res) => {
+            switch (res.tapIndex) {
+              case 0:
+                this.showManualInputDialog();
+                break;
+              case 1:
+                this.runDiagnosis();
+                break;
+              case 2:
+                this.setData({
+                  showBenefitPopup: false
+                });
+                break;
+            }
+          }
+        });
+      } else {
+        wx.showModal({
+          title: '获取手机号失败',
+          content: '无法自动获取手机号，是否手动输入手机号？\n\n我们将通过短信验证码验证您的身份。',
+          confirmText: '手动输入',
+          cancelText: '稍后再说',
+          success: (res) => {
+            if (res.confirm) {
+              this.showManualInputDialog();
+            } else {
+              // 用户选择稍后再说，关闭弹窗
+              this.setData({
+                showBenefitPopup: false
+              });
+            }
+          }
+        });
+      }
+    },
+
+    // 诊断功能（开发环境使用）
+    async runDiagnosis() {
+      try {
+        const debugHelper = require('../../utils/debug-helper.js');
+        const results = await debugHelper.fullDiagnosis();
+        debugHelper.showDiagnosisResult(results);
+      } catch (error) {
+        console.error('诊断失败:', error);
+        wx.showToast({
+          title: '诊断失败',
+          icon: 'none'
+        });
+      }
+    },
+
+    // 显示手动输入对话框
+    showManualInputDialog() {
+      wx.showModal({
+        title: '手动输入手机号',
+        content: '请输入您的手机号，我们将通过短信验证码验证您的身份',
+        editable: true,
+        placeholderText: '请输入11位手机号',
+        success: (res) => {
+          if (res.confirm && res.content) {
+            const phoneNumber = res.content.trim();
+            if (this.validatePhoneNumber(phoneNumber)) {
+              this.handleManualPhoneNumber(phoneNumber);
+            } else {
+              wx.showToast({
+                title: '手机号格式不正确',
+                icon: 'none'
+              });
+              // 重新显示输入框
+              setTimeout(() => {
+                this.showManualInputDialog();
+              }, 1500);
+            }
+          }
+        }
+      });
+    },
+
+    // 验证手机号格式
+    validatePhoneNumber(phoneNumber) {
+      const phoneRegex = /^1[3-9]\d{9}$/;
+      return phoneRegex.test(phoneNumber);
+    },
+
+    // 处理手动输入的手机号
+    async handleManualPhoneNumber(phoneNumber) {
+      console.log('手动输入手机号:', phoneNumber);
+      
+      // 显示加载状态
+      wx.showLoading({
+        title: '发送验证码中...',
+        mask: true
+      });
+      
+      try {
+        // 调用云函数发送验证码
+        const result = await wx.cloud.callFunction({
+          name: 'sendSmsCode',
+          data: {
+            phoneNumber: phoneNumber,
+            type: 'login'
+          }
+        });
+        
+        wx.hideLoading();
+        
+        if (result.result && result.result.success) {
+          // 发送成功，显示验证码输入框
+          this.showVerificationCodeDialog(phoneNumber);
+          
+          // 开发环境下显示验证码（生产环境应该注释掉）
+          if (result.result.code) {
+            wx.showModal({
+              title: '开发提示',
+              content: `验证码：${result.result.code}\n\n生产环境请注释掉此提示`,
+              showCancel: false
+            });
+          }
+        } else {
+          wx.showToast({
+            title: result.result.error || '发送失败',
+            icon: 'none'
+          });
+        }
+      } catch (error) {
+        console.error('发送验证码失败:', error);
+        wx.hideLoading();
+        wx.showToast({
+          title: '发送失败，请重试',
+          icon: 'none'
+        });
+      }
+    },
+    
+    // 显示验证码输入框
+    showVerificationCodeDialog(phoneNumber) {
+      wx.showModal({
+        title: '输入验证码',
+        content: `验证码已发送至 ${this.maskPhoneNumber(phoneNumber)}，请输入6位验证码`,
+        editable: true,
+        placeholderText: '请输入6位验证码',
+        success: (res) => {
+          if (res.confirm && res.content) {
+            const code = res.content.trim();
+            if (code.length === 6 && /^\d{6}$/.test(code)) {
+              // 验证码格式正确，模拟验证成功
+              this.verifyCodeAndComplete(phoneNumber, code);
+            } else {
+              wx.showToast({
+                title: '验证码格式不正确',
+                icon: 'none'
+              });
+              // 重新显示验证码输入框
+              setTimeout(() => {
+                this.showVerificationCodeDialog(phoneNumber);
+              }, 1500);
+            }
+          }
+        }
+      });
+    },
+    
+    // 验证验证码并完成流程
+    async verifyCodeAndComplete(phoneNumber, code) {
+      wx.showLoading({
+        title: '验证中...',
+        mask: true
+      });
+      
+      try {
+        // 调用云函数验证验证码
+        const result = await wx.cloud.callFunction({
+          name: 'verifySmsCode',
+          data: {
+            phoneNumber: phoneNumber,
+            code: code,
+            type: 'login'
+          }
+        });
+        
+        wx.hideLoading();
+        
+        if (result.result && result.result.success) {
+          wx.showToast({
+            title: '验证成功',
+            icon: 'success'
+          });
+          
+          // 完成流程
+          this.handlePhoneNumberSuccess(phoneNumber);
+        } else {
+          wx.showToast({
+            title: result.result.error || '验证失败',
+            icon: 'none'
+          });
+          
+          // 验证失败，重新显示验证码输入框
+          setTimeout(() => {
+            this.showVerificationCodeDialog(phoneNumber);
+          }, 1500);
+        }
+      } catch (error) {
+        console.error('验证验证码失败:', error);
+        wx.hideLoading();
+        wx.showToast({
+          title: '验证失败，请重试',
+          icon: 'none'
+        });
+        
+        // 验证失败，重新显示验证码输入框
+        setTimeout(() => {
+          this.showVerificationCodeDialog(phoneNumber);
+        }, 1500);
+      }
+    },
+
+    // 版本比较函数
+    compareVersion(v1, v2) {
+      const v1Parts = v1.split('.').map(Number);
+      const v2Parts = v2.split('.').map(Number);
+      
+      for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
+        const v1Part = v1Parts[i] || 0;
+        const v2Part = v2Parts[i] || 0;
+        
+        if (v1Part > v2Part) return 1;
+        if (v1Part < v2Part) return -1;
+      }
+      
+      return 0;
     },
 
     // ===== 流程控制方法 =====

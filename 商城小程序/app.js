@@ -69,6 +69,13 @@ App({
       // 检查是否是首次启动（没有任何登录信息）
       const hasEverLoggedIn = wx.getStorageSync('hasEverLoggedIn');
       
+      // 暂时跳过自动登录弹窗，让用户可以自由浏览
+      console.log('首次启动，跳过自动登录弹窗');
+      // 未登录状态下初始化空购物车
+      this.initCart();
+      
+      // 注释掉自动登录弹窗逻辑
+      /*
       if (!hasEverLoggedIn) {
         // 首次启动，延迟弹出登录弹窗
         setTimeout(() => {
@@ -92,6 +99,7 @@ App({
           this.initCart();
         }
       }
+      */
     }
     
     // 初始化地址
@@ -134,9 +142,9 @@ App({
       // 如果无法获取当前页面，使用原有的系统弹窗作为备选
       wx.showModal({
         title: '登录提示',
-        content: '为了给您提供更好的服务，请先登录授权',
+        content: '为了给您提供更好的服务，请先登录授权\n\n您也可以选择游客模式浏览',
         confirmText: '立即登录',
-        cancelText: '稍后再说',
+        cancelText: '游客模式',
         success: (res) => {
           if (res.confirm) {
             this.login().catch(err => {
@@ -145,6 +153,13 @@ App({
                 title: '登录失败，请稍后重试',
                 icon: 'none'
               });
+            });
+          } else {
+            // 用户选择游客模式
+            wx.setStorageSync('hasEverLoggedIn', true); // 标记用户已经选择过
+            wx.showToast({
+              title: '已进入游客模式',
+              icon: 'success'
             });
           }
         }

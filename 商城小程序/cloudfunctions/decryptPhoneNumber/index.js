@@ -11,7 +11,16 @@ exports.main = async (event, context) => {
   console.log('云函数环境:', cloud.DYNAMIC_CURRENT_ENV);
   
   try {
-    const { code } = event;
+    const { code, test } = event || {};
+    
+    // 调试分支：仅用于验证云函数是否可用
+    if (test) {
+      return {
+        success: true,
+        message: 'decryptPhoneNumber 云函数存活',
+        timestamp: new Date().toISOString()
+      };
+    }
     
     if (!code) {
       console.error('缺少code参数');
@@ -27,30 +36,59 @@ exports.main = async (event, context) => {
 
     // 调用微信API解密手机号
     console.log('调用微信API解密手机号...');
+    console.log('使用的code:', code);
+    
     const result = await cloud.openapi.phonenumber.getPhoneNumber({
       code: code
     });
 
     console.log('微信API返回结果:', JSON.stringify(result, null, 2));
 
-    // 检查返回结果
-    if (result && result.phoneNumber) {
-      console.log('手机号解密成功:', result.phoneNumber);
-      return {
-        success: true,
-        phoneNumber: result.phoneNumber,
-        countryCode: result.countryCode || '86',
-        timestamp: new Date().toISOString()
-      };
-    } else {
-      console.error('微信API返回结果异常:', result);
+    // 兼容不同返回结构
+    const phoneNumber = result?.phoneNumber
+      || result?.phone_info?.phoneNumber
+      || result?.phoneInfo?.phoneNumber
+      || result?.data?.phoneNumber;
+
+    const countryCode = result?.countryCode
+      || result?.phone_info?.countryCode
+      || result?.phoneInfo?.countryCode
+      || result?.data?.countryCode
+      || '86';
+
+    // 明确处理 errCode（0 表示成功）
+    const hasErrCode = Object.prototype.hasOwnProperty.call(result || {}, 'errCode');
+    if (hasErrCode && result.errCode !== 0) {
+      console.error('微信API返回错误:', result);
       return {
         success: false,
-        error: '手机号解密失败',
-        detail: '微信API返回结果异常',
-        result: result
+        error: `微信API错误: ${result.errCode}`,
+        detail: result.errMsg || '未知错误',
+        errCode: result.errCode,
+        raw: result,
+        timestamp: new Date().toISOString()
       };
     }
+
+    if (phoneNumber) {
+      console.log('手机号解密成功:', phoneNumber);
+      return {
+        success: true,
+        phoneNumber,
+        countryCode,
+        raw: result,
+        timestamp: new Date().toISOString()
+      };
+    }
+
+    console.error('微信API返回结果异常或缺少手机号字段:', result);
+    return {
+      success: false,
+      error: '手机号解密失败',
+      detail: '微信API返回结果异常或缺少手机号字段',
+      raw: result,
+      timestamp: new Date().toISOString()
+    };
     
   } catch (error) {
     console.error('=== 手机号解密失败 ===');
@@ -62,26 +100,33 @@ exports.main = async (event, context) => {
     // 根据错误类型返回不同的错误信息
     let errorMessage = '手机号解密失败';
     let errorDetail = error.message || '未知错误';
+    let errCode = null;
     
     if (error.message) {
       if (error.message.includes('40013')) {
         errorMessage = '无效的code，请重新获取';
         errorDetail = 'code无效或已过期';
+        errCode = '40013';
       } else if (error.message.includes('40029')) {
         errorMessage = 'code已过期，请重新获取';
         errorDetail = 'code使用次数超限或已过期';
+        errCode = '40029';
       } else if (error.message.includes('45011')) {
         errorMessage = '请求过于频繁，请稍后重试';
         errorDetail = 'API调用频率限制';
+        errCode = '45011';
       } else if (error.message.includes('40226')) {
         errorMessage = '高风险用户，需要完成实名认证';
         errorDetail = '用户需要完成实名认证';
+        errCode = '40226';
       } else if (error.message.includes('1400001')) {
         errorMessage = '功能使用次数已达上限';
         errorDetail = '手机号获取功能使用次数已达上限';
+        errCode = '1400001';
       } else if (error.message.includes('cloudId')) {
         errorMessage = 'code格式错误';
         errorDetail = '请使用正确的code格式';
+        errCode = 'FORMAT_ERROR';
       }
     }
     
@@ -89,6 +134,7 @@ exports.main = async (event, context) => {
       success: false,
       error: errorMessage,
       detail: errorDetail,
+      errCode: errCode,
       originalError: error.message,
       timestamp: new Date().toISOString()
     };
