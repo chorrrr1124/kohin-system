@@ -1,6 +1,7 @@
 // pages/index/index.js
 const app = getApp()
 const imageService = require('../../utils/imageService')
+const testFirstLaunch = require('../../utils/test-first-launch')
 
 Page({
   data: {
@@ -12,6 +13,9 @@ Page({
     showBenefitPopup: false,
 
     maskedPhone: '',
+    
+    // 开发环境标识
+    isDev: false,
 
     userInfo: {
       nickName: '张程僖',
@@ -57,18 +61,9 @@ Page({
     ],
     // 推广轮播图数据
     promoSwiperImages: [
-      {
-        value: 'data:image/svg+xml;charset=utf-8,%3Csvg width="400" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="200" fill="%23FF6B6B"/%3E%3Ctext x="200" y="100" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle"%3E夏日特惠%3C/text%3E%3C/svg%3E',
-        ariaLabel: '夏日特惠活动'
-      },
-      {
-        value: 'data:image/svg+xml;charset=utf-8,%3Csvg width="400" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="200" fill="%234ECDC4"/%3E%3Ctext x="200" y="100" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle"%3E新品上市%3C/text%3E%3C/svg%3E',
-        ariaLabel: '新品上市推广'
-      },
-      {
-        value: 'data:image/svg+xml;charset=utf-8,%3Csvg width="400" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="200" fill="%23A8E6CF"/%3E%3Ctext x="200" y="100" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle"%3E会员专享%3C/text%3E%3C/svg%3E',
-        ariaLabel: '会员专享优惠'
-      }
+      'data:image/svg+xml;charset=utf-8,%3Csvg width="400" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="200" fill="%23FF6B6B"/%3E%3Ctext x="200" y="100" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle"%3E夏日特惠%3C/text%3E%3C/svg%3E',
+      'data:image/svg+xml;charset=utf-8,%3Csvg width="400" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="200" fill="%234ECDC4"/%3E%3Ctext x="200" y="100" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle"%3E新品上市%3C/text%3E%3C/svg%3E',
+      'data:image/svg+xml;charset=utf-8,%3Csvg width="400" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="200" fill="%23A8E6CF"/%3E%3Ctext x="200" y="100" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle"%3E会员专享%3C/text%3E%3C/svg%3E'
     ],
     promoSwiperCurrent: 0, // 推广轮播图当前索引
     recommendProducts: []
@@ -80,6 +75,9 @@ Page({
     this.setStatusBarHeight();
     this.loadPageData();
     this.loadUserInfo();
+    
+    // 检查是否为开发环境
+    this.checkDevEnvironment();
   },
 
   // 设置状态栏高度
@@ -591,11 +589,7 @@ Page({
 
   // ===== 登录弹窗系统方法 =====
   
-  // 测试弹窗系统
-  testPopupSystem() {
-    console.log('测试弹窗系统');
-    this.showLoginPopupFlow();
-  },
+
   
   // 显示登录弹窗流程（供app.js调用）
   showLoginPopupFlow() {
@@ -615,6 +609,28 @@ Page({
   maskPhoneNumber(phone) {
     if (!phone || phone.length < 11) return '';
     return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+  },
+
+  // 检查开发环境
+  checkDevEnvironment() {
+    try {
+      const accountInfo = wx.getAccountInfoSync();
+      const isDev = accountInfo.miniProgram.envVersion === 'develop';
+      this.setData({
+        isDev: isDev
+      });
+      console.log('开发环境状态:', isDev);
+    } catch (error) {
+      console.error('检查开发环境失败:', error);
+      this.setData({
+        isDev: false
+      });
+    }
+  },
+
+  // 显示测试菜单
+  showTestMenu() {
+    testFirstLaunch.showTestMenu();
   },
 
   // 隐私政策同意
@@ -792,10 +808,5 @@ Page({
     });
   },
 
-  // 跳转到手机号测试页面
-  goToPhoneTest() {
-    wx.navigateTo({
-      url: '/pages/phone-test/phone-test'
-    });
-  }
+
 });

@@ -69,15 +69,9 @@ App({
       // 检查是否是首次启动（没有任何登录信息）
       const hasEverLoggedIn = wx.getStorageSync('hasEverLoggedIn');
       
-      // 暂时跳过自动登录弹窗，让用户可以自由浏览
-      console.log('首次启动，跳过自动登录弹窗');
-      // 未登录状态下初始化空购物车
-      this.initCart();
-      
-      // 注释掉自动登录弹窗逻辑
-      /*
       if (!hasEverLoggedIn) {
         // 首次启动，延迟弹出登录弹窗
+        console.log('首次启动，将显示登录弹窗');
         setTimeout(() => {
           this.showLoginModal();
         }, 1000);
@@ -99,7 +93,6 @@ App({
           this.initCart();
         }
       }
-      */
     }
     
     // 初始化地址

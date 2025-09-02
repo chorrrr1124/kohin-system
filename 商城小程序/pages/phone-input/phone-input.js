@@ -77,6 +77,11 @@ Page({
 
     const { phone } = this.data;
     
+    // 添加调试日志
+    console.log('准备发送验证码，手机号:', phone);
+    console.log('手机号类型:', typeof phone);
+    console.log('手机号长度:', phone ? phone.length : 0);
+    
     try {
       this.setData({ loading: true });
       
@@ -85,6 +90,8 @@ Page({
         name: 'sendSmsCode',
         data: { phone }
       });
+
+      console.log('云函数调用结果:', result);
 
       if (result.result.success) {
         wx.showToast({
@@ -95,8 +102,9 @@ Page({
         // 开始倒计时
         this.startCountdown();
       } else {
+        console.error('云函数返回错误:', result.result);
         wx.showToast({
-          title: result.result.message || '发送失败',
+          title: result.result.error || result.result.message || '发送失败',
           icon: 'error'
         });
       }

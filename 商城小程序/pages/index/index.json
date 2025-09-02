@@ -3,7 +3,6 @@
     "image-placeholder": "/components/image-placeholder/image-placeholder",
     "gradient-carousel": "/components/gradient-carousel/gradient-carousel",
     "floating-user-card": "/components/floating-user-card/floating-user-card",
-    "t-swiper": "/miniprogram_npm/tdesign-miniprogram/miniprogram_dist/swiper/swiper",
     "login-popup-system": "/components/login-popup-system/login-popup-system"
   },
   "navigationBarTitleText": "优品商城",

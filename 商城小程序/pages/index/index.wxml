@@ -22,20 +22,26 @@
         
         <!-- 主推广轮播图区域 -->
         <view class="floating-promo-carousel">
-          <t-swiper
+          <swiper
             id="promo-swiper"
-            list="{{promoSwiperImages}}"
-            height="{{400}}"
+            class="promo-swiper"
+            style="height: {{400}}rpx;"
             autoplay="{{true}}"
             interval="{{10000}}"
             duration="{{300}}"
-            loop="{{true}}"
-            navigation="{{false}}"
-            pagination-position="none"
-            class="promo-swiper"
+            circular="{{true}}"
             current="{{promoSwiperCurrent}}"
-            bind:change="onPromoSwiperChange"
-          />
+            bindchange="onPromoSwiperChange"
+          >
+            <swiper-item wx:for="{{promoSwiperImages}}" wx:key="index">
+              <image 
+                src="{{item}}" 
+                mode="aspectFill" 
+                class="promo-swiper-image"
+                style="width: 100%; height: 100%;"
+              />
+            </swiper-item>
+          </swiper>
         </view>
         
         <!-- 悬浮用户信息卡片 -->
@@ -52,11 +58,7 @@
 
   <!-- 主要内容区域 -->
   <view class="main-content">
-    <!-- 测试按钮区域 -->
-    <view class="test-section">
-      <button class="test-btn" bindtap="testPopupSystem">测试弹窗系统</button>
-      <button class="test-btn phone-test-btn" bindtap="goToPhoneTest">手机号测试</button>
-    </view>
+
     
     <!-- 推荐商品 -->
     <view class="recommend-section" wx:if="{{recommendProducts.length > 0}}">
@@ -103,6 +105,11 @@
   <!-- 加载状态 -->
   <view class="loading" wx:if="{{loading}}">
     <text>加载中...</text>
+  </view>
+
+  <!-- 测试按钮（开发环境显示） -->
+  <view class="test-buttons" wx:if="{{isDev}}">
+    <button class="test-btn" bindtap="showTestMenu" size="mini" type="primary">测试首次启动</button>
   </view>
 
   <!-- 登录弹窗系统 -->

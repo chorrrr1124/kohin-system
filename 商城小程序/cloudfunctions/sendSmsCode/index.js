@@ -15,22 +15,45 @@ exports.main = async (event, context) => {
   const targetPhone = phone || phoneNumber
   
   try {
+    console.log('=== sendSmsCode 云函数开始 ===');
+    console.log('接收到的参数:', JSON.stringify(event, null, 2));
+    console.log('目标手机号:', targetPhone);
+    
     // 验证手机号格式
+    if (!targetPhone) {
+      console.error('缺少手机号参数');
+      return {
+        success: false,
+        error: '缺少手机号参数'
+      }
+    }
+    
     if (!/^1[3-9]\d{9}$/.test(targetPhone)) {
+      console.error('手机号格式不正确:', targetPhone);
       return {
         success: false,
         error: '手机号格式不正确'
       }
     }
     
+    // 检查并创建数据库集合
+    try {
+      await db.createCollection('sms_codes');
+      console.log('sms_codes 集合创建成功或已存在');
+    } catch (error) {
+      console.log('sms_codes 集合已存在或创建失败:', error.message);
+    }
+    
     // 生成6位随机验证码
     const code = Math.floor(100000 + Math.random() * 900000).toString()
+    console.log('生成验证码:', code);
     
     // 设置验证码过期时间（5分钟）
     const expireTime = new Date(Date.now() + 5 * 60 * 1000)
     
     // 保存验证码到数据库
-    await db.collection('sms_codes').add({
+    console.log('开始保存验证码到数据库...');
+    const dbResult = await db.collection('sms_codes').add({
       data: {
         phoneNumber: targetPhone,
         code,
@@ -40,7 +63,9 @@ exports.main = async (event, context) => {
         openid: wxContext.OPENID,
         used: false
       }
-    })
+    });
+    
+    console.log('验证码保存成功，数据库ID:', dbResult._id);
     
     // 这里应该调用短信服务发送验证码
     // 由于是演示，我们只记录日志
@@ -53,14 +78,40 @@ exports.main = async (event, context) => {
       success: true,
       message: '验证码发送成功',
       // 开发环境下返回验证码，生产环境应该注释掉
-      code: code
+      code: code,
+      dbId: dbResult._id,
+      timestamp: new Date().toISOString()
     }
     
   } catch (error) {
-    console.error('发送验证码失败:', error)
+    console.error('=== 发送验证码失败 ===');
+    console.error('错误类型:', error.constructor.name);
+    console.error('错误消息:', error.message);
+    console.error('错误堆栈:', error.stack);
+    
+    // 根据错误类型返回更具体的错误信息
+    let errorMessage = '发送验证码失败，请重试';
+    let errorDetail = error.message || '未知错误';
+    
+    if (error.message) {
+      if (error.message.includes('permission')) {
+        errorMessage = '数据库权限不足';
+        errorDetail = '无法写入验证码数据，请检查数据库权限';
+      } else if (error.message.includes('collection')) {
+        errorMessage = '数据库集合创建失败';
+        errorDetail = '无法创建或访问验证码集合';
+      } else if (error.message.includes('network')) {
+        errorMessage = '网络连接失败';
+        errorDetail = '请检查网络连接后重试';
+      }
+    }
+    
     return {
       success: false,
-      error: '发送验证码失败，请重试'
+      error: errorMessage,
+      detail: errorDetail,
+      originalError: error.message,
+      timestamp: new Date().toISOString()
     }
   }
 }

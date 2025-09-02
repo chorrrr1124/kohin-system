@@ -44,6 +44,19 @@ exports.main = async (event, context) => {
 
     console.log('微信API返回结果:', JSON.stringify(result, null, 2));
 
+    // 检查微信API返回的错误码
+    if (result.errCode && result.errCode !== 0) {
+      console.error('微信API返回错误:', result);
+      return {
+        success: false,
+        error: `微信API错误: ${result.errCode}`,
+        detail: result.errMsg || '未知错误',
+        errCode: result.errCode,
+        raw: result,
+        timestamp: new Date().toISOString()
+      };
+    }
+
     // 兼容不同返回结构
     const phoneNumber = result?.phoneNumber
       || result?.phone_info?.phoneNumber
@@ -55,20 +68,6 @@ exports.main = async (event, context) => {
       || result?.phoneInfo?.countryCode
       || result?.data?.countryCode
       || '86';
-
-    // 明确处理 errCode（0 表示成功）
-    const hasErrCode = Object.prototype.hasOwnProperty.call(result || {}, 'errCode');
-    if (hasErrCode && result.errCode !== 0) {
-      console.error('微信API返回错误:', result);
-      return {
-        success: false,
-        error: `微信API错误: ${result.errCode}`,
-        detail: result.errMsg || '未知错误',
-        errCode: result.errCode,
-        raw: result,
-        timestamp: new Date().toISOString()
-      };
-    }
 
     if (phoneNumber) {
       console.log('手机号解密成功:', phoneNumber);
@@ -95,7 +94,6 @@ exports.main = async (event, context) => {
     console.error('错误类型:', error.constructor.name);
     console.error('错误消息:', error.message);
     console.error('错误堆栈:', error.stack);
-    console.error('完整错误对象:', JSON.stringify(error, null, 2));
     
     // 根据错误类型返回不同的错误信息
     let errorMessage = '手机号解密失败';

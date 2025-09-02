@@ -7,16 +7,30 @@ const phoneNumberDebug = {
   // 检查小程序配置
   checkAppConfig() {
     try {
-      const appConfig = require('../app.json');
       console.log('=== 小程序配置检查 ===');
       
       // getPhoneNumber 不需要在 app.json 里配置权限
       console.log('手机号权限配置: ✅ 无需在 app.json 配置');
       
+      // 检查云开发环境
+      let cloudEnv = '未配置';
+      try {
+        if (wx.cloud && wx.cloud.DYNAMIC_CURRENT_ENV) {
+          cloudEnv = wx.cloud.DYNAMIC_CURRENT_ENV;
+        } else if (getApp() && getApp().globalData && getApp().globalData.cloudEnv) {
+          cloudEnv = getApp().globalData.cloudEnv;
+        }
+      } catch (e) {
+        console.log('无法获取云开发环境配置');
+      }
+      
+      console.log('云开发环境:', cloudEnv);
+      
       return {
         success: true,
         hasPermission: true,
-        permissionDesc: 'getPhoneNumber 无需在 app.json 配置权限'
+        permissionDesc: 'getPhoneNumber 无需在 app.json 配置权限',
+        cloudEnv: cloudEnv
       };
     } catch (error) {
       console.error('检查小程序配置失败:', error);

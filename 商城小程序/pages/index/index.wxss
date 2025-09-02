@@ -8,6 +8,23 @@
   margin-top: 0;
 }
 
+/* 测试按钮样式 */
+.test-buttons {
+  position: fixed;
+  top: 100rpx;
+  right: 20rpx;
+  z-index: 9999;
+}
+
+.test-btn {
+  background: #ff6b6b !important;
+  color: white !important;
+  border-radius: 20rpx !important;
+  font-size: 24rpx !important;
+  padding: 10rpx 20rpx !important;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 107, 0.3) !important;
+}
+
 /* 轮播图区域 */
 .carousel-section {
   position: relative;
@@ -97,44 +114,7 @@
   opacity: 0.9;
 }
 
-/* 测试按钮区域样式 */
-.test-section {
-  padding: 40rpx 30rpx;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-}
 
-.test-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
-  border: none;
-  border-radius: 50rpx;
-  padding: 20rpx 40rpx;
-  font-size: 28rpx;
-  font-weight: 500;
-  box-shadow: 0 8rpx 20rpx rgba(102, 126, 234, 0.3);
-  transition: all 0.3s ease;
-}
-
-.test-btn::after {
-  border: none;
-}
-
-.test-btn:active {
-  transform: translateY(2rpx);
-  box-shadow: 0 4rpx 10rpx rgba(102, 126, 234, 0.3);
-}
-
-.phone-test-btn {
-  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
-  box-shadow: 0 8rpx 20rpx rgba(76, 175, 80, 0.3);
-}
-
-.phone-test-btn:active {
-  box-shadow: 0 4rpx 10rpx rgba(76, 175, 80, 0.3);
-}
 
 
 

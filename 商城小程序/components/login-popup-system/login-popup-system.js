@@ -75,7 +75,10 @@ Component({
     
     // 系统信息
     systemInfo: null,
-    isRealDevice: false
+    isRealDevice: false,
+    
+    // 版本兼容性信息
+    compatibilityInfo: null
   },
 
   lifetimes: {
@@ -102,6 +105,9 @@ Component({
           privacyDetail: this.data.popupContent.benefit.privacyDetail
         })
       }
+      
+      // 预检查版本兼容性
+      this.preCheckCompatibility();
     }
   },
 
@@ -116,6 +122,91 @@ Component({
         })
       } catch (error) {
         console.error('设备检测失败:', error)
+      }
+    },
+
+    // 预检查版本兼容性
+    preCheckCompatibility() {
+      try {
+        const systemInfo = wx.getSystemInfoSync();
+        const version = systemInfo.version || '';
+        const SDKVersion = systemInfo.SDKVersion || '';
+        const platform = systemInfo.platform || '';
+        const brand = systemInfo.brand || '';
+        const model = systemInfo.model || '';
+        
+        console.log('=== 组件初始化版本兼容性检查 ===');
+        console.log('微信版本:', version);
+        console.log('基础库版本:', SDKVersion);
+        console.log('平台:', platform);
+        console.log('设备:', brand, model);
+        console.log('getPhoneNumber API 存在:', !!wx.getPhoneNumber);
+        
+        // 记录兼容性状态
+        let compatibilityStatus = 'unknown';
+        let compatibilityMessage = '';
+        
+        if (platform === 'mac' || platform === 'windows') {
+          compatibilityStatus = 'platform_not_supported';
+          compatibilityMessage = '当前平台不支持手机号获取功能';
+        } else if (platform === 'devtools') {
+          compatibilityStatus = 'devtools';
+          compatibilityMessage = '在开发者工具中运行，请在真机测试';
+        } else if (!wx.getPhoneNumber) {
+          compatibilityStatus = 'api_not_supported';
+          compatibilityMessage = 'getPhoneNumber API 不支持';
+        } else if (SDKVersion && this.compareVersion(SDKVersion, '2.19.0') < 0) {
+          compatibilityStatus = 'sdk_too_old';
+          compatibilityMessage = '基础库版本过低';
+        } else if (version && this.compareVersion(version, '8.0.61') < 0) {
+          compatibilityStatus = 'wechat_too_old';
+          compatibilityMessage = '微信版本过低';
+        } else {
+          compatibilityStatus = 'compatible';
+          compatibilityMessage = '版本兼容性检查通过';
+        }
+        
+        console.log('兼容性状态:', compatibilityStatus);
+        console.log('兼容性消息:', compatibilityMessage);
+        
+        // 保存兼容性信息到组件数据中
+        this.setData({
+          compatibilityInfo: {
+            status: compatibilityStatus,
+            message: compatibilityMessage,
+            version: version,
+            SDKVersion: SDKVersion,
+            platform: platform,
+            brand: brand,
+            model: model,
+            hasGetPhoneNumber: !!wx.getPhoneNumber
+          }
+        });
+        
+        // 如果明显不支持，提前记录警告
+        if (compatibilityStatus !== 'compatible') {
+          console.warn('⚠️ 版本兼容性警告:', compatibilityMessage);
+          
+          // 在开发环境下显示提示
+          const isDev = wx.getAccountInfoSync().miniProgram.envVersion === 'develop';
+          if (isDev && compatibilityStatus === 'platform_not_supported') {
+            wx.showToast({
+              title: '平台不支持',
+              icon: 'none',
+              duration: 3000
+            });
+          }
+        }
+        
+      } catch (error) {
+        console.error('预检查版本兼容性失败:', error);
+        this.setData({
+          compatibilityInfo: {
+            status: 'check_failed',
+            message: '版本检查失败',
+            error: error.message
+          }
+        });
       }
     },
 
@@ -273,8 +364,8 @@ Component({
       
       console.log('用户点击注册福利登录，开始获取手机号');
       
-      // 直接获取手机号，不显示手机号授权弹窗
-      this.getPhoneNumberDirectly();
+      // 直接调用微信官方API获取手机号
+      this.getPhoneNumberSimple();
       
       this.triggerEvent('benefitLogin');
     },
@@ -576,7 +667,150 @@ Component({
       });
     },
 
+    // 简化的手机号获取方法（只弹出微信官方授权弹窗）
+    getPhoneNumberSimple() {
+      console.log('=== 开始简化获取手机号 ===');
+      
+      // 详细的版本兼容性检查
+      try {
+        const systemInfo = wx.getSystemInfoSync();
+        const version = systemInfo.version || '';
+        const SDKVersion = systemInfo.SDKVersion || '';
+        const platform = systemInfo.platform || '';
+        
+        console.log('=== 版本兼容性预检查 ===');
+        console.log('微信版本:', version);
+        console.log('基础库版本:', SDKVersion);
+        console.log('平台:', platform);
+        console.log('getPhoneNumber API 存在:', !!wx.getPhoneNumber);
+        
+        // 检查是否支持获取手机号
+        if (!wx.getPhoneNumber) {
+          console.log('❌ getPhoneNumber API 不存在');
+          this.showVersionError();
+          return;
+        }
+        
+        // 检查平台支持
+        if (platform === 'mac' || platform === 'windows') {
+          console.log('❌ 当前平台不支持:', platform);
+          wx.showModal({
+            title: '平台不支持',
+            content: '微信手机号获取功能目前仅支持 iOS 和 Android 平台。\n\n请使用手动输入方式。',
+            confirmText: '手动输入',
+            cancelText: '稍后再说',
+            success: (res) => {
+              if (res.confirm) {
+                this.showManualInputDialog();
+              } else {
+                this.setData({
+                  showBenefitPopup: false
+                });
+              }
+            }
+          });
+          return;
+        }
+        
+        // 检查基础库版本
+        if (SDKVersion && this.compareVersion(SDKVersion, '2.19.0') < 0) {
+          console.log('❌ 基础库版本过低:', SDKVersion);
+          wx.showModal({
+            title: '基础库版本过低',
+            content: `当前基础库版本：${SDKVersion}\n需要版本：2.19.0+\n\n建议升级微信到最新版本，或使用手动输入方式。`,
+            confirmText: '手动输入',
+            cancelText: '稍后再说',
+            success: (res) => {
+              if (res.confirm) {
+                this.showManualInputDialog();
+              } else {
+                this.setData({
+                  showBenefitPopup: false
+                });
+              }
+            }
+          });
+          return;
+        }
+        
+        console.log('✅ 版本兼容性检查通过');
+        
+      } catch (error) {
+        console.error('版本兼容性检查失败:', error);
+        // 即使检查失败，也尝试继续执行
+        if (!wx.getPhoneNumber) {
+          this.showVersionError();
+          return;
+        }
+      }
+      
+      // 直接调用微信API，这会弹出官方的手机号授权弹窗
+      wx.getPhoneNumber({
+        success: (res) => {
+          console.log('微信获取手机号成功:', res);
+          
+          if (res.errMsg === 'getPhoneNumber:ok') {
+            // 获取成功，显示成功提示
+            wx.showToast({
+              title: '手机号获取成功',
+              icon: 'success'
+            });
+            
+            // 触发成功事件
+            this.triggerEvent('phoneNumberGet', { 
+              success: true, 
+              code: res.code 
+            });
+            
+            // 关闭福利弹窗
+            this.setData({
+              showBenefitPopup: false
+            });
+            
+            // 完成流程
+            this.completeFlow();
+            
+          } else {
+            console.error('微信API返回错误:', res);
+            wx.showToast({
+              title: '获取失败，请重试',
+              icon: 'none'
+            });
+          }
+        },
+        fail: (err) => {
+          console.error('微信获取手机号失败:', err);
+          
+          if (err.errno === 1400001) {
+            wx.showModal({
+              title: '提示',
+              content: '该功能使用次数已达上限，请联系客服',
+              showCancel: false
+            });
+          } else if (err.errno === 40226) {
+            wx.showModal({
+              title: '实名认证',
+              content: '需要完成实名认证才能获取手机号',
+              showCancel: false
+            });
+          } else {
+            wx.showToast({
+              title: '获取失败，请重试',
+              icon: 'none'
+            });
+          }
+        }
+      });
+    },
 
+    // 显示版本错误信息（简化版）
+    showVersionError() {
+      console.log('版本不兼容，直接关闭弹窗');
+      // 直接关闭弹窗，不显示诊断信息
+      this.setData({
+        showBenefitPopup: false
+      });
+    },
 
     // 显示降级方案
     showFallbackOption() {
@@ -861,7 +1095,7 @@ Component({
       this.setData({
         [`${type}Visible`]: true
       })
-    },
+    }
   },
 
   observers: {
