@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调试页面</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .error { color: red; background: #ffe6e6; padding: 10px; margin: 10px 0; }
+        .success { color: green; background: #e6ffe6; padding: 10px; margin: 10px 0; }
+        .info { color: blue; background: #e6f3ff; padding: 10px; margin: 10px 0; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 JavaScript 调试页面</h1>
+    
+    <div id="status"></div>
+    <div id="errors"></div>
+    <div id="console-output"></div>
+    
+    <h2>🔗 测试链接</h2>
+    <ul>
+        <li><a href="http://localhost:5173/" target="_blank">主页面</a></li>
+        <li><a href="http://localhost:5173/#/login" target="_blank">登录页面</a></li>
+        <li><a href="http://localhost:5173/#/cos-test" target="_blank">COS 测试</a></li>
+    </ul>
+    
+    <h2>🔧 手动测试</h2>
+    <button onclick="testReact()">测试 React 加载</button>
+    <button onclick="testVite()">测试 Vite 客户端</button>
+    <button onclick="clearConsole()">清除控制台</button>
+    
+    <script>
+        const statusDiv = document.getElementById('status');
+        const errorsDiv = document.getElementById('errors');
+        const consoleDiv = document.getElementById('console-output');
+        
+        // 重写 console 方法来捕获输出
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addToConsole(type, ...args) {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `<strong>${type.toUpperCase()}:</strong> ${args.join(' ')}`;
+            consoleDiv.appendChild(div);
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToConsole('log', ...args);
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToConsole('error', ...args);
+        };
+        
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addToConsole('warn', ...args);
+        };
+        
+        // 检查页面加载状态
+        window.addEventListener('load', function() {
+            statusDiv.innerHTML = '<div class="success">✅ 页面加载完成</div>';
+            console.log('页面加载完成');
+        });
+        
+        // 检查错误
+        window.addEventListener('error', function(e) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.innerHTML = `<strong>JavaScript 错误:</strong> ${e.message}<br>文件: ${e.filename}<br>行号: ${e.lineno}`;
+            errorsDiv.appendChild(errorDiv);
+            console.error('JavaScript 错误:', e.message);
+        });
+        
+        // 测试 React 加载
+        function testReact() {
+            try {
+                fetch('http://localhost:5173/src/main.jsx')
+                    .then(response => response.text())
+                    .then(text => {
+                        console.log('React 主文件内容:', text.substring(0, 200) + '...');
+                    })
+                    .catch(error => {
+                        console.error('无法加载 React 文件:', error);
+                    });
+            } catch (error) {
+                console.error('测试 React 时出错:', error);
+            }
+        }
+        
+        // 测试 Vite 客户端
+        function testVite() {
+            try {
+                fetch('http://localhost:5173/@vite/client')
+                    .then(response => {
+                        console.log('Vite 客户端状态:', response.status);
+                    })
+                    .catch(error => {
+                        console.error('无法连接 Vite 客户端:', error);
+                    });
+            } catch (error) {
+                console.error('测试 Vite 时出错:', error);
+            }
+        }
+        
+        // 清除控制台
+        function clearConsole() {
+            consoleDiv.innerHTML = '';
+        }
+        
+        // 页面加载时自动测试
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                testReact();
+                testVite();
+            }, 1000);
+        });
+        
+        console.log('调试页面初始化完成');
+    </script>
+</body>
+</html> 

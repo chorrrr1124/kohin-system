@@ -1,18 +1,19 @@
 // pages/user/user.js
 Page({
+  data: {},
 
-  /**
-   * 页面的初始数据
-   */
-  data: {
+  onLoad() {},
 
-  },
-
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad(options) {
-
+  onLogout() {
+    try {
+      wx.clearStorageSync()
+      const app = getApp()
+      if (app?.globalData) app.globalData.userInfo = null
+      wx.showToast({ title: '已退出', icon: 'success' })
+      setTimeout(() => wx.reLaunch({ url: '/pages/index/index' }), 600)
+    } catch (e) {
+      wx.showToast({ title: '退出失败', icon: 'none' })
+    }
   },
 
   /**

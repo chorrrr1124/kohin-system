@@ -1,0 +1,114 @@
+<!--pages/cos-images/cos-images.wxml-->
+<view class="container">
+  <!-- 标题栏 -->
+  <view class="header">
+    <text class="title">COS图片管理</text>
+    <button class="refresh-btn" bindtap="refreshImages" size="mini">刷新</button>
+  </view>
+
+  <!-- 标签页 -->
+  <view class="tabs">
+    <view 
+      class="tab {{activeTab === 'banners' ? 'active' : ''}}" 
+      data-tab="banners" 
+      bindtap="switchTab"
+    >
+      轮播图 ({{banners.length}})
+    </view>
+    <view 
+      class="tab {{activeTab === 'products' ? 'active' : ''}}" 
+      data-tab="products" 
+      bindtap="switchTab"
+    >
+      商品图 ({{products.length}})
+    </view>
+    <view 
+      class="tab {{activeTab === 'categories' ? 'active' : ''}}" 
+      data-tab="categories" 
+      bindtap="switchTab"
+    >
+      分类图 ({{categories.length}})
+    </view>
+    <view 
+      class="tab {{activeTab === 'icons' ? 'active' : ''}}" 
+      data-tab="icons" 
+      bindtap="switchTab"
+    >
+      图标 ({{icons.length}})
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 图片网格 -->
+  <view wx:else class="image-grid">
+    <view 
+      wx:for="{{banners}}" 
+      wx:key="index" 
+      wx:if="{{activeTab === 'banners'}}"
+      class="image-item"
+      data-src="{{item}}"
+      bindtap="previewImage"
+      bindlongpress="copyImageUrl"
+    >
+      <image src="{{item}}" mode="aspectFill" class="image" />
+      <view class="image-info">
+        <text class="image-name">轮播图 {{index + 1}}</text>
+      </view>
+    </view>
+
+    <view 
+      wx:for="{{products}}" 
+      wx:key="index" 
+      wx:if="{{activeTab === 'products'}}"
+      class="image-item"
+      data-src="{{item}}"
+      bindtap="previewImage"
+      bindlongpress="copyImageUrl"
+    >
+      <image src="{{item}}" mode="aspectFill" class="image" />
+      <view class="image-info">
+        <text class="image-name">商品图 {{index + 1}}</text>
+      </view>
+    </view>
+
+    <view 
+      wx:for="{{categories}}" 
+      wx:key="index" 
+      wx:if="{{activeTab === 'categories'}}"
+      class="image-item"
+      data-src="{{item}}"
+      bindtap="previewImage"
+      bindlongpress="copyImageUrl"
+    >
+      <image src="{{item}}" mode="aspectFill" class="image" />
+      <view class="image-info">
+        <text class="image-name">分类图 {{index + 1}}</text>
+      </view>
+    </view>
+
+    <view 
+      wx:for="{{icons}}" 
+      wx:key="index" 
+      wx:if="{{activeTab === 'icons'}}"
+      class="image-item"
+      data-src="{{item}}"
+      bindtap="previewImage"
+      bindlongpress="copyImageUrl"
+    >
+      <image src="{{item}}" mode="aspectFill" class="image" />
+      <view class="image-info">
+        <text class="image-name">图标 {{index + 1}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{!loading && banners.length === 0 && products.length === 0 && categories.length === 0 && icons.length === 0}}" class="empty">
+    <text>暂无图片</text>
+    <text class="empty-tip">请先在Web端上传图片</text>
+  </view>
+</view>

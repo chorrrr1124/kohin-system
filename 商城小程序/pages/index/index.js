@@ -1,7 +1,6 @@
 // pages/index/index.js
 const app = getApp()
 const imageService = require('../../utils/imageService')
-const testFirstLaunch = require('../../utils/test-first-launch')
 
 Page({
   data: {
@@ -14,16 +13,14 @@ Page({
 
     maskedPhone: '',
     
-    // 开发环境标识
-    isDev: false,
 
     userInfo: {
-      nickName: '张程僖',
-      avatarUrl: 'data:image/svg+xml;charset=utf-8,%3Csvg width="80" height="80" xmlns="http://www.w3.org/2000/svg"%3E%3Csvg width="80" height="80" xmlns="http://www.w3.org/2000/svg"%3E%3Ccircle cx="40" cy="40" r="40" fill="%234CAF50"/%3E%3Ctext x="40" y="50" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle" dominant-baseline="middle"%3E张%3C/text%3E%3C/svg%3E',
-      points: 288,
+      nickName: '微信用户',
+      avatarUrl: 'data:image/svg+xml;charset=utf-8,%3Csvg width="80" height="80" xmlns="http://www.w3.org/2000/svg"%3E%3Csvg width="80" height="80" xmlns="http://www.w3.org/2000/svg"%3E%3Ccircle cx="40" cy="40" r="40" fill="%234CAF50"/%3E%3Ctext x="40" y="50" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle" dominant-baseline="middle"%3E用%3C/text%3E%3C/svg%3E',
+      points: 0,
       balance: 0,
       coupons: 0,
-      vipLevel: 6
+      vipLevel: 0
     },
     promoData: {
       title: '夏日消暑·就喝「丘大叔」',
@@ -38,27 +35,8 @@ Page({
       giftNote: '【赠6元代金券×1】',
       validityNote: '*自购买之日起3年内有效，可转赠可自用'
     },
-    // 轮播图数据 
-    carouselImages: [
-      {
-        url: '/images/banners/banner1.jpg',
-        gradient: 'linear-gradient(135deg, rgba(76, 175, 80, 0.85) 0%, rgba(139, 195, 74, 0.85) 50%, rgba(205, 220, 57, 0.85) 100%)',
-        title: '夏日消暑·就喝「丘大叔」',
-        subtitle: 'Lemon tea for Uncle Q'
-      },
-      {
-        url: '/images/banners/banner2.jpg',
-        gradient: 'linear-gradient(135deg, rgba(33, 150, 243, 0.85) 0%, rgba(63, 81, 181, 0.85) 50%, rgba(103, 58, 183, 0.85) 100%)',
-        title: '新品推荐',
-        subtitle: 'Fresh & Natural'
-      },
-      {
-        url: '/images/banners/banner3.jpg',
-        gradient: 'linear-gradient(135deg, rgba(255, 152, 0, 0.85) 0%, rgba(255, 87, 34, 0.85) 50%, rgba(244, 67, 54, 0.85) 100%)',
-        title: '会员专享',
-        subtitle: 'VIP Exclusive'
-      }
-    ],
+    // 轮播图数据 - 将从云存储动态加载
+    carouselImages: [],
     // 推广轮播图数据
     promoSwiperImages: [
       'data:image/svg+xml;charset=utf-8,%3Csvg width="400" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="200" fill="%23FF6B6B"/%3E%3Ctext x="200" y="100" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle"%3E夏日特惠%3C/text%3E%3C/svg%3E',
@@ -75,9 +53,75 @@ Page({
     this.setStatusBarHeight();
     this.loadPageData();
     this.loadUserInfo();
-    
-    // 检查是否为开发环境
-    this.checkDevEnvironment();
+    this.loadCloudImages();
+  },
+
+  // 加载云存储图片
+  async loadCloudImages() {
+    try {
+      console.log('开始加载云存储图片...');
+      
+      // 获取轮播图
+      const bannerResult = await wx.cloud.callFunction({
+        name: 'getImages',
+        data: { type: 'banners' }
+      });
+      
+      if (bannerResult.result && bannerResult.result.success) {
+        const banners = bannerResult.result.data.map((url, index) => {
+          const titles = [
+            { title: '夏日消暑·就喝「丘大叔」', subtitle: 'Lemon tea for Uncle Q' },
+            { title: '新品推荐', subtitle: 'Fresh & Natural' },
+            { title: '会员专享', subtitle: 'VIP Exclusive' }
+          ];
+          
+          const gradients = [
+            'linear-gradient(135deg, rgba(76, 175, 80, 0.85) 0%, rgba(139, 195, 74, 0.85) 50%, rgba(205, 220, 57, 0.85) 100%)',
+            'linear-gradient(135deg, rgba(33, 150, 243, 0.85) 0%, rgba(63, 81, 181, 0.85) 50%, rgba(103, 58, 183, 0.85) 100%)',
+            'linear-gradient(135deg, rgba(255, 152, 0, 0.85) 0%, rgba(255, 87, 34, 0.85) 50%, rgba(244, 67, 54, 0.85) 100%)'
+          ];
+          
+          return {
+            url: url,
+            gradient: gradients[index] || gradients[0],
+            title: titles[index]?.title || '轮播图',
+            subtitle: titles[index]?.subtitle || ''
+          };
+        });
+        
+        this.setData({
+          carouselImages: banners
+        });
+        
+        console.log('轮播图加载成功:', banners.length, '张');
+      } else {
+        console.error('轮播图加载失败:', bannerResult.result);
+        // 使用默认图片
+        this.setData({
+          carouselImages: [
+            {
+              url: 'data:image/svg+xml;charset=utf-8,%3Csvg width="400" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="200" fill="%234CAF50"/%3E%3Ctext x="200" y="100" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle"%3E轮播图1%3C/text%3E%3C/svg%3E',
+              gradient: 'linear-gradient(135deg, rgba(76, 175, 80, 0.85) 0%, rgba(139, 195, 74, 0.85) 50%, rgba(205, 220, 57, 0.85) 100%)',
+              title: '默认轮播图',
+              subtitle: 'Default Banner'
+            }
+          ]
+        });
+      }
+    } catch (error) {
+      console.error('加载云存储图片失败:', error);
+      // 使用默认图片
+      this.setData({
+        carouselImages: [
+          {
+            url: 'data:image/svg+xml;charset=utf-8,%3Csvg width="400" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Csvg width="400" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="200" fill="%234CAF50"/%3E%3Ctext x="200" y="100" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle"%3E默认轮播图%3C/text%3E%3C/svg%3E',
+            gradient: 'linear-gradient(135deg, rgba(76, 175, 80, 0.85) 0%, rgba(139, 195, 74, 0.85) 50%, rgba(205, 220, 57, 0.85) 100%)',
+            title: '默认轮播图',
+            subtitle: 'Default Banner'
+          }
+        ]
+      });
+    }
   },
 
   // 设置状态栏高度
@@ -358,6 +402,13 @@ Page({
     });
   },
 
+  // 跳转到调试页面
+  onDebugTap() {
+    wx.navigateTo({
+      url: '/pages/debug/debug'
+    });
+  },
+
   // 加载推荐商品
   async loadRecommendProducts() {
     try {
@@ -611,27 +662,6 @@ Page({
     return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
   },
 
-  // 检查开发环境
-  checkDevEnvironment() {
-    try {
-      const accountInfo = wx.getAccountInfoSync();
-      const isDev = accountInfo.miniProgram.envVersion === 'develop';
-      this.setData({
-        isDev: isDev
-      });
-      console.log('开发环境状态:', isDev);
-    } catch (error) {
-      console.error('检查开发环境失败:', error);
-      this.setData({
-        isDev: false
-      });
-    }
-  },
-
-  // 显示测试菜单
-  showTestMenu() {
-    testFirstLaunch.showTestMenu();
-  },
 
   // 隐私政策同意
   onPrivacyAgree() {

@@ -1,257 +1,130 @@
-// 图片服务 - 处理COS图片显示和管理
-const app = getApp();
-
-class ImageService {
-  constructor() {
-    this.cosConfig = {
-      bucket: 'kohin-1327524326',
-      region: 'ap-guangzhou',
-      baseUrl: 'https://kohin-1327524326.cos.ap-guangzhou.myqcloud.com'
-    };
-    
-    // 图片分类路径映射
-    this.categoryPaths = {
-      'banner': 'images/banner/',
-      'banners': 'images/banners/',
-      'category': 'images/category/',
-      'products': 'images/products/',
-      'icons': 'images/icons/',
-      'tab': 'images/tab/',
-      'general': 'images/general/',
-      'carousel': 'carousel/' // 兼容旧版本
-    };
-  }
-
-  /**
-   * 构建COS图片URL
-   * @param {string} key - COS对象键或本地路径
-   * @returns {string} 完整的图片URL
-   */
-  buildImageUrl(key) {
-    if (!key) return '';
-    
-    // 如果已经是完整URL，直接返回
-    if (key.startsWith('http://') || key.startsWith('https://')) {
-      return key;
-    }
-    
-    // 如果是本地路径（以/开头），直接返回
-    if (key.startsWith('/')) {
-      return key;
-    }
-    
-    // 构建COS URL
-    return `${this.cosConfig.baseUrl}/${key}`;
-  }
-
-  /**
-   * 根据分类和文件名构建图片URL
-   * @param {string} fileName - 文件名
-   * @param {string} category - 图片分类
-   * @returns {string} 完整的图片URL
-   */
-  buildImageUrlByCategory(fileName, category = 'general') {
-    if (!fileName) return '';
-    
-    const categoryPath = this.categoryPaths[category] || this.categoryPaths.general;
-    const key = `${categoryPath}${fileName}`;
-    return this.buildImageUrl(key);
-  }
-
-  /**
-   * 获取轮播图列表
-   * @returns {Promise<Array>} 轮播图数组
-   */
-  async getBannerImages() {
+// 图片服务工具
+const imageService = {
+  // 获取云存储图片的临时访问链接
+  async getImageUrl(cloudPath) {
     try {
-      const db = wx.cloud.database();
-      const result = await db.collection('homepage_carousel')
-        .where({ status: 'active' })
-        .orderBy('sort', 'asc')
-        .orderBy('createTime', 'desc')
-        .get();
-      
-      return result.data.map(item => ({
-        ...item,
-        imageUrl: this.buildImageUrl(item.imageUrl || item.image_url || item.url)
-      }));
-    } catch (error) {
-      console.error('获取轮播图失败:', error);
-      return [];
-    }
-  }
-
-  /**
-   * 获取商品图片
-   * @param {string} productId - 商品ID
-   * @returns {Promise<Array>} 商品图片数组
-   */
-  async getProductImages(productId) {
-    try {
-      const db = wx.cloud.database();
-      const result = await db.collection('products')
-        .doc(productId)
-        .get();
-      
-      const product = result.data;
-      const images = [];
-      
-      // 主图
-      if (product.image) {
-        images.push({
-          url: this.buildImageUrl(product.image),
-          type: 'main'
-        });
+      if (!cloudPath || !cloudPath.startsWith('cloud://')) {
+        return this.getDefaultImage();
       }
-      
-      // 详情图
-      if (product.images && Array.isArray(product.images)) {
-        product.images.forEach((img, index) => {
-          images.push({
-            url: this.buildImageUrl(img),
-            type: 'detail',
-            index
-          });
-        });
+
+      const result = await wx.cloud.getTempFileURL({
+        fileList: [cloudPath]
+      });
+
+      if (result.fileList && result.fileList[0] && result.fileList[0].status === 0) {
+        return result.fileList[0].tempFileURL;
+      } else {
+        console.warn('获取图片临时链接失败:', cloudPath);
+        return this.getDefaultImage();
       }
-      
-      return images;
     } catch (error) {
-      console.error('获取商品图片失败:', error);
-      return [];
+      console.error('获取图片链接异常:', error);
+      return this.getDefaultImage();
     }
-  }
+  },
 
-  /**
-   * 获取分类图标
-   * @param {string} categoryId - 分类ID
-   * @returns {Promise<string>} 分类图标URL
-   */
-  async getCategoryIcon(categoryId) {
+  // 获取默认图片
+  getDefaultImage() {
+    return 'data:image/svg+xml;charset=utf-8,%3Csvg width="200" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="200" height="200" fill="%23f0f0f0"/%3E%3Ctext x="100" y="100" font-family="Arial, sans-serif" font-size="16" fill="%23999" text-anchor="middle" dominant-baseline="middle"%3E暂无图片%3C/text%3E%3C/svg%3E';
+  },
+
+  // 批量获取图片链接
+  async getBatchImageUrls(cloudPaths) {
     try {
-      const db = wx.cloud.database();
-      const result = await db.collection('categories')
-        .doc(categoryId)
-        .get();
-      
-      const category = result.data;
-      return this.buildImageUrl(category.icon || category.image);
-    } catch (error) {
-      console.error('获取分类图标失败:', error);
-      return '';
-    }
-  }
+      if (!Array.isArray(cloudPaths) || cloudPaths.length === 0) {
+        return [];
+      }
 
-  /**
-   * 预加载图片
-   * @param {string|Array} urls - 图片URL或URL数组
-   * @returns {Promise} 预加载Promise
-   */
-  preloadImages(urls) {
-    const urlArray = Array.isArray(urls) ? urls : [urls];
-    
-    const promises = urlArray.map(url => {
-      return new Promise((resolve, reject) => {
-        if (!url) {
-          resolve();
-          return;
+      // 过滤有效的云存储路径
+      const validPaths = cloudPaths.filter(path => path && path.startsWith('cloud://'));
+      
+      if (validPaths.length === 0) {
+        return cloudPaths.map(() => this.getDefaultImage());
+      }
+
+      const result = await wx.cloud.getTempFileURL({
+        fileList: validPaths
+      });
+
+      const urlMap = {};
+      result.fileList.forEach(file => {
+        if (file.status === 0) {
+          urlMap[file.fileID] = file.tempFileURL;
         }
-        
-        wx.getImageInfo({
-          src: url,
-          success: () => resolve(),
-          fail: (error) => {
-            console.warn('图片预加载失败:', url, error);
-            resolve(); // 即使失败也resolve，不阻塞其他图片
-          }
-        });
       });
-    });
-    
-    return Promise.all(promises);
-  }
 
-  /**
-   * 检查图片是否可访问
-   * @param {string} url - 图片URL
-   * @returns {Promise<boolean>} 是否可访问
-   */
-  checkImageAccessible(url) {
-    return new Promise((resolve) => {
-      if (!url) {
-        resolve(false);
-        return;
-      }
-      
-      wx.getImageInfo({
-        src: url,
-        success: () => resolve(true),
-        fail: () => resolve(false)
-      });
-    });
-  }
-
-  /**
-   * 获取图片信息
-   * @param {string} url - 图片URL
-   * @returns {Promise<Object>} 图片信息
-   */
-  getImageInfo(url) {
-    return new Promise((resolve, reject) => {
-      if (!url) {
-        reject(new Error('图片URL为空'));
-        return;
-      }
-      
-      wx.getImageInfo({
-        src: url,
-        success: (res) => resolve(res),
-        fail: (error) => reject(error)
-      });
-    });
-  }
-
-  /**
-   * 保存图片到相册
-   * @param {string} url - 图片URL
-   * @returns {Promise} 保存Promise
-   */
-  async saveImageToAlbum(url) {
-    try {
-      // 先下载图片
-      const downloadResult = await new Promise((resolve, reject) => {
-        wx.downloadFile({
-          url: url,
-          success: (res) => resolve(res),
-          fail: (error) => reject(error)
-        });
-      });
-      
-      // 保存到相册
-      await new Promise((resolve, reject) => {
-        wx.saveImageToPhotosAlbum({
-          filePath: downloadResult.tempFilePath,
-          success: () => resolve(),
-          fail: (error) => reject(error)
-        });
-      });
-      
-      wx.showToast({
-        title: '保存成功',
-        icon: 'success'
+      // 返回对应顺序的图片链接
+      return cloudPaths.map(path => {
+        if (path && path.startsWith('cloud://')) {
+          return urlMap[path] || this.getDefaultImage();
+        } else {
+          return this.getDefaultImage();
+        }
       });
     } catch (error) {
-      console.error('保存图片失败:', error);
-      wx.showToast({
-        title: '保存失败',
-        icon: 'none'
-      });
-      throw error;
+      console.error('批量获取图片链接异常:', error);
+      return cloudPaths.map(() => this.getDefaultImage());
     }
-  }
-}
+  },
 
-// 创建单例实例
-const imageService = new ImageService();
+  // 上传图片到云存储
+  async uploadImage(filePath, cloudPath) {
+    try {
+      const result = await wx.cloud.uploadFile({
+        cloudPath: cloudPath,
+        filePath: filePath
+      });
+
+      return {
+        success: true,
+        fileID: result.fileID,
+        message: '上传成功'
+      };
+    } catch (error) {
+      console.error('上传图片失败:', error);
+      return {
+        success: false,
+        error: error.message,
+        message: '上传失败'
+      };
+    }
+  },
+
+  // 删除云存储图片
+  async deleteImage(fileID) {
+    try {
+      await wx.cloud.deleteFile({
+        fileList: [fileID]
+      });
+
+      return {
+        success: true,
+        message: '删除成功'
+      };
+    } catch (error) {
+      console.error('删除图片失败:', error);
+      return {
+        success: false,
+        error: error.message,
+        message: '删除失败'
+      };
+    }
+  },
+
+  // 预加载图片
+  preloadImage(url) {
+    return new Promise((resolve, reject) => {
+      if (!url || url.startsWith('data:')) {
+        resolve(url);
+        return;
+      }
+
+      const img = new Image();
+      img.onload = () => resolve(url);
+      img.onerror = () => reject(new Error('图片加载失败'));
+      img.src = url;
+    });
+  }
+};
 
 module.exports = imageService;

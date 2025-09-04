@@ -6,6 +6,7 @@ import { isMobile, useResponsive } from '../utils/responsive';
 
 const Layout = () => {
   const { isMobile: isMobileView, screenSize } = useResponsive();
+  // 桌面端默认展开，移动端默认折叠
   const [sidebarOpen, setSidebarOpen] = useState(!isMobileView);
 
   // 响应屏幕尺寸变化
@@ -33,26 +34,6 @@ const Layout = () => {
       
       {/* 主内容区域 */}
       <div className="drawer-content flex flex-col">
-        {/* 顶部导航栏 */}
-        <div className={`navbar bg-base-100 shadow-sm ${isMobileView ? '' : 'lg:hidden'}`}>
-          <div className="flex-none">
-            <label 
-              htmlFor="drawer-toggle" 
-              className="btn btn-square btn-ghost"
-              onClick={toggleSidebar}
-            >
-              <Bars3Icon className="w-6 h-6" />
-            </label>
-          </div>
-          <div className="flex-1">
-            <span className={`font-bold ${
-              isMobileView ? 'text-lg' : 'text-xl'
-            }`}>
-              丘大叔茶饮管理系统
-            </span>
-          </div>
-        </div>
-        
         {/* 页面内容 */}
         <main className={`flex-1 ${
           isMobileView ? 'p-4' : 'p-6'
@@ -63,12 +44,10 @@ const Layout = () => {
       
       {/* 侧边栏 */}
       <div className="drawer-side">
-        <label 
-          htmlFor="drawer-toggle" 
-          className="drawer-overlay"
-          onClick={() => isMobileView && setSidebarOpen(false)}
-        ></label>
-        <Sidebar onItemClick={() => isMobileView && setSidebarOpen(false)} />
+        <div className="drawer-overlay" onClick={toggleSidebar}></div>
+        <div className="min-h-full w-80">
+          <Sidebar />
+        </div>
       </div>
     </div>
   );

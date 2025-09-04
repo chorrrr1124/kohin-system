@@ -57,25 +57,30 @@ exports.main = async (event, context) => {
       .get()
     
     // 处理返回数据，确保字段完整
-    const products = result.data.map(item => ({
-      _id: item._id,
-      name: item.name || '未知商品',
-      price: item.price || 0,
-      originalPrice: item.originalPrice || item.price || 0,
-      description: item.description || '',
-      stock: item.stock || 0,
-      category: item.category || item.type || '未分类',
-      type: item.type || item.category || '未分类',
-      images: item.images || [],
-      image: item.imagePath || (item.images && item.images.length > 0 ? item.images[0] : '/images/placeholder.svg'),
-      onSale: item.onSale !== false, // 默认为true
-      brand: item.brand || '',
-      specification: item.specification || item.description || '',
-      sales: item.sales || 0,
-      remark: item.remark || '',
-      createTime: item.createTime,
-      updateTime: item.updateTime
-    }))
+    const products = result.data.map((item, index) => {
+      // 生成云存储图片路径
+      const cloudImagePath = `cloud://cloudbase-3g4w6lls8a5ce59b.636c-cloudbase-3g4w6lls8a5ce59b-1320051234/images/products/product${(index % 6) + 1}.jpg`;
+      
+      return {
+        _id: item._id,
+        name: item.name || '未知商品',
+        price: item.price || 0,
+        originalPrice: item.originalPrice || item.price || 0,
+        description: item.description || '',
+        stock: item.stock || 0,
+        category: item.category || item.type || '未分类',
+        type: item.type || item.category || '未分类',
+        images: item.images || [],
+        image: cloudImagePath, // 使用云存储图片路径
+        onSale: item.onSale !== false, // 默认为true
+        brand: item.brand || '',
+        specification: item.specification || item.description || '',
+        sales: item.sales || 0,
+        remark: item.remark || '',
+        createTime: item.createTime,
+        updateTime: item.updateTime
+      }
+    })
     
     return {
       success: true,

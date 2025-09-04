@@ -26,6 +26,11 @@
       "timeout": 60,
       "runtime": "Nodejs16.13",
       "memorySize": 256
+    },
+    "getCosImages": {
+      "timeout": 30,
+      "runtime": "Nodejs16.13",
+      "memorySize": 256
     }
   }
 }

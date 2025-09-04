@@ -35,9 +35,8 @@ Page({
     try {
       this.setData({ loading: true });
       
-      const result = await wx.cloud.callFunction({
-        name: 'getUserCart'
-      });
+      const app = getApp();
+      const result = await app.cloudCallWithRetry('getUserCart');
 
       if (result.result.ok) {
         const cartItems = result.result.data || [];
@@ -94,13 +93,11 @@ Page({
     if (!item) return;
     
     try {
-      const result = await wx.cloud.callFunction({
-        name: 'updateUserCart',
-        data: {
+      const app = getApp();
+      const result = await app.cloudCallWithRetry('updateUserCart', {
           action: 'updateQuantity',
           productId: item._id,
           quantity: item.quantity + 1
-        }
       });
 
       if (result.result.ok) {
@@ -133,13 +130,11 @@ Page({
     }
     
     try {
-      const result = await wx.cloud.callFunction({
-        name: 'updateUserCart',
-        data: {
+      const app = getApp();
+      const result = await app.cloudCallWithRetry('updateUserCart', {
           action: 'updateQuantity',
           productId: item._id,
           quantity: item.quantity - 1
-        }
       });
 
       if (result.result.ok) {
@@ -172,12 +167,10 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           try {
-            const result = await wx.cloud.callFunction({
-              name: 'updateUserCart',
-              data: {
+            const app = getApp();
+            const result = await app.cloudCallWithRetry('updateUserCart', {
                 action: 'remove',
                 productId: item._id
-              }
             });
 
             if (result.result.ok) {
@@ -212,12 +205,10 @@ Page({
     if (!item) return;
     
     try {
-      const result = await wx.cloud.callFunction({
-        name: 'updateUserCart',
-        data: {
+      const app = getApp();
+      const result = await app.cloudCallWithRetry('updateUserCart', {
           action: 'updateSelection',
           productId: item._id
-        }
       });
 
       if (result.result.ok) {
@@ -238,11 +229,9 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           try {
-            const result = await wx.cloud.callFunction({
-              name: 'updateUserCart',
-              data: {
+            const app = getApp();
+            const result = await app.cloudCallWithRetry('updateUserCart', {
                 action: 'clear'
-              }
             });
 
             if (result.result.ok) {

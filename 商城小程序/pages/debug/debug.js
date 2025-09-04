@@ -1,310 +1,116 @@
 // pages/debug/debug.js
+const app = getApp()
+
+// 确保页面不被"过滤无依赖文件"移除
+if (typeof __route__ !== 'undefined') {
+  console.log('Debug页面路由:', __route__);
+}
+
+// 强制输出，确保页面被识别
+console.log('Debug页面JS文件已加载');
+
 Page({
   data: {
-    userInfo: null,
-    testResult: null,
-    testCollection: 'products',
-    testWhere: '{}',
-    envId: '',
-    version: '',
     systemInfo: {},
-    logs: []
+    logs: [],
+    pageRoute: '',
+    testResult: ''
   },
 
   onLoad() {
-    this.getSystemInfo()
-    this.getEnvInfo()
-    this.addLog('页面加载完成')
+    console.log('Debug页面加载');
+    console.log('Debug页面路径:', this.route);
+    console.log('Debug页面参数:', this.options);
+    
+    // 设置页面路径 - 使用正确的方式获取
+    const pages = getCurrentPages();
+    const currentPage = pages[pages.length - 1];
+    const pageRoute = currentPage ? currentPage.route : '未知';
+    
+    this.setData({
+      pageRoute: pageRoute
+    });
+    
+    // 强制输出到控制台
+    wx.showToast({
+      title: 'Debug页面加载成功',
+      icon: 'success',
+      duration: 2000
+    });
+    
+    this.getSystemInfo();
+    this.addLog('info', 'Debug页面加载成功');
   },
 
   onShow() {
-    this.checkLoginStatus()
+    console.log('Debug页面显示');
   },
 
   // 获取系统信息
   getSystemInfo() {
-    const systemInfo = wx.getSystemInfoSync()
-    this.setData({ systemInfo })
-  },
-
-  // 获取环境信息
-  getEnvInfo() {
-    const envId = wx.cloud.DYNAMIC_CURRENT_ENV || '未配置'
-    this.setData({ envId })
-  },
-
-  // 检查登录状态
-  checkLoginStatus() {
-    const userInfo = wx.getStorageSync('userInfo')
-    if (userInfo) {
-      this.setData({ userInfo })
-      this.addLog('检测到已登录用户')
-    } else {
-      this.addLog('用户未登录')
+    try {
+      const systemInfo = wx.getSystemInfoSync();
+      this.setData({
+        systemInfo: systemInfo
+      });
+      this.addLog('info', '系统信息获取成功');
+    } catch (error) {
+      this.addLog('error', '获取系统信息失败: ' + error.message);
     }
   },
 
-  // 测试登录
-  testLogin() {
-    this.addLog('开始测试登录...')
-    
-    wx.cloud.callFunction({
-      name: 'login',
-      success: (res) => {
-        this.addLog('登录成功: ' + JSON.stringify(res.result))
-        this.setData({ userInfo: res.result })
-      },
-      fail: (err) => {
-        this.addLog('登录失败: ' + err.errMsg)
-      }
-    })
-  },
-
-  // 测试数据访问（通过云函数）
-  testGetData() {
-    this.addLog('开始测试数据访问...')
-    
-    wx.cloud.callFunction({
-      name: 'getData',
-      data: {
-        collection: 'products',
-        action: 'get',
-        limit: 5
-      },
-      success: (res) => {
-        this.addLog('数据访问成功')
-        this.setData({ testResult: res.result })
-      },
-      fail: (err) => {
-        this.addLog('数据访问失败: ' + err.errMsg)
-        this.setData({ 
-          testResult: { 
-            success: false, 
-            error: err.errMsg 
-          } 
-        })
-      }
-    })
-  },
-
-  // 测试创建数据
-  testCreateData() {
-    this.addLog('开始测试创建数据...')
-    
-    const testData = {
-      name: '测试商品_' + Date.now(),
-      price: Math.floor(Math.random() * 100) + 1,
-      description: '这是一个测试商品',
-      category: 'test'
-    }
-    
-    wx.cloud.callFunction({
-      name: 'getData',
-        data: {
-        collection: 'testProducts',
-        action: 'add',
-        data: testData
-      },
-      success: (res) => {
-        this.addLog('数据创建成功: ' + JSON.stringify(res.result))
-        this.setData({ testResult: res.result })
-      },
-      fail: (err) => {
-        this.addLog('数据创建失败: ' + err.errMsg)
-        this.setData({ 
-          testResult: { 
-            success: false, 
-            error: err.errMsg 
-          } 
-        })
-      }
-    })
-  },
-
-  // 测试直接数据库访问（可能被免费版本限制）
-  testDatabaseDirect() {
-    this.addLog('开始测试直接数据库访问...')
+  // 测试基础功能
+  testBasicFunction() {
+    this.addLog('info', '开始测试基础功能...');
     
     try {
-      const db = wx.cloud.database()
-      db.collection('products').limit(5).get({
-        success: (res) => {
-          this.addLog('直接数据库访问成功')
-          this.setData({ 
-            testResult: { 
-              success: true, 
-              data: res.data 
-            } 
-          })
-        },
-        fail: (err) => {
-          this.addLog('直接数据库访问失败: ' + err.errMsg)
-          this.setData({ 
-            testResult: { 
-              success: false, 
-              error: err.errMsg 
-            } 
-          })
-        }
-      })
+      // 测试基本API
+      const systemInfo = wx.getSystemInfoSync();
+      const storage = wx.getStorageSync('testKey');
+      
+      this.setData({
+        testResult: '基础功能测试通过！系统信息获取成功，存储功能正常。'
+      });
+      
+      this.addLog('success', '基础功能测试通过');
+      wx.showToast({
+        title: '基础功能测试通过',
+        icon: 'success'
+      });
     } catch (error) {
-      this.addLog('直接数据库访问异常: ' + error.message)
-      this.setData({ 
-        testResult: { 
-          success: false, 
-          error: error.message 
-        } 
-      })
+      this.setData({
+        testResult: '基础功能测试失败: ' + error.message
+      });
+      this.addLog('error', '基础功能测试失败: ' + error.message);
+      wx.showToast({
+        title: '基础功能测试失败',
+        icon: 'error'
+      });
     }
-  },
-
-  // 自定义查询
-  testCustomQuery() {
-    this.addLog('开始自定义查询...')
-    
-    let where = {}
-    try {
-      if (this.data.testWhere && this.data.testWhere !== '{}') {
-        where = JSON.parse(this.data.testWhere)
-      }
-    } catch (error) {
-      this.addLog('查询条件格式错误: ' + error.message)
-      return
-    }
-    
-    wx.cloud.callFunction({
-      name: 'getData',
-      data: {
-        collection: this.data.testCollection,
-        action: 'get',
-        where: where,
-        limit: 10
-      },
-      success: (res) => {
-        this.addLog('自定义查询成功')
-        this.setData({ testResult: res.result })
-      },
-      fail: (err) => {
-        this.addLog('自定义查询失败: ' + err.errMsg)
-        this.setData({ 
-          testResult: { 
-            success: false, 
-            error: err.errMsg 
-          } 
-        })
-      }
-    })
-  },
-
-  // 初始化数据库
-  initDatabase() {
-    this.addLog('开始初始化数据库...')
-    
-    wx.showModal({
-      title: '确认操作',
-      content: '这将创建所有必要的数据库集合，确定要继续吗？',
-      success: (res) => {
-        if (res.confirm) {
-          wx.cloud.callFunction({
-            name: 'initDatabase',
-            success: (res) => {
-              this.addLog('数据库初始化成功: ' + JSON.stringify(res.result))
-              wx.showToast({
-                title: '数据库初始化成功',
-                icon: 'success'
-              })
-              this.setData({ testResult: res.result })
-            },
-            fail: (err) => {
-              this.addLog('数据库初始化失败: ' + err.errMsg)
-              wx.showToast({
-                title: '初始化失败',
-                icon: 'error'
-              })
-              this.setData({ 
-                testResult: { 
-                  success: false, 
-                  error: err.errMsg 
-                } 
-              })
-            }
-          })
-        }
-      }
-    })
-  },
-
-  // 检查集合状态
-  checkCollections() {
-    this.addLog('开始检查集合状态...')
-    
-    const collections = ['coupons', 'mall_coupons', 'user_coupons', 'users', 'orders', 'products', 'categories']
-    const results = {}
-    let completed = 0
-    
-    collections.forEach(collection => {
-      wx.cloud.callFunction({
-        name: 'getData',
-        data: {
-          collection: collection,
-          action: 'count'
-        },
-        success: (res) => {
-          results[collection] = {
-            exists: res.result.success,
-            count: res.result.total || 0,
-            error: res.result.error || null
-          }
-        },
-        fail: (err) => {
-          results[collection] = {
-            exists: false,
-            count: 0,
-            error: err.errMsg
-          }
-        },
-        complete: () => {
-          completed++
-          if (completed === collections.length) {
-            this.addLog('集合状态检查完成')
-            this.setData({ 
-              testResult: { 
-                success: true, 
-                data: results 
-              } 
-            })
-          }
-        }
-      })
-    })
-  },
-
-  // 输入事件处理
-  onCollectionInput(e) {
-    this.setData({ testCollection: e.detail.value })
-  },
-
-  onWhereInput(e) {
-    this.setData({ testWhere: e.detail.value })
   },
 
   // 添加日志
-  addLog(message) {
-    const logs = this.data.logs
-    const time = new Date().toLocaleTimeString()
-    logs.unshift({ time, message })
+  addLog(level, message) {
+    const now = new Date();
+    const time = now.toLocaleTimeString();
+    const log = {
+      time: time,
+      level: level.toUpperCase(),
+      message: message
+    };
     
-    // 限制日志数量
-    if (logs.length > 20) {
-      logs.splice(20)
-    }
+    this.setData({
+      logs: [log, ...this.data.logs].slice(0, 50) // 最多保留50条日志
+    });
     
-    this.setData({ logs })
+    console.log(`[${level.toUpperCase()}] ${message}`);
   },
 
   // 清空日志
   clearLogs() {
-    this.setData({ logs: [] })
-    this.addLog('日志已清空')
+    this.setData({
+      logs: []
+    });
+    this.addLog('info', '日志已清空');
   }
-})
+}) 

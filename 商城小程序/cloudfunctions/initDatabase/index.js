@@ -18,7 +18,8 @@ exports.main = async (event, context) => {
       'orders',              // 订单集合
       'products',            // 商品集合
       'coupons',             // 优惠券集合
-      'popup_content'        // 弹窗内容集合
+      'popup_content',       // 弹窗内容集合
+      'user_carts'           // 用户购物车集合
     ];
     
     const results = [];
@@ -55,6 +56,18 @@ exports.main = async (event, context) => {
       console.log('sms_codes 索引创建成功');
     } catch (error) {
       console.log('sms_codes 索引创建失败或已存在:', error.message);
+    }
+    
+    // 为user_carts集合创建索引
+    try {
+      await db.collection('user_carts').createIndex({
+        data: {
+          _openid: 1
+        }
+      });
+      console.log('user_carts 索引创建成功');
+    } catch (error) {
+      console.log('user_carts 索引创建失败或已存在:', error.message);
     }
     
     return {

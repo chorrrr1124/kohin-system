@@ -1,99 +1,42 @@
 <!--pages/debug/debug.wxml-->
 <view class="debug-container">
   <view class="debug-header">
-    <text class="debug-title">调试页面</text>
-    <text class="debug-subtitle">测试各种功能是否正常</text>
-  </view>
-  
-  <!-- 用户登录状态 -->
-  <view class="debug-section">
-    <view class="section-title">用户登录状态</view>
-    <view class="status-item">
-      <text class="label">登录状态:</text>
-      <text class="value {{userInfo ? 'success' : 'error'}}">
-        {{userInfo ? '已登录' : '未登录'}}
-      </text>
-    </view>
-    <view class="status-item" wx:if="{{userInfo}}">
-      <text class="label">OpenID:</text>
-      <text class="value">{{userInfo.openid}}</text>
-    </view>
-    <view class="status-item" wx:if="{{userInfo}}">
-      <text class="label">昵称:</text>
-      <text class="value">{{userInfo.nickName}}</text>
-    </view>
+    <text class="debug-title">🐛 调试工具</text>
+    <text class="debug-subtitle">系统诊断与测试</text>
   </view>
 
-  <!-- 云函数测试 -->
+  <!-- 简化的测试区域 -->
   <view class="debug-section">
-    <view class="section-title">云函数测试</view>
-    <view class="button-group">
-      <button class="debug-btn primary" bindtap="testLogin">测试登录</button>
-      <button class="debug-btn primary" bindtap="testGetData">测试数据访问</button>
-      <button class="debug-btn primary" bindtap="testCreateData">测试创建数据</button>
-      <button class="debug-btn warning" bindtap="testDatabaseDirect">测试直接数据库访问</button>
-    </view>
-    <view class="button-group" style="margin-top: 16rpx;">
-      <button class="debug-btn primary" bindtap="initDatabase">初始化数据库</button>
-      <button class="debug-btn secondary" bindtap="checkCollections">检查集合状态</button>
-        </view>
-      </view>
-
-  <!-- 数据访问测试 -->
-  <view class="debug-section">
-    <view class="section-title">数据访问测试</view>
-    <view class="input-group">
-      <input class="debug-input" placeholder="集合名称" value="{{testCollection}}" bindinput="onCollectionInput" />
-      <input class="debug-input" placeholder="查询条件(JSON)" value="{{testWhere}}" bindinput="onWhereInput" />
-    </view>
-    <button class="debug-btn primary" bindtap="testCustomQuery">自定义查询</button>
+    <view class="section-title">🧪 基础测试</view>
+    <button class="debug-btn primary" bindtap="testBasicFunction">
+      测试基础功能
+    </button>
+    <text class="test-result">{{testResult}}</text>
   </view>
 
-  <!-- 测试结果 -->
-  <view class="debug-section" wx:if="{{testResult}}">
-    <view class="section-title">测试结果</view>
-    <view class="result-container">
-      <text class="result-label">状态:</text>
-      <text class="result-value {{testResult.success ? 'success' : 'error'}}">
-        {{testResult.success ? '成功' : '失败'}}
-      </text>
-    </view>
-    <view class="result-container" wx:if="{{testResult.error}}">
-      <text class="result-label">错误:</text>
-      <text class="result-value error">{{testResult.error}}</text>
-    </view>
-    <view class="result-container" wx:if="{{testResult.data}}">
-      <text class="result-label">数据:</text>
-      <text class="result-value">{{JSON.stringify(testResult.data)}}</text>
-    </view>
-  </view>
-
-  <!-- 系统信息 -->
   <view class="debug-section">
-    <view class="section-title">系统信息</view>
+    <view class="section-title">📱 系统信息</view>
     <view class="info-item">
-      <text class="label">云开发环境:</text>
-      <text class="value">{{envId || '未配置'}}</text>
+      <text class="info-label">页面路径：</text>
+      <text class="info-value">{{pageRoute}}</text>
     </view>
     <view class="info-item">
-      <text class="label">小程序版本:</text>
-      <text class="value">{{version || '未知'}}</text>
-      </view>
-    <view class="info-item">
-      <text class="label">系统版本:</text>
-      <text class="value">{{systemInfo.system}}</text>
+      <text class="info-label">小程序版本：</text>
+      <text class="info-value">{{systemInfo.version || '未知'}}</text>
     </view>
   </view>
 
-  <!-- 操作日志 -->
   <view class="debug-section">
-    <view class="section-title">操作日志</view>
-    <view class="log-container">
+    <view class="section-title">📝 日志输出</view>
+    <scroll-view class="log-container" scroll-y="true">
       <view class="log-item" wx:for="{{logs}}" wx:key="index">
         <text class="log-time">{{item.time}}</text>
+        <text class="log-level {{item.level}}">{{item.level}}</text>
         <text class="log-message">{{item.message}}</text>
       </view>
-    </view>
-    <button class="debug-btn secondary" bindtap="clearLogs">清空日志</button>
+    </scroll-view>
+    <button class="debug-btn secondary" bindtap="clearLogs">
+      清空日志
+    </button>
   </view>
-</view>
+</view> 

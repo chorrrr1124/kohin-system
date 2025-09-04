@@ -47,9 +47,11 @@
     "useCompilerPlugins": false,
     "condition": false,
     "swc": false,
-    "disableSWC": true
+    "disableSWC": true,
+    "ignoreUploadUnusedFiles": true
   },
   "compileType": "miniprogram",
+  "miniprogramRoot": "./",
   "libVersion": "2.21.2",
   "appid": "wxfa0b669fdd4c865c",
   "projectname": "mall-miniprogram",

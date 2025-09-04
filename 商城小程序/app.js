@@ -66,32 +66,15 @@ App({
       // 初始化购物车（登录后）
       await this.initCart();
     } else {
-      // 检查是否是首次启动（没有任何登录信息）
-      const hasEverLoggedIn = wx.getStorageSync('hasEverLoggedIn');
-      
-      if (!hasEverLoggedIn) {
-        // 首次启动，延迟弹出登录弹窗
-        console.log('首次启动，将显示登录弹窗');
-        setTimeout(() => {
-          this.showLoginModal();
-        }, 1000);
+      // 未登录状态，尝试静默获取 openid
+      try {
+        await this.loginWithOpenId();
+        // 登录成功后初始化购物车
+        await this.initCart();
+      } catch (err) {
+        console.log('静默登录失败，用户未登录状态', err);
         // 未登录状态下初始化空购物车
         this.initCart();
-      } else {
-        // 之前登录过，尝试静默获取 openid
-        try {
-          await this.loginWithOpenId();
-          // 登录成功后初始化购物车
-          await this.initCart();
-        } catch (err) {
-          console.warn('静默登录失败，将弹出授权登录弹窗', err);
-          // 延迟一下再弹出登录弹窗，确保小程序完全启动
-          setTimeout(() => {
-            this.showLoginModal();
-          }, 1000);
-          // 未登录状态下初始化空购物车
-          this.initCart();
-        }
       }
     }
     
@@ -122,43 +105,7 @@ App({
     }
   },
 
-  // 显示登录授权弹窗系统
-  showLoginModal() {
-    // 获取当前页面
-    const pages = getCurrentPages();
-    const currentPage = pages[pages.length - 1];
-    
-    if (currentPage && currentPage.showLoginPopupFlow) {
-      // 显示新的弹窗系统
-      currentPage.showLoginPopupFlow();
-    } else {
-      // 如果无法获取当前页面，使用原有的系统弹窗作为备选
-      wx.showModal({
-        title: '登录提示',
-        content: '为了给您提供更好的服务，请先登录授权\n\n您也可以选择游客模式浏览',
-        confirmText: '立即登录',
-        cancelText: '游客模式',
-        success: (res) => {
-          if (res.confirm) {
-            this.login().catch(err => {
-              console.error('用户授权登录失败:', err);
-              wx.showToast({
-                title: '登录失败，请稍后重试',
-                icon: 'none'
-              });
-            });
-          } else {
-            // 用户选择游客模式
-            wx.setStorageSync('hasEverLoggedIn', true); // 标记用户已经选择过
-            wx.showToast({
-              title: '已进入游客模式',
-              icon: 'success'
-            });
-          }
-        }
-      });
-    }
-  },
+  
 
   // 用户登录
   async login() {
@@ -215,6 +162,31 @@ App({
     }
   },
 
+  // 带重试的云函数调用（处理 -404010 超时）
+  async cloudCallWithRetry(name, data = {}, retries = 2) {
+    let attempt = 0;
+    let lastError = null;
+    const backoffs = [300, 800, 1500];
+    while (attempt <= retries) {
+      try {
+        const res = await wx.cloud.callFunction({ name, data });
+        return res;
+      } catch (err) {
+        lastError = err;
+        const code = err && (err.errCode || err.errno || err.code);
+        // -404010: result expired. timeout for result fetching
+        if (code === -404010 && attempt < retries) {
+          const delay = backoffs[Math.min(attempt, backoffs.length - 1)];
+          await new Promise(r => setTimeout(r, delay));
+          attempt += 1;
+          continue;
+        }
+        break;
+      }
+    }
+    throw lastError;
+  },
+
   // 购物车管理
   async addToCart(product) {
     if (!this.globalData.openid) {
@@ -226,19 +198,18 @@ App({
     }
 
     try {
-      const result = await wx.cloud.callFunction({
-        name: 'updateUserCart',
-        data: {
-          action: 'add',
-          productData: {
-            ...product,
-            quantity: product.quantity || 1
-          }
+      const result = await this.cloudCallWithRetry('updateUserCart', {
+        action: 'add',
+        productData: {
+          ...product,
+          quantity: product.quantity || 1
         }
       });
 
       if (result.result.ok) {
         this.globalData.cart = result.result.data;
+        // 保存到本地存储
+        wx.setStorageSync('cart', this.globalData.cart);
         this.updateCartBadge();
         wx.showToast({
           title: '已添加到购物车',
@@ -266,16 +237,15 @@ App({
     }
 
     try {
-      const result = await wx.cloud.callFunction({
-        name: 'updateUserCart',
-        data: {
-          action: 'remove',
-          productId: productId
-        }
+      const result = await this.cloudCallWithRetry('updateUserCart', {
+        action: 'remove',
+        productId: productId
       });
 
       if (result.result.ok) {
         this.globalData.cart = result.result.data;
+        // 保存到本地存储
+        wx.setStorageSync('cart', this.globalData.cart);
         this.updateCartBadge();
       }
     } catch (error) {
@@ -290,17 +260,16 @@ App({
     }
 
     try {
-      const result = await wx.cloud.callFunction({
-        name: 'updateUserCart',
-        data: {
-          action: 'updateQuantity',
-          productId: productId,
-          quantity: quantity
-        }
+      const result = await this.cloudCallWithRetry('updateUserCart', {
+        action: 'updateQuantity',
+        productId: productId,
+        quantity: quantity
       });
 
       if (result.result.ok) {
         this.globalData.cart = result.result.data;
+        // 保存到本地存储
+        wx.setStorageSync('cart', this.globalData.cart);
         this.updateCartBadge();
       }
     } catch (error) {
@@ -315,15 +284,14 @@ App({
     }
 
     try {
-      const result = await wx.cloud.callFunction({
-        name: 'updateUserCart',
-        data: {
-          action: 'clear'
-        }
+      const result = await this.cloudCallWithRetry('updateUserCart', {
+        action: 'clear'
       });
 
       if (result.result.ok) {
         this.globalData.cart = result.result.data;
+        // 保存到本地存储
+        wx.setStorageSync('cart', this.globalData.cart);
         this.updateCartBadge();
       }
     } catch (error) {
@@ -371,29 +339,72 @@ App({
     this.updateCartBadge();
   },
 
-  // 初始化购物车
-  async initCart() {
-    // 从云端加载用户购物车数据
-    if (!this.globalData.openid) {
-      this.globalData.cart = [];
-      this.updateCartBadge();
+  // 将本地购物车数据同步到云端
+  async syncLocalCartToCloud(localCart) {
+    if (!this.globalData.openid || !localCart || localCart.length === 0) {
       return;
     }
 
     try {
-      const result = await wx.cloud.callFunction({
-        name: 'getUserCart'
-      });
-
+      // 逐个添加商品到云端购物车
+      for (const item of localCart) {
+        await this.cloudCallWithRetry('updateUserCart', {
+          action: 'add',
+          productData: {
+            ...item,
+            quantity: item.quantity || 1
+          }
+        });
+      }
+      
+      // 重新获取云端购物车数据
+      const result = await this.cloudCallWithRetry('getUserCart');
       if (result.result.ok) {
         this.globalData.cart = result.result.data || [];
-      } else {
-        this.globalData.cart = [];
+        wx.setStorageSync('cart', this.globalData.cart);
+        this.updateCartBadge();
       }
     } catch (error) {
-      console.error('加载购物车数据失败:', error);
-      this.globalData.cart = [];
+      console.error('同步本地购物车到云端失败:', error);
     }
+  },
+
+  // 初始化购物车
+  async initCart() {
+    // 优先从本地加载购物车数据
+    const localCart = wx.getStorageSync('cart');
+    if (localCart && localCart.length > 0) {
+      this.globalData.cart = localCart;
+      this.updateCartBadge();
+    }
+
+    // 如果已登录，从云端同步数据
+    if (this.globalData.openid) {
+      try {
+        const result = await this.cloudCallWithRetry('getUserCart');
+
+        if (result.result.ok && result.result.data && result.result.data.length > 0) {
+          // 云端有数据，更新本地和全局数据
+          this.globalData.cart = result.result.data;
+          wx.setStorageSync('cart', this.globalData.cart);
+        } else if (localCart && localCart.length > 0) {
+          // 云端无数据但本地有数据，将本地数据同步到云端
+          await this.syncLocalCartToCloud(localCart);
+        }
+      } catch (error) {
+        console.error('加载购物车数据失败:', error);
+        // 如果云端加载失败，使用本地数据
+        if (localCart && localCart.length > 0) {
+          this.globalData.cart = localCart;
+        } else {
+          this.globalData.cart = [];
+        }
+      }
+    } else {
+      // 未登录状态，使用本地数据或空数组
+      this.globalData.cart = localCart || [];
+    }
+    
     this.updateCartBadge();
     
     // 初始化默认地址
@@ -461,8 +472,8 @@ App({
             },
             {
               id: 'product_002',
-              name: '芒果奶昔',
-              price: 32,
+              name: '冰拿铁',
+              price: 40,
               quantity: 1,
               image: '/images/products/drink2.jpg'
             }
@@ -478,3 +489,16 @@ App({
     this.initCart();
   }
 });
+
+// 防止"过滤无依赖文件"误删调试页（仅用于保留依赖，不会执行）
+if (false) {
+  // 引用调试页面的所有文件，确保不被过滤
+  require('pages/debug/debug.js');
+  require('pages/debug/debug.wxml');
+  require('pages/debug/debug.wxss');
+  require('pages/debug/debug.json');
+  
+  // 直接引用页面路径，确保依赖分析识别
+  const debugPagePath = 'pages/debug/debug';
+  console.log('Debug页面路径:', debugPagePath);
+}

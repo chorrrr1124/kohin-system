@@ -8,21 +8,31 @@
   margin-top: 0;
 }
 
-/* 测试按钮样式 */
-.test-buttons {
-  position: fixed;
-  top: 100rpx;
-  right: 20rpx;
-  z-index: 9999;
+/* 调试按钮区域 */
+.debug-section {
+  padding: 20rpx 30rpx;
+  background: #fff;
+  margin-bottom: 20rpx;
 }
 
-.test-btn {
-  background: #ff6b6b !important;
-  color: white !important;
-  border-radius: 20rpx !important;
-  font-size: 24rpx !important;
-  padding: 10rpx 20rpx !important;
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 107, 0.3) !important;
+.debug-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20rpx 30rpx;
+  border-radius: 50rpx;
+  text-align: center;
+  box-shadow: 0 4rpx 15rpx rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.debug-button:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 2rpx 8rpx rgba(102, 126, 234, 0.4);
+}
+
+.debug-text {
+  font-size: 28rpx;
+  font-weight: 500;
 }
 
 /* 轮播图区域 */

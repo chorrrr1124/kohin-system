@@ -29,7 +29,7 @@ export function createCosClient() {
         
         console.log('登录状态:', loginState?.isLoggedIn ? '已登录' : '未登录');
         
-        let res, creds;
+        let res, creds, cloudFunctionResult;
         
         try {
           res = await app.callFunction({ 
@@ -41,7 +41,7 @@ export function createCosClient() {
           
           console.log('云函数返回的完整数据:', res);
           
-          const cloudFunctionResult = res?.result;
+          cloudFunctionResult = res?.result;
           
           if (cloudFunctionResult?.success === false) {
             throw new Error(`云函数执行失败: ${cloudFunctionResult?.error || '未知错误'}`);
@@ -93,7 +93,7 @@ export function createCosClient() {
         // 验证必需字段
         if (!authData.TmpSecretId) {
           console.error('TmpSecretId缺失！authData:', authData);
-          callback(new Error('TmpSecretId字段缺失'));
+          callback(new Error('TmpSecretId字段缺失'), null);
           return;
         }
         
@@ -101,7 +101,7 @@ export function createCosClient() {
       } catch (e) {
         console.error('获取 COS STS 失败:', e);
         console.error('错误详情:', e.message, e.stack);
-        callback(e);
+        callback(e, null);
       }
     },
   });
@@ -112,64 +112,54 @@ export function createCosClient() {
 /**
  * 上传文件到 COS
  * @param {File} file - 要上传的文件
- * @param {string} fileName - 文件名
- * @param {string} category - 分类
- * @returns {Promise<{url: string, key: string}>}
+ * @param {string} key - 文件在 COS 中的路径
+ * @param {Function} onProgress - 进度回调函数
+ * @returns {Promise} 上传结果
  */
-export async function uploadToCOS(file, fileName, category = 'general') {
+export async function uploadToCos(file, key, onProgress) {
   const cos = createCosClient();
   
-  // 根据分类确定上传路径
-  const categoryPath = {
-    'banner': 'images/banner/',
-    'banners': 'images/banners/',
-    'category': 'images/category/',
-    'products': 'images/products/',
-    'icons': 'images/icons/',
-    'tab': 'images/tab/',
-    'general': 'images/general/'
-  };
-
-  const uploadPath = categoryPath[category] || 'images/general/';
-  const key = `${uploadPath}${fileName}`;
-
   return new Promise((resolve, reject) => {
     cos.putObject({
       Bucket: COS_BUCKET,
       Region: COS_REGION,
       Key: key,
       Body: file,
-      Headers: {
-        'Cache-Control': 'max-age=31536000' // 缓存一年
+      onProgress: (progressData) => {
+        if (onProgress) {
+          onProgress(progressData);
+        }
       }
     }, (err, data) => {
       if (err) {
         console.error('COS上传失败:', err);
         reject(err);
       } else {
-        // 构建访问URL（公有读权限）
-        const imageUrl = `https://${COS_BUCKET}.cos.${COS_REGION}.myqcloud.com/${key}`;
-        resolve({
-          url: imageUrl,
-          key: key,
-          location: data.Location
-        });
+        console.log('COS上传成功:', data);
+        resolve(data);
       }
     });
   });
 }
 
 /**
- * 生成带签名的临时访问 URL（用于私有读预览）
+ * 生成唯一的文件键名
+ * @param {string} filename - 原始文件名
+ * @param {string} prefix - 路径前缀
+ * @returns {string} 唯一的文件键名
  */
-export async function getSignedUrl(cos, key, expiresSeconds = 600) {
-  return new Promise((resolve, reject) => {
-    cos.getObjectUrl(
-      { Bucket: COS_BUCKET, Region: COS_REGION, Key: key, Sign: true, Expires: expiresSeconds },
-      (err, data) => {
-        if (err) return reject(err);
-        resolve(data?.Url || data?.UrlShort || '');
-      }
-    );
-  });
+export function generateFileKey(filename, prefix = 'images/') {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 8);
+  const extension = filename.split('.').pop();
+  return `${prefix}${timestamp}_${random}.${extension}`;
+}
+
+/**
+ * 获取文件的公开访问URL
+ * @param {string} key - 文件在 COS 中的路径
+ * @returns {string} 公开访问URL
+ */
+export function getFileUrl(key) {
+  return `https://${COS_BUCKET}.cos.${COS_REGION}.myqcloud.com/${key}`;
 }

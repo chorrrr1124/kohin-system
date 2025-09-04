@@ -814,21 +814,18 @@ Component({
 
     // 显示降级方案
     showFallbackOption() {
-      // 在开发环境中提供诊断选项
+      // 在开发环境中提供诊断选项（已移除诊断）
       const isDev = wx.getAccountInfoSync().miniProgram.envVersion === 'develop';
       
       if (isDev) {
         wx.showActionSheet({
-          itemList: ['手动输入手机号', '运行诊断', '稍后再说'],
+          itemList: ['手动输入手机号', '稍后再说'],
           success: (res) => {
             switch (res.tapIndex) {
               case 0:
                 this.showManualInputDialog();
                 break;
               case 1:
-                this.runDiagnosis();
-                break;
-              case 2:
                 this.setData({
                   showBenefitPopup: false
                 });
@@ -856,19 +853,12 @@ Component({
       }
     },
 
-    // 诊断功能（开发环境使用）
+    // 诊断功能（已移除）
     async runDiagnosis() {
-      try {
-        const debugHelper = require('../../utils/debug-helper.js');
-        const results = await debugHelper.fullDiagnosis();
-        debugHelper.showDiagnosisResult(results);
-      } catch (error) {
-        console.error('诊断失败:', error);
         wx.showToast({
-          title: '诊断失败',
+        title: '诊断功能已移除',
           icon: 'none'
         });
-      }
     },
 
     // 显示手动输入对话框

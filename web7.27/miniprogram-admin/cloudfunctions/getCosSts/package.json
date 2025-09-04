@@ -1,8 +1,10 @@
 {
-  "engines": {
-    "node": "16.13"
-  },
+  "name": "getCosSts",
+  "version": "1.0.0",
+  "description": "获取COS临时密钥",
+  "main": "index.js",
   "dependencies": {
-    "miniprogram-admin": "file:../.."
+    "wx-server-sdk": "~2.6.3",
+    "qcloud-cos-sts": "^3.1.0"
   }
 }

@@ -167,6 +167,9 @@ Page({
         
         console.log('登录成功，用户信息:', userInfo);
 
+        // 登录成功后尝试同步微信收货地址（不打断登录流程）
+        this.syncAddressAfterLogin();
+
         // 延迟跳转，让用户看到成功提示
         setTimeout(() => {
           wx.navigateBack({
@@ -196,6 +199,40 @@ Page({
       });
     } finally {
       this.setData({ loading: false });
+    }
+  },
+
+  // 登录后同步地址：调用微信收货地址授权，保存region并合并到userInfo.address
+  async syncAddressAfterLogin() {
+    try {
+      const cached = wx.getStorageSync('region');
+      // 若已有缓存则跳过静默；也可根据需要更新，这里默认不打扰
+      if (Array.isArray(cached) && cached.length === 3) return;
+
+      // 无缓存时直接设置默认省市区，不打扰用户
+      const defaultRegion = ['广东省', '广州市', '天河区'];
+      wx.setStorageSync('region', defaultRegion);
+      
+      // 更新userInfo.address为默认地址
+      const userInfo = wx.getStorageSync('userInfo') || {};
+      const defaultAddress = defaultRegion.join(' ');
+      const merged = { ...userInfo, address: defaultAddress };
+      wx.setStorageSync('userInfo', merged);
+      
+      console.log('已设置默认地址:', defaultAddress);
+    } catch (e) {
+      console.warn('同步地址失败:', e);
+      
+      // 即使出错也设置默认省市区
+      const defaultRegion = ['广东省', '广州市', '天河区'];
+      wx.setStorageSync('region', defaultRegion);
+      
+      const userInfo = wx.getStorageSync('userInfo') || {};
+      const defaultAddress = defaultRegion.join(' ');
+      const merged = { ...userInfo, address: defaultAddress };
+      wx.setStorageSync('userInfo', merged);
+      
+      console.log('出错后设置默认地址:', defaultAddress);
     }
   },
 

@@ -3,10 +3,15 @@
   <!-- 会员信息区域 -->
   <view class="member-section">
     <view class="member-header">
-      <view class="member-code">
-        <text class="code-text">会员码</text>
-        <text class="level-text">LV 2</text>
-    </view>
+      <view class="member-info-row">
+        <view class="member-code">
+          <text class="code-text">会员码</text>
+          <text class="level-text">LV 2</text>
+        </view>
+        <view class="user-greeting" bindtap="onUserGreetingTap">
+          <text class="greeting-text">hi，{{userDisplayName}}</text>
+        </view>
+      </view>
       <view class="member-title">
         <text class="title-text">资深养鸭人</text>
       </view>
@@ -72,6 +77,13 @@
           </block>
         </view>
       </block>
+    </view>
+    
+    <!-- 调试功能按钮 -->
+    <view class="debug-section">
+      <button class="debug-btn" bindtap="goToDebug">
+        🐛 调试工具
+      </button>
     </view>
   </view>
 

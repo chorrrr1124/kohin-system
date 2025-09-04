@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COS图片上传测试</title>
+    <script src="https://unpkg.com/cos-js-sdk-v5/dist/cos-js-sdk-v5.min.js"></script>
+    <script src="https://unpkg.com/@cloudbase/js-sdk@latest/dist/index.umd.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background-color: #fafafa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            border-color: #007bff;
+            background-color: #f0f8ff;
+        }
+        .upload-area.dragover {
+            border-color: #007bff;
+            background-color: #e6f3ff;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .progress {
+            width: 100%;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #007bff;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .info {
+            color: #17a2b8;
+        }
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .category-select {
+            margin: 10px 0;
+        }
+        .category-select select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 COS图片上传功能测试</h1>
+        
+        <!-- 环境配置 -->
+        <div class="section">
+            <h3>🔧 环境配置</h3>
+            <div>
+                <label>环境ID: </label>
+                <input type="text" id="envId" placeholder="请输入CloudBase环境ID" style="width: 300px; padding: 5px;">
+                <button onclick="initCloudBase()">初始化环境</button>
+            </div>
+            <div id="envStatus" style="margin-top: 10px;"></div>
+        </div>
+
+        <!-- 登录状态 -->
+        <div class="section">
+            <h3>🔐 登录状态</h3>
+            <div id="loginStatus">未登录</div>
+            <button onclick="loginAnonymously()">匿名登录</button>
+            <button onclick="checkLoginStatus()">检查登录状态</button>
+        </div>
+
+        <!-- 云函数测试 -->
+        <div class="section">
+            <h3>☁️ 云函数测试</h3>
+            <button onclick="testGetCosSts()">测试获取COS临时密钥</button>
+            <div id="cosStsResult" style="margin-top: 10px;"></div>
+        </div>
+
+        <!-- 图片上传 -->
+        <div class="section">
+            <h3>📸 图片上传测试</h3>
+            <div class="category-select">
+                <label>选择分类: </label>
+                <select id="categorySelect">
+                    <option value="general">通用图片</option>
+                    <option value="banner">轮播图</option>
+                    <option value="banners">推广图</option>
+                    <option value="category">分类图标</option>
+                    <option value="products">商品图片</option>
+                    <option value="icons">图标</option>
+                    <option value="tab">标签栏</option>
+                </select>
+            </div>
+            
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()" 
+                 ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                <p>�� 点击选择文件或拖拽文件到此处</p>
+                <p style="color: #666; font-size: 14px;">支持 JPG、PNG、GIF 格式，最大 10MB</p>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFileSelect(event)">
+            
+            <div class="progress" id="progressContainer" style="display: none;">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            
+            <button onclick="uploadSelectedFiles()" id="uploadBtn" disabled>开始上传</button>
+            <button onclick="clearFiles()">清空文件</button>
+            
+            <div id="fileList" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- 上传结果 -->
+        <div class="section">
+            <h3>📋 上传结果</h3>
+            <div id="uploadResults"></div>
+        </div>
+
+        <!-- 日志 -->
+        <div class="section">
+            <h3>📝 操作日志</h3>
+            <div class="log" id="logContainer"></div>
+            <button onclick="clearLog()">清空日志</button>
+        </div>
+    </div>
+
+    <script>
+        let app = null;
+        let selectedFiles = [];
+        let cosClient = null;
+
+        // 日志函数
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearLog() {
+            document.getElementById('logContainer').innerHTML = '';
+        }
+
+        // 初始化CloudBase
+        async function initCloudBase() {
+            const envId = document.getElementById('envId').value.trim();
+            if (!envId) {
+                log('请输入环境ID', 'error');
+                return;
+            }
+
+            try {
+                log('正在初始化CloudBase...', 'info');
+                app = cloudbase.init({
+                    env: envId
+                });
+                
+                document.getElementById('envStatus').innerHTML = 
+                    `<span class="success">✅ 环境初始化成功 (${envId})</span>`;
+                log(`环境初始化成功: ${envId}`, 'success');
+            } catch (error) {
+                log(`环境初始化失败: ${error.message}`, 'error');
+                document.getElementById('envStatus').innerHTML = 
+                    `<span class="error">❌ 环境初始化失败</span>`;
+            }
+        }
+
+        // 匿名登录
+        async function loginAnonymously() {
+            if (!app) {
+                log('请先初始化环境', 'error');
+                return;
+            }
+
+            try {
+                log('正在执行匿名登录...', 'info');
+                const auth = app.auth();
+                await auth.signInAnonymously();
+                
+                const loginState = await auth.getLoginState();
+                if (loginState && loginState.isLoggedIn) {
+                    document.getElementById('loginStatus').innerHTML = 
+                        `<span class="success">✅ 匿名登录成功</span>`;
+                    log('匿名登录成功', 'success');
+                } else {
+                    throw new Error('登录状态异常');
+                }
+            } catch (error) {
+                log(`匿名登录失败: ${error.message}`, 'error');
+                document.getElementById('loginStatus').innerHTML = 
+                    `<span class="error">❌ 登录失败</span>`;
+            }
+        }
+
+        // 检查登录状态
+        async function checkLoginStatus() {
+            if (!app) {
+                log('请先初始化环境', 'error');
+                return;
+            }
+
+            try {
+                const auth = app.auth();
+                const loginState = await auth.getLoginState();
+                
+                if (loginState && loginState.isLoggedIn) {
+                    document.getElementById('loginStatus').innerHTML = 
+                        `<span class="success">✅ 已登录 (${loginState.user?.uid || '匿名用户'})</span>`;
+                    log('登录状态检查: 已登录', 'success');
+                } else {
+                    document.getElementById('loginStatus').innerHTML = 
+                        `<span class="error">❌ 未登录</span>`;
+                    log('登录状态检查: 未登录', 'info');
+                }
+            } catch (error) {
+                log(`检查登录状态失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试获取COS临时密钥
+        async function testGetCosSts() {
+            if (!app) {
+                log('请先初始化环境', 'error');
+                return;
+            }
+
+            try {
+                log('正在调用getCosSts云函数...', 'info');
+                
+                const result = await app.callFunction({
+                    name: 'getCosSts',
+                    data: {
+                        prefix: 'images/'
+                    }
+                });
+
+                log('云函数调用结果: ' + JSON.stringify(result, null, 2), 'info');
+                
+                if (result.result && result.result.success) {
+                    const credentials = result.result.data.credentials;
+                    document.getElementById('cosStsResult').innerHTML = 
+                        `<div class="success">
+                            ✅ 获取临时密钥成功<br>
+                            tmpSecretId: ${credentials.tmpSecretId ? '已获取' : '缺失'}<br>
+                            tmpSecretKey: ${credentials.tmpSecretKey ? '已获取' : '缺失'}<br>
+                            sessionToken: ${credentials.sessionToken ? '已获取' : '缺失'}
+                        </div>`;
+                    log('获取COS临时密钥成功', 'success');
+                } else {
+                    throw new Error(result.result?.error || '云函数返回失败');
+                }
+            } catch (error) {
+                log(`获取COS临时密钥失败: ${error.message}`, 'error');
+                document.getElementById('cosStsResult').innerHTML = 
+                    `<div class="error">❌ 获取临时密钥失败: ${error.message}</div>`;
+            }
+        }
+
+        // 处理文件选择
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            selectedFiles = files;
+            displaySelectedFiles();
+            log(`选择了 ${files.length} 个文件`, 'info');
+        }
+
+        // 处理拖拽
+        function handleDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('dragover');
+            
+            const files = Array.from(event.dataTransfer.files).filter(file => 
+                file.type.startsWith('image/')
+            );
+            selectedFiles = files;
+            displaySelectedFiles();
+            log(`拖拽选择了 ${files.length} 个图片文件`, 'info');
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('dragover');
+        }
+
+        // 显示选中的文件
+        function displaySelectedFiles() {
+            const fileList = document.getElementById('fileList');
+            const uploadBtn = document.getElementById('uploadBtn');
+            
+            if (selectedFiles.length === 0) {
+                fileList.innerHTML = '';
+                uploadBtn.disabled = true;
+                return;
+            }
+
+            let html = '<h4>选中的文件:</h4>';
+            selectedFiles.forEach((file, index) => {
+                html += `
+                    <div style="display: flex; align-items: center; margin: 5px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                        <img src="${URL.createObjectURL(file)}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px; border-radius: 3px;">
+                        <div>
+                            <div><strong>${file.name}</strong></div>
+                            <div style="color: #666; font-size: 12px;">
+                                大小: ${(file.size / 1024).toFixed(1)}KB | 
+                                类型: ${file.type}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            fileList.innerHTML = html;
+            uploadBtn.disabled = false;
+        }
+
+        // 清空文件
+        function clearFiles() {
+            selectedFiles = [];
+            document.getElementById('fileInput').value = '';
+            displaySelectedFiles();
+            document.getElementById('uploadResults').innerHTML = '';
+            log('已清空文件选择', 'info');
+        }
+
+        // 上传文件
+        async function uploadSelectedFiles() {
+            if (!app) {
+                log('请先初始化环境', 'error');
+                return;
+            }
+
+            if (selectedFiles.length === 0) {
+                log('请先选择要上传的文件', 'error');
+                return;
+            }
+
+            const category = document.getElementById('categorySelect').value;
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const uploadResults = document.getElementById('uploadResults');
+
+            try {
+                log(`开始上传 ${selectedFiles.length} 个文件到分类: ${category}`, 'info');
+                
+                uploadBtn.disabled = true;
+                progressContainer.style.display = 'block';
+                uploadResults.innerHTML = '';
+
+                // 获取COS临时密钥
+                log('正在获取COS临时密钥...', 'info');
+                const stsResult = await app.callFunction({
+                    name: 'getCosSts',
+                    data: { prefix: 'images/' }
+                });
+
+                if (!stsResult.result?.success) {
+                    throw new Error(stsResult.result?.error || '获取临时密钥失败');
+                }
+
+                const credentials = stsResult.result.data.credentials;
+                log('COS临时密钥获取成功', 'success');
+
+                // 创建COS客户端
+                cosClient = new COS({
+                    getAuthorization: function(options, callback) {
+                        callback({
+                            TmpSecretId: credentials.tmpSecretId,
+                            TmpSecretKey: credentials.tmpSecretKey,
+                            SecurityToken: credentials.sessionToken,
+                            StartTime: stsResult.result.data.startTime,
+                            ExpiredTime: stsResult.result.data.expiredTime
+                        });
+                    }
+                });
+
+                // 上传文件
+                const results = [];
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    const progress = ((i + 1) / selectedFiles.length) * 100;
+                    progressBar.style.width = progress + '%';
+                    
+                    log(`正在上传文件 ${i + 1}/${selectedFiles.length}: ${file.name}`, 'info');
+                    
+                    const result = await uploadSingleFile(file, category);
+                    results.push(result);
+                    
+                    log(`文件上传完成: ${file.name}`, 'success');
+                }
+
+                // 显示上传结果
+                displayUploadResults(results);
+                log(`所有文件上传完成，共 ${results.length} 个文件`, 'success');
+
+            } catch (error) {
+                log(`上传失败: ${error.message}`, 'error');
+                uploadResults.innerHTML = `<div class="error">❌ 上传失败: ${error.message}</div>`;
+            } finally {
+                uploadBtn.disabled = false;
+                progressContainer.style.display = 'none';
+                progressBar.style.width = '0%';
+            }
+        }
+
+        // 上传单个文件
+        function uploadSingleFile(file, category) {
+            return new Promise((resolve, reject) => {
+                const timestamp = Date.now();
+                const randomStr = Math.random().toString(36).substring(2, 8);
+                const fileExtension = file.name.split('.').pop();
+                const fileName = `${timestamp}_${randomStr}.${fileExtension}`;
+                
+                const categoryPath = {
+                    'banner': 'images/banner/',
+                    'banners': 'images/banners/',
+                    'category': 'images/category/',
+                    'products': 'images/products/',
+                    'icons': 'images/icons/',
+                    'tab': 'images/tab/',
+                    'general': 'images/general/'
+                };
+
+                const uploadPath = categoryPath[category] || 'images/general/';
+                const key = `${uploadPath}${fileName}`;
+
+                cosClient.putObject({
+                    Bucket: 'kohin-1327524326',
+                    Region: 'ap-guangzhou',
+                    Key: key,
+                    Body: file,
+                    Headers: {
+                        'Cache-Control': 'max-age=31536000'
+                    }
+                }, (err, data) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        const imageUrl = `https://kohin-1327524326.cos.ap-guangzhou.myqcloud.com/${key}`;
+                        resolve({
+                            fileName: file.name,
+                            cosKey: key,
+                            cosUrl: imageUrl,
+                            size: file.size,
+                            type: file.type
+                        });
+                    }
+                });
+            });
+        }
+
+        // 显示上传结果
+        function displayUploadResults(results) {
+            const uploadResults = document.getElementById('uploadResults');
+            let html = '<h4>上传结果:</h4>';
+            
+            results.forEach((result, index) => {
+                html += `
+                    <div style="border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin: 10px 0;">
+                        <div class="success">✅ 文件 ${index + 1}: ${result.fileName}</div>
+                        <div style="margin: 5px 0;">
+                            <strong>文件名:</strong> ${result.fileName}<br>
+                            <strong>大小:</strong> ${(result.size / 1024).toFixed(1)}KB<br>
+                            <strong>类型:</strong> ${result.type}<br>
+                            <strong>COS路径:</strong> ${result.cosKey}<br>
+                            <strong>访问URL:</strong> <a href="${result.cosUrl}" target="_blank">${result.cosUrl}</a>
+                        </div>
+                        <img src="${result.cosUrl}" class="image-preview" alt="上传的图片">
+                    </div>
+                `;
+            });
+            
+            uploadResults.innerHTML = html;
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('COS图片上传测试页面已加载', 'info');
+            log('请先输入环境ID并初始化环境', 'info');
+        });
+    </script>
+</body>
+</html>

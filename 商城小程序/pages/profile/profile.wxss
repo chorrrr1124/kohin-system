@@ -9,6 +9,46 @@
 
 
 
+/* 会员信息区域 */
+.member-section {
+  margin: 20rpx 30rpx;
+  padding: 40rpx 30rpx;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  border-radius: 20rpx;
+  position: relative;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.member-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20rpx;
+}
+
+.member-code {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.user-greeting {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 16rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+}
+
+.greeting-text {
+  font-size: 28rpx;
+  color: white;
+  font-weight: 500;
+}
+
 /* 会员卡 */
 .member-card {
   margin: 20rpx 30rpx;
@@ -412,5 +452,29 @@
   color: white;
   font-size: 20rpx;
   font-weight: bold;
+}
+
+/* 调试功能按钮 */
+.debug-section {
+  margin: 20rpx 30rpx;
+  padding: 20rpx;
+}
+
+.debug-btn {
+  width: 100%;
+  padding: 20rpx;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  color: white;
+  border: none;
+  border-radius: 15rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  box-shadow: 0 4rpx 15rpx rgba(255, 107, 107, 0.3);
+  transition: all 0.3s ease;
+}
+
+.debug-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 107, 0.3);
 }
 

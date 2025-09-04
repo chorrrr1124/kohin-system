@@ -31,6 +31,25 @@ Page({
     this.loadCategories()
     this.loadBrands()
     this.loadProducts()
+    this.loadProductImages()
+  },
+
+  /**
+   * 加载商品图片
+   */
+  loadProductImages: function() {
+    wx.cloud.callFunction({
+      name: 'getImages',
+      data: { type: 'products' }
+    }).then(res => {
+      if (res.result && res.result.success) {
+        // 将图片URL存储到全局数据中，供商品使用
+        getApp().globalData.productImages = res.result.data;
+        console.log('商品图片加载成功:', res.result.data.length, '张');
+      }
+    }).catch(err => {
+      console.error('加载商品图片失败:', err);
+    });
   },
 
   /**

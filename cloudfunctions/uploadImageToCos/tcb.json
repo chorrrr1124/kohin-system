@@ -1,0 +1,19 @@
+{
+  "functions": [
+    {
+      "name": "uploadImageToCos",
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "timeout": 30,
+      "memorySize": 128,
+      "installDependency": true,
+      "description": "上传图片到 COS 的云函数",
+      "environment": {
+        "variables": {
+          "COS_BUCKET": "",
+          "COS_REGION": ""
+        }
+      }
+    }
+  ]
+} 

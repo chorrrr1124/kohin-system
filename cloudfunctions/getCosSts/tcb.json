@@ -10,10 +10,8 @@
       "description": "获取腾讯云COS临时密钥的云函数",
       "environment": {
         "variables": {
-          "TENCENT_SECRET_ID": "YOUR_SECRET_ID",
-        "TENCENT_SECRET_KEY": "YOUR_SECRET_KEY",
-        "COS_BUCKET": "kohin-1327524326",
-        "COS_REGION": "ap-guangzhou"
+          "COS_BUCKET": "",
+          "COS_REGION": ""
         }
       }
     }

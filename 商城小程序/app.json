@@ -7,13 +7,15 @@
     "pages/orders/orders",
     "pages/order/order",
     "pages/profile/profile",
+    "pages/profile-edit/profile-edit",
+    "pages/user/user",
     "pages/coupon/coupon",
-    "pages/debug/debug",
     "pages/test-popup/test-popup",
     "pages/test-benefit-login/test-benefit-login",
     "pages/phone-demo/phone-demo",
     "pages/phone-input/phone-input",
-    "pages/agreement/index"
+    "pages/agreement/index",
+    "pages/debug/debug"
   ],
   "window": {
     "backgroundTextStyle": "light",

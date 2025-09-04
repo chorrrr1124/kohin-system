@@ -1,0 +1,57 @@
+<!-- pages/profile-edit/profile-edit.wxml -->
+<view class="profile-edit">
+    <view class="avatar-block">
+    <image class="avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
+    <view class="avatar-refresh" bindtap="onChangeAvatar">⟳</view>
+  </view>
+
+  <view class="form-card">
+    <view class="form-item">
+      <text class="label">姓名</text>
+      <input class="input" placeholder="请输入您的姓名" value="{{form.name}}" bindinput="onNameInput" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">性别</text>
+      <view class="gender">
+        <view class="gender-btn {{form.gender==='男'?'active':''}}" data-value="男" bindtap="onGenderTap">男</view>
+        <view class="gender-btn {{form.gender==='女'?'active':''}}" data-value="女" bindtap="onGenderTap">女</view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="label">手机号</text>
+      <view class="phone-row">
+        <text class="phone-text">{{maskedPhone}}</text>
+        <button class="change-btn" size="mini" bindtap="onChangePhone">更换</button>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="label">生日</text>
+      <picker mode="date" value="{{form.birthday}}" start="1950-01-01" end="2035-12-31" bindchange="onBirthdayChange">
+        <view class="picker-row">
+          <text class="picker-text">{{birthdayText}}</text>
+          <text class="arrow">›</text>
+        </view>
+      </picker>
+      <text class="tip">填写完不可修改</text>
+    </view>
+
+    <view class="form-item">
+      <text class="label">详细地址</text>
+      <picker mode="region" value="{{region}}" bindchange="onRegionChange">
+        <view class="picker-row">
+          <text class="picker-text">{{regionText}}</text>
+          <text class="arrow">›</text>
+        </view>
+      </picker>
+      <button class="import-btn" size="mini" bindtap="onImportFromWeixin">从微信收货地址导入</button>
+    </view>
+  </view>
+
+  <view class="footer">
+    <button class="save-btn" type="primary" bindtap="onSave">保存</button>
+    <navigator url="/pages/user/user" hover-class="none" class="account-link">账号管理</navigator>
+  </view>
+</view> 

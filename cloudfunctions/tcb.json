@@ -13,16 +13,14 @@
       ],
       "installDependency": true,
       "envVariables": {
-        "TENCENT_SECRET_ID": "请在云开发控制台设置正确的SecretId",
-        "TENCENT_SECRET_KEY": "请在云开发控制台设置正确的SecretKey",
-        "COS_BUCKET": "kohin-1327524326",
-        "COS_REGION": "ap-guangzhou"
+        "COS_BUCKET": "",
+        "COS_REGION": ""
       }
     },
     {
       "name": "uploadImageToCos",
       "timeout": 30,
-      "runtime": "Nodejs10.15",
+      "runtime": "Nodejs16.13",
       "handler": "index.main",
       "ignore": [
         ".git/**",
@@ -30,10 +28,8 @@
       ],
       "installDependency": true,
       "envVariables": {
-        "TENCENT_SECRET_ID": "请在云开发控制台设置",
-        "TENCENT_SECRET_KEY": "请在云开发控制台设置",
-        "COS_BUCKET": "请在云开发控制台设置",
-        "COS_REGION": "请在云开发控制台设置"
+        "COS_BUCKET": "",
+        "COS_REGION": ""
       }
     }
   ]

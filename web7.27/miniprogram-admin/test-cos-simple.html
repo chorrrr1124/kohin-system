@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单COS测试</title>
+    <script src="https://unpkg.com/@cloudbase/js-sdk@latest/dist/index.umd.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:disabled { background: #ccc; }
+        .log { background: #f5f5f5; padding: 10px; border-radius: 3px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>🧪 简单COS测试</h1>
+    
+    <div class="section">
+        <h3>1. 环境配置</h3>
+        <input type="text" id="envId" placeholder="输入环境ID" style="width: 300px; padding: 5px;">
+        <button onclick="initEnv()">初始化</button>
+        <div id="envStatus"></div>
+    </div>
+
+    <div class="section">
+        <h3>2. 登录测试</h3>
+        <button onclick="login()">匿名登录</button>
+        <div id="loginStatus"></div>
+    </div>
+
+    <div class="section">
+        <h3>3. 云函数测试</h3>
+        <button onclick="testCosSts()">测试getCosSts</button>
+        <div id="cosResult"></div>
+    </div>
+
+    <div class="section">
+        <h3>4. 日志</h3>
+        <div class="log" id="log"></div>
+        <button onclick="clearLog()">清空</button>
+    </div>
+
+    <script>
+        let app = null;
+
+        function log(msg, type = 'info') {
+            const logEl = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${time}] ${msg}`;
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(msg);
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        async function initEnv() {
+            const envId = document.getElementById('envId').value.trim();
+            if (!envId) {
+                log('请输入环境ID', 'error');
+                return;
+            }
+
+            try {
+                app = cloudbase.init({ env: envId });
+                document.getElementById('envStatus').innerHTML = '<span class="success">✅ 环境初始化成功</span>';
+                log(`环境初始化成功: ${envId}`, 'success');
+            } catch (error) {
+                log(`环境初始化失败: ${error.message}`, 'error');
+                document.getElementById('envStatus').innerHTML = '<span class="error">❌ 初始化失败</span>';
+            }
+        }
+
+        async function login() {
+            if (!app) {
+                log('请先初始化环境', 'error');
+                return;
+            }
+
+            try {
+                const auth = app.auth();
+                await auth.signInAnonymously();
+                const loginState = await auth.getLoginState();
+                
+                if (loginState && loginState.isLoggedIn) {
+                    document.getElementById('loginStatus').innerHTML = '<span class="success">✅ 登录成功</span>';
+                    log('匿名登录成功', 'success');
+                } else {
+                    throw new Error('登录状态异常');
+                }
+            } catch (error) {
+                log(`登录失败: ${error.message}`, 'error');
+                document.getElementById('loginStatus').innerHTML = '<span class="error">❌ 登录失败</span>';
+            }
+        }
+
+        async function testCosSts() {
+            if (!app) {
+                log('请先初始化环境', 'error');
+                return;
+            }
+
+            try {
+                log('正在调用getCosSts云函数...', 'info');
+                
+                const result = await app.callFunction({
+                    name: 'getCosSts',
+                    data: { prefix: 'images/' }
+                });
+
+                log('云函数返回: ' + JSON.stringify(result, null, 2), 'info');
+
+                if (result.result && result.result.success) {
+                    const creds = result.result.data.credentials;
+                    document.getElementById('cosResult').innerHTML = `
+                        <div class="success">
+                            ✅ 获取COS临时密钥成功<br>
+                            tmpSecretId: ${creds.tmpSecretId ? '已获取' : '缺失'}<br>
+                            tmpSecretKey: ${creds.tmpSecretKey ? '已获取' : '缺失'}<br>
+                            sessionToken: ${creds.sessionToken ? '已获取' : '缺失'}
+                        </div>
+                    `;
+                    log('获取COS临时密钥成功', 'success');
+                } else {
+                    throw new Error(result.result?.error || '云函数返回失败');
+                }
+            } catch (error) {
+                log(`获取COS临时密钥失败: ${error.message}`, 'error');
+                document.getElementById('cosResult').innerHTML = `<div class="error">❌ 失败: ${error.message}</div>`;
+            }
+        }
+
+        // 页面加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            log('测试页面已加载，请按步骤测试', 'info');
+        });
+    </script>
+</body>
+</html>

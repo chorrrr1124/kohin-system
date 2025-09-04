@@ -21,8 +21,8 @@ const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('system');
   const [settings, setSettings] = useState({
     system: {
-      siteName: '丘大叔茶饮管理系统',
-      siteDescription: '专业的茶饮店管理系统',
+      siteName: '管理系统',
+      siteDescription: '专业的店铺管理系统',
       contactEmail: 'admin@example.com',
       contactPhone: '400-123-4567',
       timezone: 'Asia/Shanghai',
@@ -151,345 +151,293 @@ const SettingsPage = () => {
   };
 
   const tabs = [
-    { id: 'system', name: '系统设置', icon: CogIcon },
-    { id: 'notification', name: '通知设置', icon: BellIcon },
-    { id: 'security', name: '安全设置', icon: ShieldCheckIcon },
-    { id: 'logs', name: '操作日志', icon: DocumentTextIcon }
+    { id: 'system', label: '系统设置', icon: CogIcon },
+    { id: 'notification', label: '通知设置', icon: BellIcon },
+    { id: 'security', label: '安全设置', icon: ShieldCheckIcon },
+    { id: 'logs', label: '操作日志', icon: DocumentTextIcon }
   ];
-
-  if (loading && !settings.system.siteName) {
-    return <ContentLoading />;
-  }
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">系统设置</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">系统设置</h1>
+        <p className="text-gray-600 mt-1">管理系统配置和参数</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* 侧边栏 */}
-        <div className="lg:col-span-1">
-          <div className="bg-base-100 shadow rounded-lg p-4">
-            <nav className="space-y-2">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center px-3 py-2 text-left rounded-lg transition-colors ${
-                      activeTab === tab.id
-                        ? 'bg-primary text-primary-content'
-                        : 'hover:bg-base-200'
-                    }`}
-                  >
-                    <Icon className="w-5 h-5 mr-3" />
-                    {tab.name}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
+      <div className="bg-white rounded-lg shadow">
+        {/* 标签页导航 */}
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8 px-6">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                  activeTab === tab.id
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <tab.icon className="w-5 h-5" />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </nav>
         </div>
 
-        {/* 主内容区 */}
-        <div className="lg:col-span-3">
-          <div className="bg-base-100 shadow rounded-lg p-6">
-            {/* 系统设置 */}
-            {activeTab === 'system' && (
-              <div className="space-y-6">
-                <h2 className="text-xl font-semibold flex items-center">
-                  <CogIcon className="w-6 h-6 mr-2" />
-                  系统设置
-                </h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">网站名称</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered"
-                      value={settings.system.siteName}
-                      onChange={(e) => updateSetting('system', 'siteName', e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">联系邮箱</span>
-                    </label>
-                    <input
-                      type="email"
-                      className="input input-bordered"
-                      value={settings.system.contactEmail}
-                      onChange={(e) => updateSetting('system', 'contactEmail', e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">联系电话</span>
-                    </label>
-                    <input
-                      type="tel"
-                      className="input input-bordered"
-                      value={settings.system.contactPhone}
-                      onChange={(e) => updateSetting('system', 'contactPhone', e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">时区</span>
-                    </label>
-                    <select
-                      className="select select-bordered"
-                      value={settings.system.timezone}
-                      onChange={(e) => updateSetting('system', 'timezone', e.target.value)}
-                    >
-                      <option value="Asia/Shanghai">Asia/Shanghai</option>
-                      <option value="UTC">UTC</option>
-                      <option value="America/New_York">America/New_York</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div className="form-control">
+        {/* 标签页内容 */}
+        <div className="p-6">
+          {activeTab === 'system' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
                   <label className="label">
-                    <span className="label-text">网站描述</span>
+                    <span className="label-text">网站名称</span>
                   </label>
-                  <textarea
-                    className="textarea textarea-bordered h-24"
-                    value={settings.system.siteDescription}
-                    onChange={(e) => updateSetting('system', 'siteDescription', e.target.value)}
-                  ></textarea>
+                  <input
+                    type="text"
+                    className="input input-bordered w-full"
+                    value={settings.system.siteName}
+                    onChange={(e) => updateSetting('system', 'siteName', e.target.value)}
+                  />
                 </div>
-              </div>
-            )}
 
-            {/* 通知设置 */}
-            {activeTab === 'notification' && (
-              <div className="space-y-6">
-                <h2 className="text-xl font-semibold flex items-center">
-                  <BellIcon className="w-6 h-6 mr-2" />
-                  通知设置
-                </h2>
-                
-                <div className="space-y-4">
-                  <div className="form-control">
-                    <label className="cursor-pointer label">
-                      <span className="label-text">邮件通知</span>
-                      <input
-                        type="checkbox"
-                        className="toggle toggle-primary"
-                        checked={settings.notification.emailNotifications}
-                        onChange={(e) => updateSetting('notification', 'emailNotifications', e.target.checked)}
-                      />
-                    </label>
-                  </div>
-                  
-                  <div className="form-control">
-                    <label className="cursor-pointer label">
-                      <span className="label-text">短信通知</span>
-                      <input
-                        type="checkbox"
-                        className="toggle toggle-primary"
-                        checked={settings.notification.smsNotifications}
-                        onChange={(e) => updateSetting('notification', 'smsNotifications', e.target.checked)}
-                      />
-                    </label>
-                  </div>
-                  
-                  <div className="form-control">
-                    <label className="cursor-pointer label">
-                      <span className="label-text">订单通知</span>
-                      <input
-                        type="checkbox"
-                        className="toggle toggle-primary"
-                        checked={settings.notification.orderNotifications}
-                        onChange={(e) => updateSetting('notification', 'orderNotifications', e.target.checked)}
-                      />
-                    </label>
-                  </div>
-                  
-                  <div className="form-control">
-                    <label className="cursor-pointer label">
-                      <span className="label-text">库存预警</span>
-                      <input
-                        type="checkbox"
-                        className="toggle toggle-primary"
-                        checked={settings.notification.stockAlerts}
-                        onChange={(e) => updateSetting('notification', 'stockAlerts', e.target.checked)}
-                      />
-                    </label>
-                  </div>
-                  
-                  <div className="form-control">
-                    <label className="cursor-pointer label">
-                      <span className="label-text">系统警告</span>
-                      <input
-                        type="checkbox"
-                        className="toggle toggle-primary"
-                        checked={settings.notification.systemAlerts}
-                        onChange={(e) => updateSetting('notification', 'systemAlerts', e.target.checked)}
-                      />
-                    </label>
-                  </div>
+                <div>
+                  <label className="label">
+                    <span className="label-text">联系电话</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="input input-bordered w-full"
+                    value={settings.system.contactPhone}
+                    onChange={(e) => updateSetting('system', 'contactPhone', e.target.value)}
+                  />
                 </div>
-              </div>
-            )}
 
-            {/* 安全设置 */}
-            {activeTab === 'security' && (
-              <div className="space-y-6">
-                <h2 className="text-xl font-semibold flex items-center">
-                  <ShieldCheckIcon className="w-6 h-6 mr-2" />
-                  安全设置
-                </h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">会话超时时间（分钟）</span>
-                    </label>
-                    <input
-                      type="number"
-                      className="input input-bordered"
-                      value={settings.security.sessionTimeout}
-                      onChange={(e) => updateSetting('security', 'sessionTimeout', parseInt(e.target.value))}
-                    />
-                  </div>
-                  
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">密码最小长度</span>
-                    </label>
-                    <input
-                      type="number"
-                      className="input input-bordered"
-                      value={settings.security.passwordMinLength}
-                      onChange={(e) => updateSetting('security', 'passwordMinLength', parseInt(e.target.value))}
-                    />
-                  </div>
-                  
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">最大登录尝试次数</span>
-                    </label>
-                    <input
-                      type="number"
-                      className="input input-bordered"
-                      value={settings.security.loginAttempts}
-                      onChange={(e) => updateSetting('security', 'loginAttempts', parseInt(e.target.value))}
-                    />
-                  </div>
+                <div>
+                  <label className="label">
+                    <span className="label-text">联系邮箱</span>
+                  </label>
+                  <input
+                    type="email"
+                    className="input input-bordered w-full"
+                    value={settings.system.contactEmail}
+                    onChange={(e) => updateSetting('system', 'contactEmail', e.target.value)}
+                  />
                 </div>
-                
-                <div className="space-y-4">
-                  <div className="form-control">
-                    <label className="cursor-pointer label">
-                      <span className="label-text">密码必须包含特殊字符</span>
-                      <input
-                        type="checkbox"
-                        className="toggle toggle-primary"
-                        checked={settings.security.requireSpecialChars}
-                        onChange={(e) => updateSetting('security', 'requireSpecialChars', e.target.checked)}
-                      />
-                    </label>
-                  </div>
-                  
-                  <div className="form-control">
-                    <label className="cursor-pointer label">
-                      <span className="label-text">启用双因素认证</span>
-                      <input
-                        type="checkbox"
-                        className="toggle toggle-primary"
-                        checked={settings.security.enableTwoFactor}
-                        onChange={(e) => updateSetting('security', 'enableTwoFactor', e.target.checked)}
-                      />
-                    </label>
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {/* 操作日志 */}
-            {activeTab === 'logs' && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-semibold flex items-center">
-                    <DocumentTextIcon className="w-6 h-6 mr-2" />
-                    操作日志
-                  </h2>
-                  <button
-                    onClick={fetchOperationLogs}
-                    className="btn btn-sm btn-outline"
+                <div>
+                  <label className="label">
+                    <span className="label-text">时区</span>
+                  </label>
+                  <select
+                    className="select select-bordered w-full"
+                    value={settings.system.timezone}
+                    onChange={(e) => updateSetting('system', 'timezone', e.target.value)}
                   >
-                    刷新日志
-                  </button>
-                </div>
-                
-                <div className="overflow-x-auto">
-                  <table className="table table-zebra w-full">
-                    <thead>
-                      <tr>
-                        <th>时间</th>
-                        <th>操作</th>
-                        <th>模块</th>
-                        <th>动作</th>
-                        <th>详情</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {operationLogs.length === 0 ? (
-                        <tr>
-                          <td colSpan="5" className="text-center py-8 text-gray-500">
-                            暂无操作日志
-                          </td>
-                        </tr>
-                      ) : (
-                        operationLogs.map((log) => (
-                          <tr key={log._id}>
-                            <td className="text-sm">{formatTime(log.createTime)}</td>
-                            <td>
-                              <span className="badge badge-outline">{log.operation}</span>
-                            </td>
-                            <td>{log.module}</td>
-                            <td>{log.action}</td>
-                            <td className="text-sm text-gray-500">
-                              {log.details ? JSON.stringify(log.details) : '-'}
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                    <option value="Asia/Shanghai">Asia/Shanghai</option>
+                    <option value="Asia/Tokyo">Asia/Tokyo</option>
+                    <option value="America/New_York">America/New_York</option>
+                    <option value="Europe/London">Europe/London</option>
+                  </select>
                 </div>
               </div>
-            )}
 
-            {/* 保存按钮 */}
-            {activeTab !== 'logs' && (
-              <div className="flex justify-end pt-6 border-t">
+              <div>
+                <label className="label">
+                  <span className="label-text">网站描述</span>
+                </label>
+                <textarea
+                  className="textarea textarea-bordered w-full h-24"
+                  value={settings.system.siteDescription}
+                  onChange={(e) => updateSetting('system', 'siteDescription', e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'notification' && (
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div className="form-control">
+                  <label className="label cursor-pointer">
+                    <span className="label-text">邮件通知</span>
+                    <input
+                      type="checkbox"
+                      className="toggle toggle-primary"
+                      checked={settings.notification.emailNotifications}
+                      onChange={(e) => updateSetting('notification', 'emailNotifications', e.target.checked)}
+                    />
+                  </label>
+                </div>
+
+                <div className="form-control">
+                  <label className="label cursor-pointer">
+                    <span className="label-text">短信通知</span>
+                    <input
+                      type="checkbox"
+                      className="toggle toggle-primary"
+                      checked={settings.notification.smsNotifications}
+                      onChange={(e) => updateSetting('notification', 'smsNotifications', e.target.checked)}
+                    />
+                  </label>
+                </div>
+
+                <div className="form-control">
+                  <label className="label cursor-pointer">
+                    <span className="label-text">订单通知</span>
+                    <input
+                      type="checkbox"
+                      className="toggle toggle-primary"
+                      checked={settings.notification.orderNotifications}
+                      onChange={(e) => updateSetting('notification', 'orderNotifications', e.target.checked)}
+                    />
+                  </label>
+                </div>
+
+                <div className="form-control">
+                  <label className="label cursor-pointer">
+                    <span className="label-text">库存预警</span>
+                    <input
+                      type="checkbox"
+                      className="toggle toggle-primary"
+                      checked={settings.notification.stockAlerts}
+                      onChange={(e) => updateSetting('notification', 'stockAlerts', e.target.checked)}
+                    />
+                  </label>
+                </div>
+
+                <div className="form-control">
+                  <label className="label cursor-pointer">
+                    <span className="label-text">系统警报</span>
+                    <input
+                      type="checkbox"
+                      className="toggle toggle-primary"
+                      checked={settings.notification.systemAlerts}
+                      onChange={(e) => updateSetting('notification', 'systemAlerts', e.target.checked)}
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'security' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="label">
+                    <span className="label-text">会话超时时间（分钟）</span>
+                  </label>
+                  <input
+                    type="number"
+                    className="input input-bordered w-full"
+                    value={settings.security.sessionTimeout}
+                    onChange={(e) => updateSetting('security', 'sessionTimeout', parseInt(e.target.value))}
+                  />
+                </div>
+
+                <div>
+                  <label className="label">
+                    <span className="label-text">密码最小长度</span>
+                  </label>
+                  <input
+                    type="number"
+                    className="input input-bordered w-full"
+                    value={settings.security.passwordMinLength}
+                    onChange={(e) => updateSetting('security', 'passwordMinLength', parseInt(e.target.value))}
+                  />
+                </div>
+
+                <div>
+                  <label className="label">
+                    <span className="label-text">登录尝试次数限制</span>
+                  </label>
+                  <input
+                    type="number"
+                    className="input input-bordered w-full"
+                    value={settings.security.loginAttempts}
+                    onChange={(e) => updateSetting('security', 'loginAttempts', parseInt(e.target.value))}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="form-control">
+                  <label className="label cursor-pointer">
+                    <span className="label-text">要求特殊字符</span>
+                    <input
+                      type="checkbox"
+                      className="toggle toggle-primary"
+                      checked={settings.security.requireSpecialChars}
+                      onChange={(e) => updateSetting('security', 'requireSpecialChars', e.target.checked)}
+                    />
+                  </label>
+                </div>
+
+                <div className="form-control">
+                  <label className="label cursor-pointer">
+                    <span className="label-text">启用双因素认证</span>
+                    <input
+                      type="checkbox"
+                      className="toggle toggle-primary"
+                      checked={settings.security.enableTwoFactor}
+                      onChange={(e) => updateSetting('security', 'enableTwoFactor', e.target.checked)}
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'logs' && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium">最近操作日志</h3>
                 <button
-                  onClick={saveSettings}
-                  className="btn btn-primary"
-                  disabled={loading}
+                  onClick={fetchOperationLogs}
+                  className="btn btn-outline btn-sm"
                 >
-                  {loading ? (
-                    <>
-                      <span className="loading loading-spinner loading-sm mr-2"></span>
-                      保存中...
-                    </>
-                  ) : (
-                    '保存设置'
-                  )}
+                  刷新
                 </button>
               </div>
-            )}
+
+              <div className="overflow-x-auto">
+                <table className="table w-full">
+                  <thead>
+                    <tr>
+                      <th>操作</th>
+                      <th>模块</th>
+                      <th>动作</th>
+                      <th>时间</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {operationLogs.map((log, index) => (
+                      <tr key={index}>
+                        <td>{log.operation}</td>
+                        <td>{log.module}</td>
+                        <td>{log.action}</td>
+                        <td>{formatTime(log.createTime)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 保存按钮 */}
+        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div className="flex justify-end">
+            <button
+              onClick={saveSettings}
+              disabled={loading}
+              className="btn btn-primary"
+            >
+              {loading ? '保存中...' : '保存设置'}
+            </button>
           </div>
         </div>
       </div>
