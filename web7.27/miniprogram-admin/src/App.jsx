@@ -9,10 +9,13 @@ import CouponManagePage from './pages/CouponManagePage';
 import CouponAnalyticsPage from './pages/CouponAnalyticsPage';
 import InventoryManagePage from './pages/InventoryManagePage';
 import ImageManagePage from './pages/ImageManagePage';
+import ImageManagementPage from './pages/ImageManagementPage';
 import PaymentsPage from './pages/PaymentsPage';
 import SettingsPage from './pages/SettingsPage';
 import PopupContentManagePage from './pages/PopupContentManagePage';
 import CosTestPage from './pages/CosTestPage';
+import CloudStorageTestPage from './pages/CloudStorageTestPage';
+import TestImagePage from './pages/TestImagePage';
 import LoginPage from './pages/LoginPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import { ToastContainer, useToast } from './components/Toast';
@@ -50,10 +53,13 @@ function App() {
               <Route path="coupons/analytics" element={<CouponAnalyticsPage />} />
               <Route path="inventory" element={<InventoryManagePage />} />
               <Route path="banners" element={<ImageManagePage />} />
+              <Route path="images" element={<ImageManagementPage />} />
               <Route path="payments" element={<PaymentsPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="popup-content" element={<PopupContentManagePage />} />
               <Route path="cos-test" element={<CosTestPage />} />
+              <Route path="cloud-storage-test" element={<CloudStorageTestPage />} />
+              <Route path="test-images" element={<TestImagePage />} />
             </Route>
           </Routes>
           <ToastContainer toasts={toasts} removeToast={removeToast} />

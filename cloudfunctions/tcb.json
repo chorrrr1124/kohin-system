@@ -31,6 +31,61 @@
         "COS_BUCKET": "",
         "COS_REGION": ""
       }
+    },
+    {
+      "name": "imageManager",
+      "timeout": 30,
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "ignore": [
+        ".git/**",
+        "node_modules/**"
+      ],
+      "installDependency": true
+    },
+    {
+      "name": "initImagesDB",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "ignore": [
+        ".git/**",
+        "node_modules/**"
+      ],
+      "installDependency": true
+    },
+    {
+      "name": "cloudStorageManager",
+      "timeout": 30,
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "ignore": [
+        ".git/**",
+        "node_modules/**"
+      ],
+      "installDependency": true
+    },
+    {
+      "name": "uploadToCloudStorage",
+      "timeout": 60,
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "ignore": [
+        ".git/**",
+        "node_modules/**"
+      ],
+      "installDependency": true
+    },
+    {
+      "name": "cloudStorageFileManager",
+      "timeout": 30,
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "ignore": [
+        ".git/**",
+        "node_modules/**"
+      ],
+      "installDependency": true
     }
   ]
 }

@@ -1,0 +1,45 @@
+<!-- components/responsive-image/responsive-image.wxml -->
+<view class="responsive-image-container {{customClass}}" style="{{customStyle}}">
+  <!-- 图片显示 -->
+  <image 
+    wx:if="{{imageSrc && !imageError}}" 
+    src="{{imageSrc}}" 
+    class="responsive-image {{imageClass}}"
+    mode="{{imageMode}}"
+    lazy-load="{{lazyLoad}}"
+    binderror="onImageError"
+    bindload="onImageLoad"
+    bindtap="onImageTap"
+  />
+  
+  <!-- 加载状态 -->
+  <view wx:elif="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <!-- 占位符 -->
+  <view wx:else class="placeholder-container {{placeholderType}}">
+    <view class="placeholder-icon">
+      <text wx:if="{{placeholderType === 'product'}}" class="icon-text">📦</text>
+      <text wx:elif="{{placeholderType === 'banner'}}" class="icon-text">🖼️</text>
+      <text wx:elif="{{placeholderType === 'avatar'}}" class="icon-text">👤</text>
+      <text wx:else class="icon-text">🖼️</text>
+    </view>
+    <view class="placeholder-text" wx:if="{{showPlaceholderText}}">
+      <text>{{placeholderText || '暂无图片'}}</text>
+    </view>
+  </view>
+  
+  <!-- 图片操作按钮 -->
+  <view wx:if="{{showActions && imageSrc && !imageError}}" class="image-actions">
+    <view class="action-buttons">
+      <button wx:if="{{showPreview}}" class="action-btn preview-btn" bindtap="onPreview">
+        <text class="action-icon">👁️</text>
+      </button>
+      <button wx:if="{{showDownload}}" class="action-btn download-btn" bindtap="onDownload">
+        <text class="action-icon">⬇️</text>
+      </button>
+    </view>
+  </view>
+</view>

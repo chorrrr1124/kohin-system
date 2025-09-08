@@ -21,7 +21,9 @@ const ImageManagePage = () => {
   });
 
   const imageCategories = [
+    { key: 'all', label: '全部图片', path: 'all' },
     { key: 'banner', label: '轮播图', path: 'banner' },
+    { key: 'general', label: '通用图片', path: 'general' },
     { key: 'product', label: '商品图片', path: 'product' },
     { key: 'category', label: '分类图片', path: 'category' },
     { key: 'ad', label: '广告图片', path: 'ad' }
@@ -33,17 +35,32 @@ const ImageManagePage = () => {
     try {
       console.log('🔍 开始获取图片列表...');
       await ensureLogin();
-      console.log('✅ 登录成功，开始查询数据库...');
+      console.log('✅ 登录成功，开始调用云函数...');
       
-      const db = app.database();
-      const result = await db.collection('images')
-        .where('category', '==', activeTab)
-        .orderBy('sortOrder', 'asc')
-        .get();
+      // 使用云函数查询图片
+      const result = await app.callFunction({
+        name: 'cloudStorageManager',
+        data: {
+          action: 'getImageList',
+          data: {
+            category: activeTab === 'all' ? undefined : activeTab
+          }
+        }
+      });
       
-      console.log('📊 查询结果:', result);
-      setImages(result.data || []);
-      console.log('✅ 图片列表更新成功，共', result.data?.length || 0, '张图片');
+      console.log('📊 云函数查询结果:', result);
+      console.log('🔍 当前分类:', activeTab);
+      console.log('🔍 传递给云函数的分类参数:', activeTab === 'all' ? undefined : activeTab);
+      
+      if (result.result && result.result.success) {
+        setImages(result.result.data || []);
+        console.log('✅ 图片列表更新成功，共', result.result.data?.length || 0, '张图片');
+        console.log('📸 返回的图片数据:', result.result.data);
+      } else {
+        console.error('❌ 云函数查询失败:', result.result?.error);
+        addToast(`获取图片失败: ${result.result?.error || '未知错误'}`, 'error');
+        setImages([]);
+      }
     } catch (error) {
       console.error('❌ 获取图片失败:', error);
       addToast(`获取图片失败: ${error.message}`, 'error');
@@ -149,8 +166,12 @@ const ImageManagePage = () => {
                             alt={image.title}
                             className="w-full h-full object-cover"
                             onError={(e) => {
+                              console.log('图片加载失败:', image.imageUrl);
                               e.target.style.display = 'none';
                               e.target.nextSibling.style.display = 'flex';
+                            }}
+                            onLoad={() => {
+                              console.log('图片加载成功:', image.imageUrl);
                             }}
                           />
                         ) : null}

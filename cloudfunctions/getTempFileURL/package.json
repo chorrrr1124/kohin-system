@@ -1,0 +1,9 @@
+{
+  "name": "getTempFileURL",
+  "version": "1.0.0",
+  "description": "获取文件临时访问URL",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.10.0"
+  }
+}

@@ -1,6 +1,7 @@
 {
   "usingComponents": {
     "image-placeholder": "/components/image-placeholder/image-placeholder",
+    "responsive-image": "/components/responsive-image/responsive-image",
     "gradient-carousel": "/components/gradient-carousel/gradient-carousel",
     "floating-user-card": "/components/floating-user-card/floating-user-card",
     "login-popup-system": "/components/login-popup-system/login-popup-system"

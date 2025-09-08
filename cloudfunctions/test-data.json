@@ -1,0 +1,15 @@
+{
+  "action": "saveImageInfo",
+  "data": {
+    "images": [
+      {
+        "cloudPath": "images/test/test1.jpg",
+        "url": "https://636c-cloudbase-3g4w6lls8a5ce59b-1327524326.tcb.qcloud.la/images/test/test1.jpg",
+        "fileName": "test1.jpg",
+        "category": "test",
+        "displayOrder": 1
+      }
+    ],
+    "category": "test"
+  }
+}

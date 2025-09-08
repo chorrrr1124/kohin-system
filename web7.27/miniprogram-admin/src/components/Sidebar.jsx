@@ -32,8 +32,10 @@ const navLinks = [
     ]
   },
   { to: '/inventory', icon: CubeIcon, text: '仓库库存管理' },
-  { to: '/banners', icon: PhotoIcon, text: '图片管理' },
+  { to: '/banners', icon: PhotoIcon, text: '图片管理(旧版)' },
+  { to: '/images', icon: PhotoIcon, text: '图片管理(新版)' },
   { to: '/cos-test', icon: PhotoIcon, text: 'COS测试' },
+  { to: '/cloud-storage-test', icon: PhotoIcon, text: 'CloudBase存储测试' },
   { 
     to: '/settings', 
     icon: Cog6ToothIcon, 

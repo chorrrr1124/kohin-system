@@ -1,0 +1,19 @@
+{
+  "functions": [
+    {
+      "name": "getCosSts",
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "timeout": 10,
+      "memorySize": 128,
+      "installDependency": true,
+      "description": "获取腾讯云COS临时密钥的云函数",
+      "environment": {
+        "variables": {
+          "COS_BUCKET": "",
+          "COS_REGION": ""
+        }
+      }
+    }
+  ]
+}

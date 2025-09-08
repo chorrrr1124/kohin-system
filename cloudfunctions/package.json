@@ -11,5 +11,8 @@
   "license": "ISC",
   "devDependencies": {
     "@cloudbase/cli": "^2.9.3"
+  },
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.10.1"
   }
 }

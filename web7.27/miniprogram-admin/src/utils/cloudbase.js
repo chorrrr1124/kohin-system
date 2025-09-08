@@ -84,18 +84,38 @@ export const ensureLogin = async () => {
       // 未登录，执行登录
       console.log('🔐 用户未登录，执行匿名登录...');
 
-      // 默认采用匿名登录
-      await currentAuth.signInAnonymously();
-      console.log('✅ 匿名登录成功');
+      try {
+        // 默认采用匿名登录
+        await currentAuth.signInAnonymously();
+        console.log('✅ 匿名登录成功');
 
-      // 重新获取登录状态
-      loginState = await currentAuth.getLoginState();
-      console.log('🔄 登录后状态:', loginState);
-      
-      return loginState;
+        // 重新获取登录状态
+        loginState = await currentAuth.getLoginState();
+        console.log('🔄 登录后状态:', loginState);
+        
+        return loginState;
+      } catch (signInError) {
+        console.error('❌ 匿名登录失败:', signInError);
+        
+        // 检查是否是域名白名单问题
+        if (signInError.message && signInError.message.includes('domain')) {
+          console.warn('⚠️ 可能是域名白名单问题，请检查CloudBase控制台设置');
+        }
+        
+        throw signInError;
+      }
     }
   } catch (error) {
     console.error('❌ 确保登录失败:', error);
+
+    // 检查错误类型
+    if (error.message && error.message.includes('network')) {
+      console.warn('⚠️ 网络连接问题，请检查网络设置');
+    } else if (error.message && error.message.includes('domain')) {
+      console.warn('⚠️ 域名白名单问题，请检查CloudBase控制台');
+    } else {
+      console.warn('⚠️ 未知错误，使用降级模式');
+    }
 
     // 即使登录失败，也返回一个降级的登录状态，确保应用可以继续运行
     console.warn('⚠️ 使用降级登录状态，应用将以离线模式运行');

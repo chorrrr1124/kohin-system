@@ -71,6 +71,7 @@
     }
   },
   "usingComponents": {
-    "benefit-card": "/components/benefit-card/benefit-card"
+    "benefit-card": "/components/benefit-card/benefit-card",
+    "responsive-image": "/components/responsive-image/responsive-image"
   }
 }

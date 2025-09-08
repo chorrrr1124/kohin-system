@@ -34,10 +34,13 @@
             bindchange="onPromoSwiperChange"
           >
             <swiper-item wx:for="{{promoSwiperImages}}" wx:key="index">
-              <image 
+              <responsive-image 
                 src="{{item}}" 
-                mode="aspectFill" 
-                class="promo-swiper-image"
+                mode="centerCrop"
+                placeholder-type="banner"
+                custom-class="promo-swiper-image"
+                size-type="rectangle"
+                show-actions="{{false}}"
                 style="width: 100%; height: 100%;"
               />
             </swiper-item>

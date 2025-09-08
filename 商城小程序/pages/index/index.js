@@ -192,31 +192,54 @@ Page({
   // 加载轮播图数据
   async loadCarouselImages() {
     try {
-      // 使用imageService获取轮播图数据
-      const bannerImages = await imageService.getBannerImages();
-      
-      if (bannerImages && bannerImages.length > 0) {
-        this.setData({
-          carouselImages: bannerImages.map(item => ({
-            url: item.imageUrl,
-            gradient: item.gradient || 'linear-gradient(135deg, rgba(76, 175, 80, 0.85) 0%, rgba(139, 195, 74, 0.85) 50%, rgba(205, 220, 57, 0.85) 100%)',
-            title: item.title,
-            subtitle: item.subtitle,
-            link: item.link
-          }))
-        });
+      // 从新的图片管理系统获取轮播图
+      const result = await wx.cloud.callFunction({
+        name: 'getImageList',
+        data: {
+          category: 'banner',
+          path: 'images/banner/'
+        }
+      });
+
+      if (result.result && result.result.success) {
+        const bannerImages = result.result.data || [];
         
-        // 预加载轮播图图片
-        const imageUrls = bannerImages.map(item => item.imageUrl).filter(url => url);
-        if (imageUrls.length > 0) {
-          imageService.preloadImages(imageUrls).catch(err => {
-            console.warn('轮播图预加载失败:', err);
+        if (bannerImages.length > 0) {
+          this.setData({
+            carouselImages: bannerImages.map(item => ({
+              url: item.url,
+              gradient: item.gradient || 'linear-gradient(135deg, rgba(76, 175, 80, 0.85) 0%, rgba(139, 195, 74, 0.85) 50%, rgba(205, 220, 57, 0.85) 100%)',
+              title: item.title || '轮播图',
+              subtitle: item.subtitle || '',
+              link: item.link || ''
+            }))
+          });
+
+          // 同时更新推广轮播图
+          this.setData({
+            promoSwiperImages: bannerImages.map(item => item.url)
+          });
+        } else {
+          // 使用默认数据
+          this.setData({
+            promoSwiperImages: [
+              'data:image/svg+xml;charset=utf-8,%3Csvg width="400" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="200" fill="%23FF6B6B"/%3E%3Ctext x="200" y="100" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle"%3E夏日特惠%3C/text%3E%3C/svg%3E',
+              'data:image/svg+xml;charset=utf-8,%3Csvg width="400" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="200" fill="%234ECDC4"/%3E%3Ctext x="200" y="100" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle"%3E新品上市%3C/text%3E%3C/svg%3E',
+              'data:image/svg+xml;charset=utf-8,%3Csvg width="400" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="200" fill="%23A8E6CF"/%3E%3Ctext x="200" y="100" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle"%3E会员专享%3C/text%3E%3C/svg%3E'
+            ]
           });
         }
       }
     } catch (error) {
       console.error('加载轮播图失败:', error);
       // 使用默认数据
+      this.setData({
+        promoSwiperImages: [
+          'data:image/svg+xml;charset=utf-8,%3Csvg width="400" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="200" fill="%23FF6B6B"/%3E%3Ctext x="200" y="100" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle"%3E夏日特惠%3C/text%3E%3C/svg%3E',
+          'data:image/svg+xml;charset=utf-8,%3Csvg width="400" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="200" fill="%234ECDC4"/%3E%3Ctext x="200" y="100" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle"%3E新品上市%3C/text%3E%3C/svg%3E',
+          'data:image/svg+xml;charset=utf-8,%3Csvg width="400" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="200" fill="%23A8E6CF"/%3E%3Ctext x="200" y="100" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle"%3E会员专享%3C/text%3E%3C/svg%3E'
+        ]
+      });
     }
   },
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ensureLogin } from '../utils/cloudbase';
 
 const USERNAME = 'admin';
 const PASSWORD = '123456';
@@ -8,15 +9,58 @@ const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (username === USERNAME && password === PASSWORD) {
-      localStorage.setItem('admin_logged_in', '1');
-      navigate('/');
-    } else {
-      setError('账号或密码错误');
+    setLoading(true);
+    setError('');
+
+    try {
+      // 1. 验证本地账号密码
+      if (username !== USERNAME || password !== PASSWORD) {
+        setError('账号或密码错误');
+        setLoading(false);
+        return;
+      }
+
+      // 2. 初始化CloudBase认证
+      console.log('🔐 开始CloudBase认证...');
+      try {
+        const loginState = await ensureLogin();
+        
+        if (loginState && loginState.isLoggedIn) {
+          console.log('✅ CloudBase认证成功');
+          // 3. 设置本地登录状态
+          localStorage.setItem('admin_logged_in', '1');
+          localStorage.setItem('cloudbase_login_state', JSON.stringify(loginState));
+          navigate('/');
+        } else {
+          console.warn('⚠️ CloudBase认证返回异常状态，使用降级模式');
+          // 降级模式：仅设置本地登录状态
+          localStorage.setItem('admin_logged_in', '1');
+          localStorage.setItem('cloudbase_login_state', JSON.stringify({
+            isLoggedIn: true,
+            user: { uid: 'offline_admin', isOffline: true }
+          }));
+          navigate('/');
+        }
+      } catch (cloudbaseError) {
+        console.warn('⚠️ CloudBase认证失败，使用降级模式:', cloudbaseError.message);
+        // 降级模式：仅设置本地登录状态
+        localStorage.setItem('admin_logged_in', '1');
+        localStorage.setItem('cloudbase_login_state', JSON.stringify({
+          isLoggedIn: true,
+          user: { uid: 'offline_admin', isOffline: true }
+        }));
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('❌ 登录过程出错:', error);
+      setError(`登录失败: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,10 +109,22 @@ const LoginPage = () => {
           )}
           
           <button 
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" 
+            className={`w-full font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              loading 
+                ? 'bg-gray-400 cursor-not-allowed text-white' 
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
             type="submit"
+            disabled={loading}
           >
-            登录
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                登录中...
+              </div>
+            ) : (
+              '登录'
+            )}
           </button>
         </form>
         

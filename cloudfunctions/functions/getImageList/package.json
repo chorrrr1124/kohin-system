@@ -1,0 +1,9 @@
+{
+  "name": "getImageList",
+  "version": "1.0.0",
+  "description": "获取图片列表",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.10.0"
+  }
+}

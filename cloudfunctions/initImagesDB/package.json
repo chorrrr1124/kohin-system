@@ -1,0 +1,9 @@
+{
+  "name": "initImagesDB",
+  "version": "1.0.0",
+  "description": "初始化图片数据库集合",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^2.5.0"
+  }
+}

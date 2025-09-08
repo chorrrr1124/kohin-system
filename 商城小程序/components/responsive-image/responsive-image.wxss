@@ -1,0 +1,269 @@
+/* components/responsive-image/responsive-image.wxss */
+
+/* 响应式图片容器 */
+.responsive-image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 8rpx;
+  background: #f5f5f5;
+}
+
+/* 响应式图片 */
+.responsive-image {
+  width: 100%;
+  height: 100%;
+  transition: all 0.3s ease;
+}
+
+/* 图片模式样式 */
+.responsive-image.aspect-fill {
+  object-fit: cover;
+}
+
+.responsive-image.aspect-fit {
+  object-fit: contain;
+}
+
+.responsive-image.scale-to-fill {
+  object-fit: fill;
+}
+
+.responsive-image.center-crop {
+  object-fit: cover;
+  object-position: center;
+}
+
+.responsive-image.top-crop {
+  object-fit: cover;
+  object-position: top;
+}
+
+.responsive-image.bottom-crop {
+  object-fit: cover;
+  object-position: bottom;
+}
+
+/* 加载状态 */
+.loading-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(-90deg, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%);
+  background-size: 400% 400%;
+  animation: loading 1.5s ease-in-out infinite;
+}
+
+.loading-spinner {
+  width: 40rpx;
+  height: 40rpx;
+  border: 4rpx solid #e0e0e0;
+  border-top: 4rpx solid #007aff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10rpx;
+}
+
+.loading-text {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 占位符容器 */
+.placeholder-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border: 2rpx dashed #e0e0e0;
+  position: relative;
+}
+
+.placeholder-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10rpx,
+    rgba(255,255,255,0.1) 10rpx,
+    rgba(255,255,255,0.1) 20rpx
+  );
+}
+
+.placeholder-icon {
+  font-size: 60rpx;
+  opacity: 0.6;
+  margin-bottom: 10rpx;
+  z-index: 1;
+}
+
+.icon-text {
+  display: inline-block;
+  animation: pulse 2s infinite;
+}
+
+.placeholder-text {
+  font-size: 24rpx;
+  color: #999;
+  z-index: 1;
+}
+
+/* 不同类型的占位符样式 */
+.placeholder-container.product {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.placeholder-container.banner {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.placeholder-container.avatar {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border-radius: 50%;
+}
+
+/* 图片操作按钮 */
+.image-actions {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.responsive-image-container:hover .image-actions {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 20rpx;
+}
+
+.action-btn {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10rpx);
+  transition: all 0.3s ease;
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+.preview-btn {
+  background: rgba(0, 122, 255, 0.9);
+}
+
+.download-btn {
+  background: rgba(52, 199, 89, 0.9);
+}
+
+.action-icon {
+  font-size: 24rpx;
+}
+
+/* 动画效果 */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes loading {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: -200% 0%;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 响应式断点 */
+@media (max-width: 750rpx) {
+  .responsive-image-container {
+    border-radius: 6rpx;
+  }
+  
+  .placeholder-icon {
+    font-size: 50rpx;
+  }
+  
+  .placeholder-text {
+    font-size: 22rpx;
+  }
+  
+  .action-btn {
+    width: 50rpx;
+    height: 50rpx;
+  }
+  
+  .action-icon {
+    font-size: 20rpx;
+  }
+}
+
+@media (max-width: 600rpx) {
+  .placeholder-icon {
+    font-size: 40rpx;
+  }
+  
+  .placeholder-text {
+    font-size: 20rpx;
+  }
+}
+
+/* 特殊尺寸适配 */
+.responsive-image-container.square {
+  aspect-ratio: 1;
+}
+
+.responsive-image-container.rectangle {
+  aspect-ratio: 16/9;
+}
+
+.responsive-image-container.portrait {
+  aspect-ratio: 3/4;
+}
+
+.responsive-image-container.landscape {
+  aspect-ratio: 4/3;
+}

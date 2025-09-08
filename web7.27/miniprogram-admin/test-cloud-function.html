@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>云函数测试</title>
+    <script src="https://imgcache.qq.com/qzone/biz/gdt/lib/js/2.0/GTM-57vd6r.js"></script>
+    <script src="https://tcb-1251009918.cos.ap-guangzhou.myqcloud.com/tcb-js-sdk-v1.7.0.js"></script>
+</head>
+<body>
+    <h1>云函数测试页面</h1>
+    <button onclick="testImageManager()">测试imageManager云函数</button>
+    <button onclick="testGetImageList()">测试getImageList云函数</button>
+    <div id="result"></div>
+
+    <script>
+        // 初始化CloudBase
+        const app = tcb.init({
+            env: 'cloudbase-3g4w6lls8a5ce59b'
+        });
+
+        // 测试imageManager云函数
+        async function testImageManager() {
+            try {
+                console.log('🔍 测试imageManager云函数...');
+                const result = await app.callFunction({
+                    name: 'imageManager',
+                    data: {
+                        action: 'getImageList',
+                        data: {
+                            category: 'banner',
+                            path: 'images/banner/'
+                        }
+                    }
+                });
+                
+                console.log('✅ imageManager调用成功:', result);
+                document.getElementById('result').innerHTML = 
+                    '<h3>imageManager测试结果:</h3><pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            } catch (error) {
+                console.error('❌ imageManager调用失败:', error);
+                document.getElementById('result').innerHTML = 
+                    '<h3>imageManager测试失败:</h3><pre>' + error.message + '</pre>';
+            }
+        }
+
+        // 测试getImageList云函数
+        async function testGetImageList() {
+            try {
+                console.log('🔍 测试getImageList云函数...');
+                const result = await app.callFunction({
+                    name: 'getImageList',
+                    data: {
+                        category: 'banner',
+                        path: 'images/banner/'
+                    }
+                });
+                
+                console.log('✅ getImageList调用成功:', result);
+                document.getElementById('result').innerHTML = 
+                    '<h3>getImageList测试结果:</h3><pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            } catch (error) {
+                console.error('❌ getImageList调用失败:', error);
+                document.getElementById('result').innerHTML = 
+                    '<h3>getImageList测试失败:</h3><pre>' + error.message + '</pre>';
+            }
+        }
+
+        // 页面加载时自动测试
+        window.onload = function() {
+            console.log('🚀 页面加载完成，开始测试云函数...');
+            testImageManager();
+        };
+    </script>
+</body>
+</html>

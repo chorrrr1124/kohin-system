@@ -8,7 +8,7 @@ import {
   DocumentIcon,
   PlayIcon
 } from '@heroicons/react/24/outline';
-import { createCosClient, uploadToCos, generateFileKey, getFileUrl } from '../utils/cos';
+import { uploadFile, generateCloudPath, getTempFileURL } from '../utils/cloudStorage';
 import { initCloudBase, ensureLogin } from '../utils/cloudbase';
 
 const CosTestPage = () => {
