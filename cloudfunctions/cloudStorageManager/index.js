@@ -98,35 +98,62 @@ async function getImageList(data) {
     
     // 如果有分类条件，手动过滤
     if (category) {
-      filteredData = filteredData.filter(item => 
-        item.category === category
-      );
+      filteredData = filteredData.filter(item => {
+        // 兼容两种数据结构：item.category 和 item.data.category
+        const itemCategory = item.category || (item.data && item.data.category);
+        return itemCategory === category;
+      });
     }
     
     // 按 sortOrder 和 createTime 排序
     filteredData.sort((a, b) => {
-      const sortOrderA = a.sortOrder || 0;
-      const sortOrderB = b.sortOrder || 0;
+      // 兼容两种数据结构：item.sortOrder 和 item.data.sortOrder
+      const sortOrderA = a.sortOrder || (a.data && a.data.sortOrder) || 0;
+      const sortOrderB = b.sortOrder || (b.data && b.data.sortOrder) || 0;
       if (sortOrderA !== sortOrderB) {
         return sortOrderA - sortOrderB;
       }
-      const timeA = new Date(a.createTime || 0).getTime();
-      const timeB = new Date(b.createTime || 0).getTime();
+      // 兼容两种数据结构：item.createTime 和 item.data.createTime
+      const timeA = new Date(a.createTime || (a.data && a.data.createTime) || 0).getTime();
+      const timeB = new Date(b.createTime || (b.data && b.data.createTime) || 0).getTime();
       return timeB - timeA;
     });
     
     // 应用 limit
     filteredData = filteredData.slice(0, limit);
     
-    const result = {
-      data: filteredData,
-      total: filteredData.length
-    };
+    // 数据转换：将嵌套的 data 结构展平，兼容前端期望的数据格式
+    const transformedData = filteredData.map(item => {
+      // 如果数据在 data 字段中，将其展平
+      if (item.data && typeof item.data === 'object') {
+        return {
+          _id: item._id,
+          ...item.data,
+          // 确保有正确的图片URL字段
+          imageUrl: item.data.imageUrl || item.data.url,
+          url: item.data.url || item.data.imageUrl,
+          // 确保有正确的文件名字段
+          title: item.data.title || item.data.fileName,
+          fileName: item.data.fileName || item.data.title
+        };
+      }
+      // 如果数据直接在根级别，直接返回
+      return {
+        _id: item._id,
+        ...item,
+        // 确保有正确的图片URL字段
+        imageUrl: item.imageUrl || item.url,
+        url: item.url || item.imageUrl,
+        // 确保有正确的文件名字段
+        title: item.title || item.fileName,
+        fileName: item.fileName || item.title
+      };
+    });
     
     return {
       success: true,
-      data: filteredData,
-      total: filteredData.length
+      data: transformedData,
+      total: transformedData.length
     };
   } catch (error) {
     console.error('获取图片列表失败:', error);
