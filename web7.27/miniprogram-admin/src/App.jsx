@@ -8,7 +8,6 @@ import ShopPage from './pages/ShopPage';
 import CouponManagePage from './pages/CouponManagePage';
 import CouponAnalyticsPage from './pages/CouponAnalyticsPage';
 import InventoryManagePage from './pages/InventoryManagePage';
-import ImageManagePage from './pages/ImageManagePage';
 import ImageManagementPage from './pages/ImageManagementPage';
 import PaymentsPage from './pages/PaymentsPage';
 import SettingsPage from './pages/SettingsPage';
@@ -52,7 +51,6 @@ function App() {
               <Route path="coupons" element={<CouponManagePage />} />
               <Route path="coupons/analytics" element={<CouponAnalyticsPage />} />
               <Route path="inventory" element={<InventoryManagePage />} />
-              <Route path="banners" element={<ImageManagePage />} />
               <Route path="images" element={<ImageManagementPage />} />
               <Route path="payments" element={<PaymentsPage />} />
               <Route path="settings" element={<SettingsPage />} />

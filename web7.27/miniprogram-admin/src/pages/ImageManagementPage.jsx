@@ -28,12 +28,12 @@ const ImageManagementPage = () => {
 
   // 图片分类配置
   const categories = [
-    { key: 'all', label: '全部图片', path: 'all' },
-    { key: 'banner', label: '轮播图', path: 'banner' },
-    { key: 'general', label: '通用图片', path: 'general' },
-    { key: 'product', label: '商品图片', path: 'product' },
-    { key: 'category', label: '分类图片', path: 'category' },
-    { key: 'ad', label: '广告图片', path: 'ad' }
+    { key: 'all', label: '全部图片', path: 'all', maxCount: 100, description: '查看所有图片' },
+    { key: 'banner', label: '轮播图', path: 'banner', maxCount: 10, description: '首页轮播图，最多10张' },
+    { key: 'general', label: '通用图片', path: 'general', maxCount: 50, description: '通用图片资源' },
+    { key: 'product', label: '商品图片', path: 'product', maxCount: 200, description: '商品相关图片' },
+    { key: 'category', label: '分类图片', path: 'category', maxCount: 20, description: '商品分类图片' },
+    { key: 'ad', label: '广告图片', path: 'ad', maxCount: 30, description: '广告宣传图片' }
   ];
 
   // 获取当前分类配置
@@ -433,13 +433,17 @@ const ImageManagementPage = () => {
           <div className="p-4">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {images.map((image, index) => (
-                <div key={image.id} className="group relative bg-gray-100 rounded-lg overflow-hidden">
+                <div key={image._id || image.id || index} className="group relative bg-gray-100 rounded-lg overflow-hidden">
                   <img
-                    src={image.url}
-                    alt={image.fileName}
+                    src={image.url || image.imageUrl}
+                    alt={image.fileName || image.title}
                     className="w-full h-32 object-cover"
                     onError={(e) => {
+                      console.log('图片加载失败:', image.url || image.imageUrl);
                       e.target.src = 'data:image/svg+xml;charset=utf-8,%3Csvg width="200" height="200" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="200" height="200" fill="%23f0f0f0"/%3E%3Ctext x="100" y="100" font-family="Arial, sans-serif" font-size="16" fill="%23999" text-anchor="middle" dominant-baseline="middle"%3E加载失败%3C/text%3E%3C/svg%3E';
+                    }}
+                    onLoad={() => {
+                      console.log('图片加载成功:', image.url || image.imageUrl);
                     }}
                   />
                   
@@ -472,9 +476,9 @@ const ImageManagementPage = () => {
 
                   {/* 图片信息 */}
                   <div className="p-2">
-                    <p className="text-xs text-gray-600 truncate">{image.fileName}</p>
+                    <p className="text-xs text-gray-600 truncate">{image.fileName || image.title}</p>
                     <p className="text-xs text-gray-500">
-                      {(image.size / 1024).toFixed(1)}KB
+                      {image.size ? (image.size / 1024).toFixed(1) + 'KB' : '-'}
                     </p>
                   </div>
                 </div>
@@ -509,14 +513,14 @@ const ImageManagementPage = () => {
             </div>
             <div className="p-4">
               <img
-                src={previewImage.url}
-                alt={previewImage.fileName}
+                src={previewImage.url || previewImage.imageUrl}
+                alt={previewImage.fileName || previewImage.title}
                 className="max-w-full max-h-[70vh] object-contain mx-auto"
               />
               <div className="mt-4 text-sm text-gray-600">
-                <p><strong>文件名:</strong> {previewImage.fileName}</p>
-                <p><strong>大小:</strong> {(previewImage.size / 1024).toFixed(1)}KB</p>
-                <p><strong>上传时间:</strong> {new Date(previewImage.uploadTime).toLocaleString()}</p>
+                <p><strong>文件名:</strong> {previewImage.fileName || previewImage.title}</p>
+                <p><strong>大小:</strong> {previewImage.size ? (previewImage.size / 1024).toFixed(1) + 'KB' : '-'}</p>
+                <p><strong>上传时间:</strong> {previewImage.uploadTime ? new Date(previewImage.uploadTime).toLocaleString() : (previewImage.createdAt ? new Date(previewImage.createdAt).toLocaleString() : '-')}</p>
               </div>
             </div>
           </div>
@@ -543,7 +547,7 @@ const ImageManagementPage = () => {
                 </label>
                 <input
                   type="number"
-                  value={editingImage.displayOrder}
+                  value={editingImage.displayOrder || editingImage.sortOrder || 1}
                   onChange={(e) => setEditingImage({
                     ...editingImage,
                     displayOrder: parseInt(e.target.value) || 1
@@ -555,7 +559,7 @@ const ImageManagementPage = () => {
               <div className="flex space-x-3">
                 <button
                   onClick={() => {
-                    updateImageOrder(editingImage.id, editingImage.displayOrder);
+                    updateImageOrder(editingImage._id || editingImage.id, editingImage.displayOrder);
                     setEditingImage(null);
                   }}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
