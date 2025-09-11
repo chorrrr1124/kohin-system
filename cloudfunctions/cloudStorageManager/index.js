@@ -123,10 +123,12 @@ async function getImageList(data) {
     filteredData = filteredData.slice(0, limit);
     
     // 数据转换：将嵌套的 data 结构展平，兼容前端期望的数据格式
-    const transformedData = filteredData.map(item => {
+    const transformedData = await Promise.all(filteredData.map(async (item) => {
+      let imageData;
+      
       // 如果数据在 data 字段中，将其展平
       if (item.data && typeof item.data === 'object') {
-        return {
+        imageData = {
           _id: item._id,
           ...item.data,
           // 确保有正确的图片URL字段
@@ -136,19 +138,50 @@ async function getImageList(data) {
           title: item.data.title || item.data.fileName,
           fileName: item.data.fileName || item.data.title
         };
+      } else {
+        // 如果数据直接在根级别，直接返回
+        imageData = {
+          _id: item._id,
+          ...item,
+          // 确保有正确的图片URL字段
+          imageUrl: item.imageUrl || item.url,
+          url: item.url || item.imageUrl,
+          // 确保有正确的文件名字段
+          title: item.title || item.fileName,
+          fileName: item.fileName || item.title
+        };
       }
-      // 如果数据直接在根级别，直接返回
-      return {
-        _id: item._id,
-        ...item,
-        // 确保有正确的图片URL字段
-        imageUrl: item.imageUrl || item.url,
-        url: item.url || item.imageUrl,
-        // 确保有正确的文件名字段
-        title: item.title || item.fileName,
-        fileName: item.fileName || item.title
-      };
-    });
+      
+      // 如果URL是模拟URL或者无效，尝试从fileID生成真实URL
+      if (!imageData.url || imageData.url.includes('mock-cdn.example.com') || imageData.url.includes('undefined')) {
+        if (imageData.fileID) {
+          try {
+            console.log('🔄 尝试为fileID生成临时URL:', imageData.fileID);
+            const urlResult = await app.getTempFileURL({
+              fileList: [{
+                fileID: imageData.fileID,
+                maxAge: 3600 // 1小时有效期
+              }]
+            });
+            
+            if (urlResult.fileList && urlResult.fileList.length > 0) {
+              const fileInfo = urlResult.fileList[0];
+              if (fileInfo.code === 'SUCCESS') {
+                imageData.url = fileInfo.tempFileURL;
+                imageData.imageUrl = fileInfo.tempFileURL;
+                console.log('✅ 生成临时URL成功:', fileInfo.tempFileURL);
+              } else {
+                console.log('❌ 生成临时URL失败:', fileInfo.code, fileInfo.errMsg);
+              }
+            }
+          } catch (error) {
+            console.error('❌ 生成临时URL异常:', error.message);
+          }
+        }
+      }
+      
+      return imageData;
+    }));
     
     return {
       success: true,
@@ -169,16 +202,37 @@ async function deleteImage(data) {
   const { imageId, category } = data;
   
   try {
-    await db.collection('images')
+    console.log('🗑️ 开始删除图片，ID:', imageId, '分类:', category);
+    
+    // 先查询要删除的图片信息
+    const queryResult = await db.collection('images')
       .where({
-        _id: imageId,
-        category: category
+        _id: imageId
+      })
+      .get();
+    
+    if (queryResult.data.length === 0) {
+      return {
+        success: false,
+        error: '图片不存在'
+      };
+    }
+    
+    console.log('📸 找到图片:', queryResult.data[0]);
+    
+    // 删除图片记录
+    const deleteResult = await db.collection('images')
+      .where({
+        _id: imageId
       })
       .remove();
+    
+    console.log('✅ 删除结果:', deleteResult);
     
     return {
       success: true,
       message: '图片信息删除成功',
+      deletedCount: deleteResult.deleted || 1,
       note: '如需删除云存储文件，请使用云存储删除API'
     };
   } catch (error) {
