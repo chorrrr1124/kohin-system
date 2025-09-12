@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { PhotoIcon, PlusIcon, PencilIcon, TrashIcon, EyeIcon, FolderIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect, useRef } from 'react';
+import { PhotoIcon, PlusIcon, PencilIcon, TrashIcon, EyeIcon, FolderIcon, CloudArrowUpIcon } from '@heroicons/react/24/outline';
 import { app, ensureLogin } from '../utils/cloudbase';
 import { ContentLoading, CardLoading } from '../components/LoadingSpinner';
 import { useToast } from '../components/Toast';
+import { getBatchTempFileURLs, uploadFile, generateCloudPath } from '../utils/cloudStorage';
 
 const ImageManagePage = () => {
   const [loading, setLoading] = useState(false);
@@ -19,6 +20,10 @@ const ImageManagePage = () => {
     isActive: true,
     category: 'banner'
   });
+  const [uploading, setUploading] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef();
 
   const imageCategories = [
     { key: 'all', label: '全部图片', path: 'all' },
@@ -53,9 +58,22 @@ const ImageManagePage = () => {
       console.log('🔍 传递给云函数的分类参数:', activeTab === 'all' ? undefined : activeTab);
       
       if (result.result && result.result.success) {
-        setImages(result.result.data || []);
-        console.log('✅ 图片列表更新成功，共', result.result.data?.length || 0, '张图片');
-        console.log('📸 返回的图片数据:', result.result.data);
+        let imageList = result.result.data || [];
+        console.log('✅ 图片列表更新成功，共', imageList.length, '张图片');
+        console.log('📸 返回的图片数据:', imageList);
+        
+        // 修复图片URL
+        imageList = await fixImageUrls(imageList);
+        
+        // 按最新上传时间排序
+        imageList.sort((a, b) => {
+          const timeA = new Date(a.createdAt || a.createTime || 0).getTime();
+          const timeB = new Date(b.createdAt || b.createTime || 0).getTime();
+          return timeB - timeA; // 最新的在前
+        });
+        
+        setImages(imageList);
+        console.log('✅ 图片列表处理完成，共', imageList.length, '张图片');
       } else {
         console.error('❌ 云函数查询失败:', result.result?.error);
         addToast(`获取图片失败: ${result.result?.error || '未知错误'}`, 'error');
@@ -70,10 +88,206 @@ const ImageManagePage = () => {
     }
   };
 
+  // 修复图片URL
+  const fixImageUrls = async (imageList) => {
+    try {
+      console.log('🔧 开始修复图片URL...');
+      console.log('📊 原始图片数据:', imageList);
+      
+      // 收集需要获取临时URL的fileID
+      const fileIDsToFix = [];
+      const imageMap = new Map();
+      
+      imageList.forEach((img, index) => {
+        const currentUrl = img.imageUrl || img.url;
+        
+        // 如果URL无效，需要获取临时URL
+        if (!currentUrl || 
+            currentUrl.includes('mock-cdn.example.com') || 
+            currentUrl.includes('undefined') ||
+            currentUrl.includes('example.com')) {
+          
+          if (img.fileID) {
+            fileIDsToFix.push(img.fileID);
+            imageMap.set(img.fileID, { index, img });
+          }
+        }
+      });
+      
+      // 如果有需要修复的图片，批量获取临时URL
+      if (fileIDsToFix.length > 0) {
+        console.log('🔄 批量获取临时URL，文件数量:', fileIDsToFix.length);
+        
+        try {
+          const urlResult = await app.callFunction({
+            name: 'cloudStorageFileManager',
+            data: {
+              action: 'getTemporaryUrl',
+              data: {
+                fileList: fileIDsToFix
+              }
+            }
+          });
+          
+          if (urlResult.result && urlResult.result.success) {
+            const urlData = urlResult.result.data;
+            console.log('✅ 获取临时URL成功:', urlData);
+            
+            // 更新图片URL
+            const updatedImages = [...imageList];
+            urlData.forEach(fileInfo => {
+              if (fileInfo.tempFileURL && imageMap.has(fileInfo.fileID)) {
+                const { index, img } = imageMap.get(fileInfo.fileID);
+                updatedImages[index] = {
+                  ...img,
+                  imageUrl: fileInfo.tempFileURL,
+                  url: fileInfo.tempFileURL,
+                  originalUrl: img.imageUrl || img.url,
+                  fixedAt: new Date().toISOString()
+                };
+                console.log('✅ 图片URL已修复:', fileInfo.fileID, fileInfo.tempFileURL);
+              }
+            });
+            
+            console.log('✅ 图片URL修复完成，修复后的数据:', updatedImages);
+            return updatedImages;
+          }
+        } catch (urlError) {
+          console.error('❌ 获取临时URL失败:', urlError);
+        }
+      }
+      
+      // 如果没有需要修复的图片或获取临时URL失败，使用备用方案
+      const updatedImages = imageList.map((img, index) => {
+        const currentUrl = img.imageUrl || img.url;
+        
+        if (!currentUrl || 
+            currentUrl.includes('mock-cdn.example.com') || 
+            currentUrl.includes('undefined') ||
+            currentUrl.includes('example.com')) {
+          
+          let newUrl = null;
+          
+          // 尝试从fileID生成URL
+          if (img.fileID && img.fileID.startsWith('cloud://')) {
+            const path = img.fileID.replace('cloud://cloudbase-3g4w6lls8a5ce59b.', '');
+            newUrl = `https://636c-cloudbase-3g4w6lls8a5ce59b-1327524326.tcb.qcloud.la/${path}`;
+          }
+          // 尝试从cloudPath生成URL
+          else if (img.cloudPath) {
+            newUrl = `https://636c-cloudbase-3g4w6lls8a5ce59b-1327524326.tcb.qcloud.la/${img.cloudPath}`;
+          }
+          // 尝试从fileName生成URL
+          else if (img.fileName) {
+            newUrl = `https://636c-cloudbase-3g4w6lls8a5ce59b-1327524326.tcb.qcloud.la/${img.fileName}`;
+          }
+          
+          if (newUrl) {
+            return {
+              ...img,
+              imageUrl: newUrl,
+              url: newUrl,
+              originalUrl: currentUrl,
+              fixedAt: new Date().toISOString()
+            };
+          }
+        }
+        
+        return img;
+      });
+      
+      console.log('✅ 图片URL修复完成（备用方案）:', updatedImages);
+      return updatedImages;
+      
+    } catch (error) {
+      console.error('❌ 修复图片URL失败:', error);
+      return imageList;
+    }
+  };
+
   useEffect(() => {
     console.log('🔄 页面加载，开始获取图片...');
     fetchImages();
   }, [activeTab]);
+
+  // 文件选择处理
+  const handleFileSelect = (event) => {
+    const files = Array.from(event.target.files).filter(file => 
+      file.type.startsWith('image/')
+    );
+    setSelectedFiles(files);
+  };
+
+  // 上传图片
+  const uploadImages = async () => {
+    if (selectedFiles.length === 0) {
+      addToast('请先选择要上传的图片', 'warning');
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress(0);
+
+    try {
+      console.log('🚀 开始上传图片，文件数量:', selectedFiles.length);
+      
+      let successCount = 0;
+      let failCount = 0;
+
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const progress = ((i + 1) / selectedFiles.length) * 100;
+        setUploadProgress(progress);
+
+        console.log(`📤 正在上传 ${i + 1}/${selectedFiles.length}: ${file.name}`);
+
+        // 生成文件路径 - 修复分类问题
+        const uploadCategory = activeTab === 'all' ? 'general' : activeTab;
+        const cloudPath = generateCloudPath(file.name, `images/${uploadCategory}/`);
+        console.log('🔍 生成的cloudPath:', cloudPath);
+        console.log('🔍 activeTab:', activeTab);
+        console.log('🔍 uploadCategory:', uploadCategory);
+        console.log('🔍 文件名:', file.name);
+        
+        // 上传到云存储
+        const uploadResult = await uploadFile(file, cloudPath, (progressData) => {
+          console.log(`上传进度: ${Math.round(progressData.percent || 0)}%`);
+        });
+
+        if (uploadResult.success) {
+          console.log(`✅ ${file.name} 上传成功`);
+          successCount++;
+        } else {
+          console.error(`❌ ${file.name} 上传失败:`, uploadResult.error);
+          failCount++;
+        }
+      }
+
+      console.log(`🎯 上传完成！成功: ${successCount}, 失败: ${failCount}`);
+      
+      // 重新加载图片列表
+      await fetchImages();
+
+      setSelectedFiles([]);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+
+      // 显示结果提示
+      if (successCount > 0) {
+        addToast(`上传完成！成功上传 ${successCount} 张图片${failCount > 0 ? `，失败 ${failCount} 张` : ''}`, 'success');
+      } else {
+        addToast('上传失败，请检查网络连接或文件格式', 'error');
+      }
+
+    } catch (error) {
+      console.error('上传失败:', error);
+      addToast(`上传失败: ${error.message}`, 'error');
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  };
 
   if (loading && images.length === 0) {
     return <ContentLoading />;
@@ -113,25 +327,163 @@ const ImageManagePage = () => {
         <div className="text-sm text-gray-600">
           当前分类：{imageCategories.find(c => c.key === activeTab)?.label} ({images.length} 张)
         </div>
-        <button
-          onClick={() => {
-            setEditingImage(null);
-            setFormData({
-              title: '',
-              imageUrl: '',
-              linkUrl: '',
-              sortOrder: 0,
-              isActive: true,
-              category: activeTab
-            });
-            setShowModal(true);
-          }}
-          className="btn btn-primary"
-        >
-          <PlusIcon className="w-4 h-4 mr-2" />
-          添加图片
-        </button>
+        <div className="flex gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="btn btn-outline"
+            disabled={uploading}
+          >
+            <CloudArrowUpIcon className="w-4 h-4 mr-2" />
+            选择图片
+          </button>
+          {selectedFiles.length > 0 && (
+            <button
+              onClick={uploadImages}
+              className="btn btn-primary"
+              disabled={uploading}
+            >
+              {uploading ? (
+                <>
+                  <span className="loading loading-spinner loading-sm mr-2"></span>
+                  上传中... ({uploadProgress.toFixed(0)}%)
+                </>
+              ) : (
+                <>
+                  <CloudArrowUpIcon className="w-4 h-4 mr-2" />
+                  上传 ({selectedFiles.length} 张)
+                </>
+              )}
+            </button>
+          )}
+          <button
+            onClick={async () => {
+              console.log('🔄 手动刷新图片列表...');
+              await fetchImages();
+              addToast('图片列表已刷新', 'success');
+            }}
+            className="btn btn-outline"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <span className="loading loading-spinner loading-sm mr-2"></span>
+                刷新中...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                刷新列表
+              </>
+            )}
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                setLoading(true);
+                console.log('🔧 开始修复数据库中的图片URL...');
+                await ensureLogin();
+                
+                const fixResult = await app.callFunction({
+                  name: 'fixImageUrls',
+                  data: {}
+                });
+                
+                console.log('📊 修复结果:', fixResult);
+                
+                if (fixResult.result && fixResult.result.success) {
+                  addToast(`修复完成！更新了 ${fixResult.result.data?.updated || 0} 张图片`, 'success');
+                  // 修复完成后重新加载图片列表
+                  await fetchImages();
+                } else {
+                  addToast(`修复失败: ${fixResult.result?.error || '未知错误'}`, 'error');
+                }
+              } catch (error) {
+                console.error('❌ 修复失败:', error);
+                addToast(`修复失败: ${error.message}`, 'error');
+              } finally {
+                setLoading(false);
+              }
+            }}
+            className="btn btn-warning"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <span className="loading loading-spinner loading-sm mr-2"></span>
+                修复中...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                修复URL
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => {
+              setEditingImage(null);
+              setFormData({
+                title: '',
+                imageUrl: '',
+                linkUrl: '',
+                sortOrder: 0,
+                isActive: true,
+                category: activeTab
+              });
+              setShowModal(true);
+            }}
+            className="btn btn-secondary"
+          >
+            <PlusIcon className="w-4 h-4 mr-2" />
+            手动添加
+          </button>
+        </div>
       </div>
+
+      {/* 已选文件显示 */}
+      {selectedFiles.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-medium text-blue-800">已选择 {selectedFiles.length} 个文件</h3>
+            <button
+              onClick={() => {
+                setSelectedFiles([]);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = '';
+                }
+              }}
+              className="text-blue-600 hover:text-blue-800 text-sm"
+            >
+              清空选择
+            </button>
+          </div>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {selectedFiles.map((file, index) => (
+              <div key={index} className="flex items-center space-x-3 p-2 bg-white rounded">
+                <PhotoIcon className="w-5 h-5 text-blue-500" />
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-700">{file.name}</div>
+                  <div className="text-xs text-gray-500">
+                    {(file.size / 1024).toFixed(1)}KB • {file.type}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 图片列表 */}
       <div className="bg-white rounded-lg shadow">
@@ -148,6 +500,7 @@ const ImageManagePage = () => {
                   <th>预览</th>
                   <th>标题</th>
                   <th>分类</th>
+                  <th>云存储路径</th>
                   <th>跳转链接</th>
                   <th>排序</th>
                   <th>状态</th>
@@ -185,6 +538,11 @@ const ImageManagePage = () => {
                       <span className="badge badge-outline">
                         {imageCategories.find(c => c.key === image.category)?.label || image.category}
                       </span>
+                    </td>
+                    <td>
+                      <div className="text-xs text-gray-600 max-w-32 truncate" title={image.cloudPath || image.fileID}>
+                        {image.cloudPath || image.fileID || '-'}
+                      </div>
                     </td>
                     <td>
                       {image.linkUrl ? (

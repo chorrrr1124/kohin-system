@@ -22,8 +22,6 @@ exports.main = async (event, context) => {
         return await updateImageOrder(data);
       case 'getImageByCategory':
         return await getImageByCategory(data);
-      case 'updateImageCategory':
-        return await updateImageCategory(data);
       default:
         return {
           success: false,
@@ -315,31 +313,6 @@ async function getImageByCategory(data) {
     };
   } catch (error) {
     console.error('获取分类图片失败:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
-
-// 更新图片分类
-async function updateImageCategory(data) {
-  const { imageId, category } = data;
-  
-  try {
-    const result = await db.collection('images').doc(imageId).update({
-      data: {
-        category: category,
-        updateTime: new Date()
-      }
-    });
-    
-    return {
-      success: true,
-      data: result
-    };
-  } catch (error) {
-    console.error('更新图片分类错误:', error);
     return {
       success: false,
       error: error.message

@@ -1,4 +1,24 @@
 {
   "version": "2.0",
-  "envId": "cloudbase-3g4w6lls8a5ce59b"
+  "envId": "cloudbase-3g4w6lls8a5ce59b",
+  "functions": [
+    {
+      "name": "cloudStorageManager",
+      "runtime": "Nodejs18.15",
+      "memorySize": 256,
+      "timeout": 30
+    },
+    {
+      "name": "uploadToCloudStorage",
+      "runtime": "Nodejs18.15",
+      "memorySize": 256,
+      "timeout": 30
+    },
+    {
+      "name": "fixImageUrls",
+      "runtime": "Nodejs18.15",
+      "memorySize": 256,
+      "timeout": 30
+    }
+  ]
 }

@@ -4,6 +4,6 @@
   "description": "初始化图片数据库集合",
   "main": "index.js",
   "dependencies": {
-    "@cloudbase/node-sdk": "^2.5.0"
+    "@cloudbase/node-sdk": "^3.10.0"
   }
 }

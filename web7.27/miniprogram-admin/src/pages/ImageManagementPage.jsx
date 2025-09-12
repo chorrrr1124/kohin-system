@@ -44,6 +44,29 @@ const ImageManagementPage = () => {
     loadImages();
   }, [selectedCategory]);
 
+  // 生成临时访问URL
+  const generateTempURL = async (fileID) => {
+    try {
+      const app = initCloudBase();
+      const result = await app.getTempFileURL({
+        fileList: [{
+          fileID: fileID,
+          maxAge: 3600 // 1小时有效期
+        }]
+      });
+      
+      if (result.fileList && result.fileList.length > 0) {
+        const fileInfo = result.fileList[0];
+        if (fileInfo.code === 'SUCCESS') {
+          return fileInfo.tempFileURL;
+        }
+      }
+    } catch (error) {
+      console.error('生成临时URL失败:', error);
+    }
+    return null;
+  };
+
   // 加载图片列表
   const loadImages = async () => {
     setLoading(true);
@@ -65,9 +88,31 @@ const ImageManagementPage = () => {
       console.log('📊 云函数调用结果:', result);
 
       if (result.result && result.result.success) {
-        setImages(result.result.data || []);
-        console.log('✅ 图片列表加载成功:', result.result.data?.length || 0, '张图片');
-        console.log('📸 图片数据:', result.result.data);
+        const rawImages = result.result.data || [];
+        console.log('✅ 图片列表加载成功:', rawImages.length, '张图片');
+        
+        // 处理图片URL，为模拟URL生成真实临时URL
+        const processedImages = await Promise.all(rawImages.map(async (image) => {
+          // 如果URL是模拟URL，尝试生成真实URL
+          if (image.url && (image.url.includes('mock-cdn.example.com') || image.url.includes('example.com'))) {
+            if (image.fileID) {
+              console.log('🔄 为模拟URL生成临时URL:', image.fileID);
+              const tempURL = await generateTempURL(image.fileID);
+              if (tempURL) {
+                console.log('✅ 生成临时URL成功:', tempURL);
+                return {
+                  ...image,
+                  url: tempURL,
+                  imageUrl: tempURL
+                };
+              }
+            }
+          }
+          return image;
+        }));
+        
+        setImages(processedImages);
+        console.log('📸 处理后的图片数据:', processedImages);
       } else {
         console.error('❌ 获取图片列表失败:', result.result?.error);
         console.error('❌ 完整结果:', result);
@@ -132,52 +177,50 @@ const ImageManagementPage = () => {
     setUploadProgress(0);
 
     try {
-      const app = initCloudBase();
-      const uploadedImages = [];
+      console.log('🚀 开始上传图片，文件数量:', selectedFiles.length);
+      
+      let successCount = 0;
+      let failCount = 0;
 
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
         const progress = ((i + 1) / selectedFiles.length) * 100;
         setUploadProgress(progress);
 
+        console.log(`📤 正在上传 ${i + 1}/${selectedFiles.length}: ${file.name}`);
+
         // 生成文件路径
         const cloudPath = generateCloudPath(file.name, currentCategory.path);
         
-        // 上传到云存储
+        // 上传到云存储（uploadFile函数已经包含了保存到数据库的逻辑）
         const uploadResult = await uploadFile(file, cloudPath, (progressData) => {
           console.log(`上传进度: ${Math.round(progressData.percent || 0)}%`);
         });
 
         if (uploadResult.success) {
-          // 获取临时访问URL
-          const urlResult = await getTempFileURL(uploadResult.fileID);
-          
-          const imageData = {
-            id: Date.now() + Math.random(),
-            fileID: uploadResult.fileID,
-            cloudPath: cloudPath,
-            url: urlResult.success ? urlResult.tempFileURL : '',
-            fileName: file.name,
-            size: file.size,
-            type: file.type,
-            category: selectedCategory,
-            uploadTime: new Date().toISOString(),
-            displayOrder: images.length + i + 1
-          };
-
-          uploadedImages.push(imageData);
+          console.log(`✅ ${file.name} 上传成功`);
+          successCount++;
+        } else {
+          console.error(`❌ ${file.name} 上传失败:`, uploadResult.error);
+          failCount++;
         }
       }
 
-      // 保存到数据库
-      if (uploadedImages.length > 0) {
-        await saveImagesToDatabase(uploadedImages);
-        await loadImages(); // 重新加载图片列表
-      }
+      console.log(`🎯 上传完成！成功: ${successCount}, 失败: ${failCount}`);
+      
+      // 重新加载图片列表
+      await loadImages();
 
       setSelectedFiles([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
+      }
+
+      // 显示结果提示
+      if (successCount > 0) {
+        alert(`上传完成！成功上传 ${successCount} 张图片${failCount > 0 ? `，失败 ${failCount} 张` : ''}`);
+      } else {
+        alert('上传失败，请检查网络连接或文件格式');
       }
 
     } catch (error) {

@@ -1,7 +1,7 @@
 {
-  "name": "cloudStorageManager",
+  "name": "checkCloudStorage",
   "version": "1.0.0",
-  "description": "云存储图片管理云函数",
+  "description": "检查云存储文件结构",
   "main": "index.js",
   "dependencies": {
     "@cloudbase/node-sdk": "^3.10.0"

@@ -1,7 +1,7 @@
 {
-  "name": "cloudStorageManager",
+  "name": "fixImageUrls",
   "version": "1.0.0",
-  "description": "云存储图片管理云函数",
+  "description": "修复图片URL中的模拟URL",
   "main": "index.js",
   "dependencies": {
     "@cloudbase/node-sdk": "^3.10.0"

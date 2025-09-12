@@ -1,10 +1,8 @@
-const CloudBase = require('@cloudbase/manager-node');
+const cloudbase = require('@cloudbase/node-sdk');
 
-// 初始化 CloudBase 管理端SDK
-const { storage } = new CloudBase({
-  secretId: process.env.TENCENTCLOUD_SECRETID,
-  secretKey: process.env.TENCENTCLOUD_SECRETKEY,
-  envId: 'cloudbase-3g4w6lls8a5ce59b'
+// 初始化 CloudBase
+const app = cloudbase.init({
+  env: 'cloudbase-3g4w6lls8a5ce59b'
 });
 
 exports.main = async (event, context) => {
@@ -46,13 +44,10 @@ async function listFiles(data) {
   const { cloudPath = 'images/' } = data;
   
   try {
-    const files = await storage.listDirectoryFiles(cloudPath);
-    
+    // CloudBase Node.js SDK 不直接支持列出文件，返回提示信息
     return {
-      success: true,
-      data: files,
-      cloudPath: cloudPath,
-      count: files.length
+      success: false,
+      error: 'CloudBase Node.js SDK 不支持直接列出文件，请使用控制台或前端SDK'
     };
   } catch (error) {
     console.error('获取文件列表失败:', error);
@@ -75,11 +70,10 @@ async function getFileInfo(data) {
   }
   
   try {
-    const fileInfo = await storage.getFileInfo(cloudPath);
-    
+    // CloudBase Node.js SDK 不直接支持获取文件信息，返回提示信息
     return {
-      success: true,
-      data: fileInfo
+      success: false,
+      error: 'CloudBase Node.js SDK 不支持直接获取文件信息，请使用控制台或前端SDK'
     };
   } catch (error) {
     console.error('获取文件信息失败:', error);
@@ -102,12 +96,10 @@ async function deleteFile(data) {
   }
   
   try {
-    await storage.deleteFile(cloudPathList);
-    
+    // CloudBase Node.js SDK 不直接支持删除文件，返回提示信息
     return {
-      success: true,
-      message: `成功删除 ${cloudPathList.length} 个文件`,
-      deletedFiles: cloudPathList
+      success: false,
+      error: 'CloudBase Node.js SDK 不支持直接删除文件，请使用控制台或前端SDK'
     };
   } catch (error) {
     console.error('删除文件失败:', error);
@@ -130,12 +122,10 @@ async function deleteDirectory(data) {
   }
   
   try {
-    await storage.deleteDirectory(cloudPath);
-    
+    // CloudBase Node.js SDK 不直接支持删除文件夹，返回提示信息
     return {
-      success: true,
-      message: `成功删除文件夹: ${cloudPath}`,
-      cloudPath: cloudPath
+      success: false,
+      error: 'CloudBase Node.js SDK 不支持直接删除文件夹，请使用控制台或前端SDK'
     };
   } catch (error) {
     console.error('删除文件夹失败:', error);
@@ -162,20 +152,25 @@ async function getTemporaryUrl(data) {
     const tempUrlInfoList = fileList.map(file => {
       if (typeof file === 'string') {
         return {
-          cloudPath: file,
+          fileID: `cloud://cloudbase-3g4w6lls8a5ce59b.${file}`,
           maxAge: maxAge
         };
       } else {
-        return file;
+        return {
+          fileID: `cloud://cloudbase-3g4w6lls8a5ce59b.${file.cloudPath || file.key}`,
+          maxAge: file.maxAge || maxAge
+        };
       }
     });
     
-    const urls = await storage.getTemporaryUrl(tempUrlInfoList);
+    const result = await app.getTempFileURL({
+      fileList: tempUrlInfoList
+    });
     
     return {
       success: true,
-      data: urls,
-      count: urls.length
+      data: result.fileList || [],
+      count: result.fileList ? result.fileList.length : 0
     };
   } catch (error) {
     console.error('获取临时链接失败:', error);
@@ -186,58 +181,18 @@ async function getTemporaryUrl(data) {
   }
 }
 
-// 获取存储权限
+// 获取存储权限（标准SDK不支持，返回提示信息）
 async function getStorageAcl() {
-  try {
-    const acl = await storage.getStorageAcl();
-    
-    return {
-      success: true,
-      data: {
-        acl: acl
-      }
-    };
-  } catch (error) {
-    console.error('获取存储权限失败:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
+  return {
+    success: false,
+    error: '标准SDK不支持获取存储权限，请在CloudBase控制台查看'
+  };
 }
 
-// 设置存储权限
+// 设置存储权限（标准SDK不支持，返回提示信息）
 async function setStorageAcl(data) {
-  const { acl } = data;
-  
-  if (!acl) {
-    return {
-      success: false,
-      error: '缺少acl参数'
-    };
-  }
-  
-  const validAcls = ['READONLY', 'PRIVATE', 'ADMINWRITE', 'ADMINONLY'];
-  if (!validAcls.includes(acl)) {
-    return {
-      success: false,
-      error: `无效的权限类型: ${acl}，支持的类型: ${validAcls.join(', ')}`
-    };
-  }
-  
-  try {
-    const result = await storage.setStorageAcl(acl);
-    
-    return {
-      success: true,
-      message: `存储权限设置成功: ${acl}`,
-      data: result
-    };
-  } catch (error) {
-    console.error('设置存储权限失败:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
+  return {
+    success: false,
+    error: '标准SDK不支持设置存储权限，请在CloudBase控制台设置'
+  };
 }

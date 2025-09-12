@@ -9,6 +9,7 @@ import CouponManagePage from './pages/CouponManagePage';
 import CouponAnalyticsPage from './pages/CouponAnalyticsPage';
 import InventoryManagePage from './pages/InventoryManagePage';
 import ImageManagementPage from './pages/ImageManagementPage';
+import FixImageCategoryPage from './pages/FixImageCategoryPage';
 import PaymentsPage from './pages/PaymentsPage';
 import SettingsPage from './pages/SettingsPage';
 import PopupContentManagePage from './pages/PopupContentManagePage';
@@ -52,6 +53,7 @@ function App() {
               <Route path="coupons/analytics" element={<CouponAnalyticsPage />} />
               <Route path="inventory" element={<InventoryManagePage />} />
               <Route path="images" element={<ImageManagementPage />} />
+              <Route path="fix-image-category" element={<FixImageCategoryPage />} />
               <Route path="payments" element={<PaymentsPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="popup-content" element={<PopupContentManagePage />} />

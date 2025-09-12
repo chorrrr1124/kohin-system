@@ -19,6 +19,20 @@ class CloudStorageService {
   }
 
   /**
+   * 读取文件为ArrayBuffer
+   * @param {File} file - 文件对象
+   * @returns {Promise<ArrayBuffer>} 文件内容
+   */
+  async readFileAsArrayBuffer(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (e) => reject(e);
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  /**
    * 上传文件到CloudBase云存储
    * @param {File} file - 要上传的文件
    * @param {string} cloudPath - 云存储路径
@@ -26,76 +40,131 @@ class CloudStorageService {
    * @returns {Promise} 上传结果
    */
   async uploadFile(file, cloudPath, onProgress) {
+    // 从路径中提取分类，如果路径是 images/all/ 则使用 general
+    let category = cloudPath.split('/')[1] || 'general';
+    if (category === 'all') {
+      category = 'general';
+    }
+    
     try {
       // 确保用户已登录
       await this.ensureLogin();
 
-      console.log('开始上传文件到CloudBase云存储:', {
+      console.log('🚀 开始上传文件到CloudBase云存储 (v2.0):', {
         fileName: file.name,
         fileSize: file.size,
         cloudPath: cloudPath
       });
-
-      // 获取COS临时密钥
-      const stsResult = await this.app.callFunction({
-        name: 'getCosSts',
-        data: {
-          prefix: cloudPath
-        }
-      });
-
-      if (!stsResult.result || !stsResult.result.success) {
-        throw new Error('获取COS临时密钥失败');
-      }
-
-      const credentials = stsResult.result.data.credentials;
       
-      // 由于浏览器环境限制，暂时使用模拟上传
-      // 在实际生产环境中，应该使用COS SDK或直接上传到CloudBase
-      console.log('模拟上传到COS:', {
-        fileName: file.name,
+      console.log('🔍 详细参数检查:', {
         cloudPath: cloudPath,
-        credentials: credentials
+        cloudPathType: typeof cloudPath,
+        cloudPathLength: cloudPath.length,
+        file: file,
+        fileType: typeof file,
+        fileName: file.name
       });
 
-      // 模拟上传进度
-      if (onProgress) {
-        for (let i = 0; i <= 100; i += 20) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-          onProgress({
-            percent: i / 100,
-            loaded: i,
-            total: 100
-          });
-        }
+      // 检查文件大小（限制为10MB）
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        throw new Error(`文件大小超过限制，最大支持10MB，当前文件大小：${(file.size / 1024 / 1024).toFixed(2)}MB`);
       }
 
-      // 模拟上传结果
-      const uploadResult = {
-        Location: `https://${credentials.bucket}.cos.${credentials.region}.myqcloud.com/${cloudPath}`,
-        Bucket: credentials.bucket,
-        Key: cloudPath,
-        ETag: '"mock-etag-' + Date.now() + '"'
-      };
+      // 直接使用CloudBase SDK上传文件到云存储
+      console.log('📤 直接上传到CloudBase云存储:', {
+        fileName: file.name,
+        cloudPath: cloudPath
+      });
 
-      const fileID = `cloud://cloudbase-3g4w6lls8a5ce59b.${cloudPath}`;
+      // 直接使用文件对象，无需转换为Base64
+      console.log('📁 准备上传文件:', {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        cloudPath: cloudPath
+      });
+
+      // 直接使用 CloudBase SDK 上传文件，避免复杂的转换
+      console.log('📤 直接使用 CloudBase SDK 上传文件...');
       
-      console.log('COS上传成功:', uploadResult);
+      // 直接使用原始文件对象，不进行任何转换
+      const uploadResult = await this.app.uploadFile({
+        cloudPath: cloudPath,
+        filePath: file
+      });
+
+      console.log('📊 直接上传结果:', uploadResult);
+
+      if (!uploadResult.fileID) {
+        throw new Error('直接上传失败: ' + (uploadResult.errMsg || '未知错误'));
+      }
+
+      // 从上传结果获取fileID
+      const fileID = uploadResult.fileID;
+      const imageUrl = `https://636c-cloudbase-3g4w6lls8a5ce59b-1327524326.tcb.qcloud.la/${cloudPath}`;
+      
+      console.log('✅ CloudBase直接上传成功:', { fileID, cloudPath, imageUrl });
+
+      // 保存图片信息到数据库
+      try {
+        const saveResult = await this.app.callFunction({
+          name: 'cloudStorageManager',
+          data: {
+            action: 'saveImageInfo',
+            data: {
+              images: [{
+                fileID: fileID,
+                cloudPath: cloudPath,
+                url: imageUrl,
+                imageUrl: imageUrl,
+                fileName: cloudPath.split('/').pop(),
+                title: file.name,
+                category: category,
+                createdAt: new Date().toISOString(),
+                createTime: new Date().toISOString(),
+                isActive: true,
+                sortOrder: 0
+              }],
+              category: category
+            }
+          }
+        });
+
+        if (saveResult.result && saveResult.result.success) {
+          console.log('✅ 图片信息保存到数据库成功');
+        } else {
+          console.warn('⚠️ 图片信息保存到数据库失败:', saveResult.result?.error);
+        }
+      } catch (saveError) {
+        console.warn('⚠️ 保存图片信息到数据库时出错:', saveError);
+      }
 
       return {
         success: true,
         fileID: fileID,
         cloudPath: cloudPath,
-        cosKey: cloudPath,
+        url: imageUrl,
+        imageUrl: imageUrl,
+        fileName: cloudPath.split('/').pop(),
+        title: file.name,
+        category: category,
+        createdAt: new Date().toISOString(),
+        createTime: new Date().toISOString(),
         message: '上传成功'
       };
 
     } catch (error) {
-      console.error('CloudBase上传失败:', error);
+      console.error('❌ CloudBase上传失败:', error);
+      
+      // 确保 category 变量在 catch 块中可用
+      const fallbackCategory = cloudPath ? cloudPath.split('/')[1] || 'general' : 'general';
+      
       return {
         success: false,
         error: error.message,
-        message: '上传失败'
+        message: '上传失败',
+        category: fallbackCategory === 'all' ? 'general' : fallbackCategory
       };
     }
   }
@@ -109,27 +178,33 @@ class CloudStorageService {
     try {
       await this.ensureLogin();
 
-      // 从fileID中提取cloudPath
-      const cloudPath = fileID.replace('cloud://cloudbase-3g4w6lls8a5ce59b.', '');
+      console.log('🔄 获取临时URL:', fileID);
       
-      // 调用云函数获取临时URL
+      // 使用新的云函数获取临时URL
       const result = await this.app.callFunction({
-        name: 'getTempFileURL',
+        name: 'cloudStorageFileManager',
         data: {
-          fileID: fileID,
-          cloudPath: cloudPath
+          action: 'getTemporaryUrl',
+          data: {
+            fileList: [fileID]
+          }
         }
       });
 
       if (result.result && result.result.success) {
-        return {
-          success: true,
-          tempFileURL: result.result.data.tempFileURL,
-          fileID: fileID
-        };
-      } else {
-        throw new Error(result.result?.error || '获取临时URL失败');
+        const urlData = result.result.data;
+        if (urlData && urlData.length > 0) {
+          const fileInfo = urlData[0];
+          console.log('✅ 通过云函数获取临时URL成功:', fileInfo.tempFileURL);
+          return {
+            success: true,
+            tempFileURL: fileInfo.tempFileURL,
+            fileID: fileID
+          };
+        }
       }
+      
+      throw new Error(result.result?.error || '获取临时URL失败');
 
     } catch (error) {
       console.error('获取临时URL失败:', error);
@@ -149,17 +224,44 @@ class CloudStorageService {
     try {
       await this.ensureLogin();
 
-      // 模拟批量获取临时URL
-      const urlMap = {};
-      fileIDs.forEach(fileID => {
-        urlMap[fileID] = `https://mock-cdn.example.com/${fileID}`;
+      console.log('🔄 批量获取临时URL:', fileIDs);
+      
+      // 使用新的云函数批量获取临时URL
+      const result = await this.app.callFunction({
+        name: 'cloudStorageFileManager',
+        data: {
+          action: 'getTemporaryUrl',
+          data: {
+            fileList: fileIDs
+          }
+        }
       });
 
-      return {
-        success: true,
-        urlMap: urlMap,
-        fileIDs: fileIDs
-      };
+      if (result.result && result.result.success) {
+        const urlData = result.result.data;
+        const urlMap = {};
+        
+        if (urlData && urlData.length > 0) {
+          urlData.forEach(fileInfo => {
+            if (fileInfo.tempFileURL) {
+              urlMap[fileInfo.fileID] = fileInfo.tempFileURL;
+              console.log('✅ 获取临时URL成功:', fileInfo.fileID, fileInfo.tempFileURL);
+            } else {
+              console.error('❌ 获取临时URL失败:', fileInfo.fileID, fileInfo.errMsg);
+              // 如果获取失败，尝试生成一个基于fileID的URL
+              urlMap[fileInfo.fileID] = this.generateFallbackURL(fileInfo.fileID);
+            }
+          });
+        }
+
+        return {
+          success: true,
+          urlMap: urlMap,
+          fileIDs: fileIDs
+        };
+      } else {
+        throw new Error(result.result?.error || '获取临时URL失败');
+      }
 
     } catch (error) {
       console.error('批量获取临时URL失败:', error);
@@ -168,6 +270,20 @@ class CloudStorageService {
         error: error.message
       };
     }
+  }
+
+  /**
+   * 生成备用URL（当无法获取临时URL时使用）
+   * @param {string} fileID - 文件ID
+   * @returns {string} 备用URL
+   */
+  generateFallbackURL(fileID) {
+    // 从fileID中提取路径信息
+    if (fileID.startsWith('cloud://')) {
+      const path = fileID.replace('cloud://cloudbase-3g4w6lls8a5ce59b.', '');
+      return `https://636c-cloudbase-3g4w6lls8a5ce59b-1327524326.tcb.qcloud.la/${path}`;
+    }
+    return `https://636c-cloudbase-3g4w6lls8a5ce59b-1327524326.tcb.qcloud.la/${fileID}`;
   }
 
   /**
@@ -206,7 +322,18 @@ class CloudStorageService {
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 8);
     const extension = filename.split('.').pop();
-    return `${prefix}${timestamp}_${random}.${extension}`;
+    const result = `${prefix}${timestamp}_${random}.${extension}`;
+    
+    console.log('🔧 generateCloudPath 调试信息:', {
+      filename: filename,
+      prefix: prefix,
+      timestamp: timestamp,
+      random: random,
+      extension: extension,
+      result: result
+    });
+    
+    return result;
   }
 
   /**
