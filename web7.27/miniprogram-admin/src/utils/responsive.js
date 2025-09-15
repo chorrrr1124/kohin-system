@@ -10,8 +10,12 @@ export const breakpoints = {
   '2xl': 1536
 };
 
+// 检查是否在浏览器环境
+const isBrowser = typeof window !== 'undefined';
+
 // 获取当前屏幕尺寸类型
 export const getScreenSize = () => {
+  if (!isBrowser) return 'lg';
   const width = window.innerWidth;
   
   if (width >= breakpoints['2xl']) return '2xl';
@@ -24,26 +28,26 @@ export const getScreenSize = () => {
 
 // 检查是否为移动设备
 export const isMobile = () => {
+  if (!isBrowser) return false;
   return window.innerWidth < breakpoints.md;
 };
 
 // 检查是否为平板设备
 export const isTablet = () => {
+  if (!isBrowser) return false;
   const width = window.innerWidth;
   return width >= breakpoints.md && width < breakpoints.lg;
 };
 
 // 检查是否为桌面设备
 export const isDesktop = () => {
+  if (!isBrowser) return true;
   return window.innerWidth >= breakpoints.lg;
 };
 
 // 响应式Hook (需要在React组件中使用时导入React)
 export const useResponsive = () => {
-  // 注意：这个Hook需要在React组件中使用
-  // 使用时需要先导入: import { useState, useEffect } from 'react';
-  
-  if (typeof window === 'undefined') {
+  if (!isBrowser) {
     return {
       screenSize: 'lg',
       windowSize: { width: 1024, height: 768 },
@@ -81,8 +85,6 @@ export const useResponsive = () => {
     isDesktop: isDesktop()
   };
 };
-
-
 
 // 响应式网格配置
 export const getResponsiveGridCols = (screenSize) => {
@@ -168,7 +170,7 @@ export const mediaQuery = {
 
 // 检查媒体查询匹配
 export const matchMedia = (query) => {
-  if (typeof window !== 'undefined' && window.matchMedia) {
+  if (isBrowser && window.matchMedia) {
     return window.matchMedia(query).matches;
   }
   return false;

@@ -3,7 +3,7 @@ import { PhotoIcon, PlusIcon, PencilIcon, TrashIcon, EyeIcon, FolderIcon, CloudA
 import { app, ensureLogin } from '../utils/cloudbase';
 import { ContentLoading, CardLoading } from '../components/LoadingSpinner';
 import { useToast } from '../components/Toast';
-import { getBatchTempFileURLs, uploadFile, generateCloudPath } from '../utils/cloudStorage';
+import cloudStorageManager from '../utils/cloudStorage';
 
 const ImageManagePage = () => {
   const [loading, setLoading] = useState(false);
@@ -46,9 +46,9 @@ const ImageManagePage = () => {
       const result = await app.callFunction({
         name: 'cloudStorageManager',
         data: {
-          action: 'getImageList',
+          action: 'listImages',
           data: {
-            category: activeTab === 'all' ? undefined : activeTab
+            category: activeTab === 'all' ? 'all' : activeTab, limit: 100
           }
         }
       });
@@ -58,7 +58,7 @@ const ImageManagePage = () => {
       console.log('🔍 传递给云函数的分类参数:', activeTab === 'all' ? undefined : activeTab);
       
       if (result.result && result.result.success) {
-        let imageList = result.result.data || [];
+        let imageList = result.result.data?.images || result.result.data || [];
         console.log('✅ 图片列表更新成功，共', imageList.length, '张图片');
         console.log('📸 返回的图片数据:', imageList);
         
@@ -243,14 +243,14 @@ const ImageManagePage = () => {
 
         // 生成文件路径 - 修复分类问题
         const uploadCategory = activeTab === 'all' ? 'general' : activeTab;
-        const cloudPath = generateCloudPath(file.name, `images/${uploadCategory}/`);
+        const cloudPath = cloudStorageManager.generateCloudPath(file.name, `images/${uploadCategory}/`);
         console.log('🔍 生成的cloudPath:', cloudPath);
         console.log('🔍 activeTab:', activeTab);
         console.log('🔍 uploadCategory:', uploadCategory);
         console.log('🔍 文件名:', file.name);
         
         // 上传到云存储
-        const uploadResult = await uploadFile(file, cloudPath, (progressData) => {
+        const uploadResult = await cloudStorageManager.uploadFile(file, cloudPath, (progressData) => {
           console.log(`上传进度: ${Math.round(progressData.percent || 0)}%`);
         });
 

@@ -10,7 +10,7 @@ cloud.init({
 exports.main = async (event, context) => {
   try {
     const { prefix = 'images/' } = event;
-
+    
     // 从环境变量读取配置（避免硬编码密钥）
     const secretId = process.env.TENCENTCLOUD_SECRETID || process.env.TENCENT_SECRET_ID
     const secretKey = process.env.TENCENTCLOUD_SECRETKEY || process.env.TENCENT_SECRET_KEY
@@ -23,21 +23,21 @@ exports.main = async (event, context) => {
 
     // 配置STS策略（按前缀最小授权）
     const policy = {
-      version: '2.0',
-      statement: [
-        {
-          effect: 'allow',
-          action: [
-            'cos:PutObject',
-            'cos:PostObject',
-            'cos:GetObject',
-            'cos:DeleteObject'
-          ],
-          resource: [
+        version: '2.0',
+        statement: [
+          {
+            effect: 'allow',
+            action: [
+              'cos:PutObject',
+              'cos:PostObject',
+              'cos:GetObject',
+              'cos:DeleteObject'
+            ],
+            resource: [
             `qcs::cos:${region}:uid/*:${bucket}/${prefix}*`
-          ]
-        }
-      ]
+            ]
+          }
+        ]
     };
 
     // 获取STS临时密钥

@@ -49,7 +49,7 @@ function App() {
               <Route path="coupons" element={<CouponManagePage />} />
               <Route path="coupons/analytics" element={<CouponAnalyticsPage />} />
               <Route path="inventory" element={<InventoryManagePage />} />
-              <Route path="images" element={<ImageManagePage />} />
+              <Route path="banners" element={<ImageManagePage />} />
               <Route path="payments" element={<PaymentsPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="popup-content" element={<PopupContentManagePage />} />

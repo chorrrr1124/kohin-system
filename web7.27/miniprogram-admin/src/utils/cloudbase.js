@@ -57,6 +57,8 @@ const getAuth = () => {
  */
 export const app = getApp();
 
+// 将实例暴露到全局，供云存储管理器使用
+window.cloudbaseApp = app;
 /**
  * 默认的auth实例
  */

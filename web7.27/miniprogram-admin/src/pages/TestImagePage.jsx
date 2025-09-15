@@ -20,7 +20,7 @@ const TestImagePage = () => {
       const result = await app.callFunction({
         name: 'cloudStorageManager',
         data: {
-          action: 'getImageList',
+          action: 'getImages',
           data: {
             category: 'banner'
           }
