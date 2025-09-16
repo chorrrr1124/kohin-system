@@ -42,6 +42,13 @@
           "config": "0 0 9 * * * *"
         }
       ]
+    },
+    {
+      "name": "cloudStorageManager",
+      "runtime": "Nodejs18.15",
+      "memorySize": 512,
+      "timeout": 60,
+      "triggers": []
     }
   ]
 }

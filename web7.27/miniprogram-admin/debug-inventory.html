@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>仓库产品调试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover { background-color: #0056b3; }
+        .product-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        .product-name { font-weight: bold; color: #333; }
+        .product-details { color: #666; font-size: 14px; }
+        .loading { text-align: center; padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 仓库产品调试页面</h1>
+        
+        <div class="status info">
+            <strong>测试时间：</strong> <span id="currentTime"></span>
+        </div>
+        
+        <div class="status info">
+            <strong>说明：</strong> 此页面用于测试仓库产品数据获取是否正常
+        </div>
+        
+        <button class="btn" onclick="testInventoryProducts()">
+            🔍 测试获取仓库产品
+        </button>
+        
+        <button class="btn" onclick="testWithStatusFilter()">
+            🔍 测试带状态过滤的查询
+        </button>
+        
+        <button class="btn" onclick="testWithoutStatusFilter()">
+            🔍 测试不带状态过滤的查询
+        </button>
+        
+        <div id="results">
+            <div class="loading" style="display: none;">
+                <p>⏳ 正在加载数据...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@cloudbase/js-sdk@latest/dist/index.umd.js"></script>
+    <script>
+        // 显示当前时间
+        document.getElementById('currentTime').textContent = new Date().toLocaleString('zh-CN');
+        
+        // 初始化 CloudBase
+        const app = cloudbase.init({
+            env: 'cloudbase-3g4w6lls8a5ce59b'
+        });
+        
+        // 确保登录
+        async function ensureLogin() {
+            const auth = app.auth();
+            let loginState = await auth.getLoginState();
+            
+            if (!loginState || !loginState.isLoggedIn) {
+                console.log('🔐 用户未登录，尝试匿名登录...');
+                await auth.signInAnonymously();
+                console.log('✅ 匿名登录成功');
+            } else {
+                console.log('✅ 用户已登录');
+            }
+        }
+        
+        // 测试获取仓库产品（不带状态过滤）
+        async function testWithoutStatusFilter() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading"><p>⏳ 正在加载数据（不带状态过滤）...</p></div>';
+            
+            try {
+                await ensureLogin();
+                const db = app.database();
+                
+                console.log('🔍 开始查询产品（不带状态过滤）...');
+                const result = await db.collection('products')
+                    .orderBy('createTime', 'desc')
+                    .get();
+                
+                console.log('📊 查询结果:', result);
+                
+                displayResults(result.data, '不带状态过滤的查询结果');
+                
+            } catch (error) {
+                console.error('❌ 查询失败:', error);
+                resultsDiv.innerHTML = `
+                    <div class="status error">
+                        <strong>❌ 查询失败</strong><br>
+                        错误信息: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // 测试获取仓库产品（带状态过滤）
+        async function testWithStatusFilter() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading"><p>⏳ 正在加载数据（带状态过滤）...</p></div>';
+            
+            try {
+                await ensureLogin();
+                const db = app.database();
+                
+                console.log('🔍 开始查询产品（带状态过滤）...');
+                const result = await db.collection('products')
+                    .where({
+                        status: 'active'
+                    })
+                    .orderBy('createTime', 'desc')
+                    .get();
+                
+                console.log('📊 查询结果:', result);
+                
+                displayResults(result.data, '带状态过滤的查询结果');
+                
+            } catch (error) {
+                console.error('❌ 查询失败:', error);
+                resultsDiv.innerHTML = `
+                    <div class="status error">
+                        <strong>❌ 查询失败</strong><br>
+                        错误信息: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // 测试获取仓库产品（原始方法）
+        async function testInventoryProducts() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading"><p>⏳ 正在加载数据...</p></div>';
+            
+            try {
+                await ensureLogin();
+                const db = app.database();
+                
+                console.log('🔍 开始查询产品...');
+                const result = await db.collection('products')
+                    .orderBy('createTime', 'desc')
+                    .get();
+                
+                console.log('📊 查询结果:', result);
+                
+                displayResults(result.data, '仓库产品查询结果');
+                
+            } catch (error) {
+                console.error('❌ 查询失败:', error);
+                resultsDiv.innerHTML = `
+                    <div class="status error">
+                        <strong>❌ 查询失败</strong><br>
+                        错误信息: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // 显示结果
+        function displayResults(products, title) {
+            const resultsDiv = document.getElementById('results');
+            
+            let html = `
+                <div class="status success">
+                    <strong>✅ ${title}</strong><br>
+                    找到 ${products.length} 个产品
+                </div>
+            `;
+            
+            if (products.length > 0) {
+                html += '<h3>📦 产品列表：</h3>';
+                products.forEach((product, index) => {
+                    html += `
+                        <div class="product-item">
+                            <div class="product-name">${index + 1}. ${product.name || '未命名产品'}</div>
+                            <div class="product-details">
+                                <strong>ID:</strong> ${product._id || '无'}<br>
+                                <strong>价格:</strong> ¥${product.price || '0'}<br>
+                                <strong>库存:</strong> ${product.stock || '0'}<br>
+                                <strong>状态:</strong> ${product.status || '未设置'}<br>
+                                <strong>在售:</strong> ${product.onSale ? '是' : '否'}<br>
+                                <strong>分类:</strong> ${product.category || '未分类'}<br>
+                                <strong>品牌:</strong> ${product.brand || '无'}<br>
+                                <strong>创建时间:</strong> ${product.createTime ? new Date(product.createTime).toLocaleString('zh-CN') : '无'}
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html += '<div class="status error">❌ 没有找到任何产品</div>';
+            }
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        console.log('🔧 仓库产品调试页面已加载');
+        console.log('📍 当前 URL:', window.location.href);
+    </script>
+</body>
+</html>

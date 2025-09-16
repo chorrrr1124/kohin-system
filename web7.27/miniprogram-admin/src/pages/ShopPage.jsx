@@ -14,9 +14,12 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
   DocumentArrowDownIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  PhotoIcon,
+  CloudIcon
 } from '@heroicons/react/24/outline';
 import { app, ensureLogin } from '../utils/cloudbase';
+import ImageSelector from '../components/ImageSelector';
 
 const ShopPage = () => {
   const [products, setProducts] = useState([]);
@@ -37,12 +40,17 @@ const ShopPage = () => {
     description: '',
     stock: '',
     category: '',
-    images: []
+    images: [],
+    productId: ''
   });
   const [editingProduct, setEditingProduct] = useState(null);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [categories, setCategories] = useState([]);
   const [deletedCategories, setDeletedCategories] = useState([]);
+  
+  // 图片选择器状态
+  const [showImageSelector, setShowImageSelector] = useState(false);
+  const [selectedCloudImages, setSelectedCloudImages] = useState([]);
   
   // 新增状态
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -54,6 +62,16 @@ const ShopPage = () => {
   const [stockThreshold, setStockThreshold] = useState(10);
   const [activeTab, setActiveTab] = useState('products'); // products, categories, analytics
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  
+  // 关联仓库产品相关状态
+  const [showProductSelector, setShowProductSelector] = useState(false);
+  const [inventoryProducts, setInventoryProducts] = useState([]);
+  const [productSearchTerm, setProductSearchTerm] = useState('');
+  
+  // 同步相关状态
+  const [syncStatus, setSyncStatus] = useState('idle'); // idle, syncing, success, error
+  const [lastSyncTime, setLastSyncTime] = useState(null);
+  const [syncMessage, setSyncMessage] = useState('');
 
   const pageSize = 10;
 
@@ -65,12 +83,103 @@ const ShopPage = () => {
 
   // 分类完全从数据库动态获取，不使用预定义分类
 
+  // 加载仓库产品数据
+  const loadInventoryProducts = async () => {
+    try {
+      await ensureLogin();
+      const db = app.database();
+      const result = await db.collection('products') // 修正：应该查询 products 集合
+        .orderBy('createTime', 'desc')
+        .get();
+      
+      console.log('🔍 加载到的仓库产品:', result.data);
+      setInventoryProducts(result.data);
+    } catch (error) {
+      console.error('加载仓库产品失败:', error);
+    }
+  };
+
+  // 同步仓库产品数据到商品管理（只同步库存数量）
+  const syncFromInventory = async () => {
+    if (syncStatus === 'syncing') return;
+    
+    try {
+      setSyncStatus('syncing');
+      setSyncMessage('正在同步库存数据...');
+      
+      await ensureLogin();
+      
+      // 调用云函数进行库存同步
+      const result = await app.callFunction({
+        name: 'inventorySync',
+        data: {
+          action: 'syncInventoryToShop'
+        }
+      });
+      
+      if (result.result.success) {
+        setLastSyncTime(new Date());
+        setSyncMessage(result.result.message);
+        setSyncStatus('success');
+        console.log('✅ 库存同步成功:', result.result);
+      } else {
+        throw new Error(result.result.error || '同步失败');
+      }
+      
+      // 刷新商品列表
+      fetchProducts();
+      
+    } catch (error) {
+      console.error('库存同步失败:', error);
+      setSyncMessage(`库存同步失败: ${error.message}`);
+      setSyncStatus('error');
+    }
+  };
+
+  // 检查同步状态
+  const checkSyncStatus = async () => {
+    try {
+      await ensureLogin();
+      const db = app.database();
+      
+      // 获取最近同步的商品
+      const result = await db.collection('shopProducts')
+        .where({
+          lastSyncTime: db.command.exists(true)
+        })
+        .orderBy('lastSyncTime', 'desc')
+        .limit(1)
+        .get();
+      
+      if (result.data.length > 0) {
+        setLastSyncTime(result.data[0].lastSyncTime);
+      }
+    } catch (error) {
+      console.error('检查同步状态失败:', error);
+    }
+  };
+
+  // 选择仓库产品
+  const selectInventoryProduct = (product) => {
+    setNewProduct({
+      ...newProduct,
+      name: product.name,
+      price: product.price || '',
+      description: product.description || '',
+      stock: product.stock || '',
+      category: product.category || '',
+      images: product.images || [],
+      productId: product._id // 关联仓库产品ID
+    });
+    setShowProductSelector(false);
+  };
+
   // 检查库存预警
   const checkLowStock = async () => {
     try {
       await ensureLogin();
       const db = app.database();
-      const result = await db.collection('products')
+      const result = await db.collection('shopProducts')
         .where({
           stock: db.command.lte(stockThreshold),
           onSale: true
@@ -115,13 +224,13 @@ const ShopPage = () => {
       if (batchAction === 'delete') {
         // 批量删除
         for (const productId of selectedProducts) {
-          await db.collection('products').doc(productId).remove();
+          await db.collection('shopProducts').doc(productId).remove();
         }
       } else {
         // 批量更新状态
         const onSale = batchAction === 'onSale';
         for (const productId of selectedProducts) {
-          await db.collection('products').doc(productId).update({
+          await db.collection('shopProducts').doc(productId).update({
             onSale,
             updateTime: new Date()
           });
@@ -216,7 +325,7 @@ const ShopPage = () => {
     try {
       await ensureLogin();
       const db = app.database();
-      const result = await db.collection('products').get();
+      const result = await db.collection('shopProducts').get();
       
       const csvContent = [
         ['商品ID', '商品名称', '价格', '库存', '分类', '状态', '创建时间'].join(','),
@@ -265,7 +374,7 @@ const ShopPage = () => {
     try {
       await ensureLogin();
       const db = app.database();
-      const result = await db.collection('products')
+      const result = await db.collection('shopProducts')
         .field({ category: true })
         .get();
 
@@ -292,7 +401,7 @@ const ShopPage = () => {
       const db = app.database();
 
       // 构建查询条件
-      let query = db.collection('products');
+      let query = db.collection('shopProducts');
       
       if (searchTerm) {
         query = query.where({
@@ -344,6 +453,7 @@ const ShopPage = () => {
     fetchProducts();
     fetchCategories();
     checkLowStock();
+    checkSyncStatus(); // 检查同步状态
   }, [currentPage, searchTerm, statusFilter, categoryFilter, stockThreshold, deletedCategories]);
 
   // 定期检查库存预警
@@ -367,7 +477,8 @@ const ShopPage = () => {
       description: product.description || '',
       stock: product.stock || '',
       category: product.category || '',
-      images: product.images || []
+      images: product.images || [],
+      productId: product.productId || ''
     });
     setShowEditModal(true);
   };
@@ -396,7 +507,7 @@ const ShopPage = () => {
       await ensureLogin();
       const db = app.database();
       
-      await db.collection('products').add({
+      await db.collection('shopProducts').add({
         name: newProduct.name.trim(),
         price: parseFloat(newProduct.price),
         description: newProduct.description.trim(),
@@ -408,6 +519,7 @@ const ShopPage = () => {
         specification: newProduct.description.trim() || '',
         type: newProduct.category.trim() || '',
         remark: '',
+        productId: newProduct.productId || '', // 关联的仓库产品ID
         createTime: new Date(),
         updateTime: new Date()
       });
@@ -419,7 +531,8 @@ const ShopPage = () => {
         description: '',
         stock: '',
         category: '',
-        images: []
+        images: [],
+        productId: ''
       });
       setShowAddModal(false);
 
@@ -459,13 +572,14 @@ const ShopPage = () => {
       await ensureLogin();
       const db = app.database();
       
-      await db.collection('products').doc(editingProduct._id).update({
+      await db.collection('shopProducts').doc(editingProduct._id).update({
         name: newProduct.name.trim(),
         price: parseFloat(newProduct.price),
         description: newProduct.description.trim(),
         stock: parseInt(newProduct.stock) || 0,
         category: newProduct.category.trim(),
         images: newProduct.images,
+        productId: newProduct.productId || '', // 关联的仓库产品ID
         updateTime: new Date()
       });
 
@@ -476,7 +590,8 @@ const ShopPage = () => {
         description: '',
         stock: '',
         category: '',
-        images: []
+        images: [],
+        productId: ''
       });
       setEditingProduct(null);
       setShowEditModal(false);
@@ -504,7 +619,7 @@ const ShopPage = () => {
       const db = app.database();
       
       const newStatus = !currentStatus;
-      await db.collection('products').doc(productId).update({
+      await db.collection('shopProducts').doc(productId).update({
         onSale: newStatus,
         updateTime: new Date()
       });
@@ -528,7 +643,7 @@ const ShopPage = () => {
       await ensureLogin();
       const db = app.database();
       
-      await db.collection('products').doc(productId).remove();
+      await db.collection('shopProducts').doc(productId).remove();
 
       // 刷新列表
       fetchProducts();
@@ -550,13 +665,13 @@ const ShopPage = () => {
       if (batchAction === 'delete') {
         // 批量删除
         for (const productId of selectedProducts) {
-          await db.collection('products').doc(productId).remove();
+          await db.collection('shopProducts').doc(productId).remove();
         }
       } else {
         // 批量更新状态
         const onSale = batchAction === 'onSale';
         for (const productId of selectedProducts) {
-          await db.collection('products').doc(productId).update({
+          await db.collection('shopProducts').doc(productId).update({
             onSale,
             updateTime: new Date()
           });
@@ -647,6 +762,21 @@ const ShopPage = () => {
     }));
   };
 
+  // 处理云存储图片选择
+  const handleCloudImageSelect = (selectedImages) => {
+    const imageUrls = selectedImages.map(img => img.url);
+    setNewProduct(prev => ({
+      ...prev,
+      images: [...prev.images, ...imageUrls].slice(0, 5) // 限制最多5张图片
+    }));
+    setSelectedCloudImages(selectedImages);
+  };
+
+  // 打开图片选择器
+  const openImageSelector = () => {
+    setShowImageSelector(true);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -658,11 +788,61 @@ const ShopPage = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold flex items-center">
-          <ShoppingBagIcon className="w-8 h-8 mr-3" />
-          商城管理
-        </h1>
+        <div>
+          <h1 className="text-3xl font-bold flex items-center">
+            <ShoppingBagIcon className="w-8 h-8 mr-3" />
+            商城管理
+          </h1>
+          {/* 同步状态显示 */}
+          <div className="mt-2 flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${
+                syncStatus === 'syncing' ? 'bg-yellow-500 animate-pulse' :
+                syncStatus === 'success' ? 'bg-green-500' :
+                syncStatus === 'error' ? 'bg-red-500' : 'bg-gray-400'
+              }`}></div>
+              <span className="text-gray-600">
+                {syncStatus === 'syncing' ? '同步中...' :
+                 syncStatus === 'success' ? '已同步' :
+                 syncStatus === 'error' ? '同步失败' : '未同步'}
+              </span>
+            </div>
+            {lastSyncTime && (
+              <span className="text-gray-500">
+                最后同步: {new Date(lastSyncTime).toLocaleString()}
+              </span>
+            )}
+            {syncMessage && (
+              <span className={`text-sm ${
+                syncStatus === 'success' ? 'text-green-600' :
+                syncStatus === 'error' ? 'text-red-600' : 'text-gray-600'
+              }`}>
+                {syncMessage}
+              </span>
+            )}
+          </div>
+        </div>
         <div className="flex gap-2">
+          <button
+            onClick={syncFromInventory}
+            disabled={syncStatus === 'syncing'}
+            className={`btn btn-outline btn-sm ${
+              syncStatus === 'syncing' ? 'loading' : ''
+            }`}
+            title="从仓库库存管理同步数据"
+          >
+            {syncStatus === 'syncing' ? (
+              <>
+                <span className="loading loading-spinner loading-xs"></span>
+                同步中
+              </>
+            ) : (
+              <>
+                <CloudIcon className="w-4 h-4 mr-1" />
+                同步数据
+              </>
+            )}
+          </button>
           <button
             onClick={() => setShowCategoryModal(true)}
             className="btn btn-outline"
@@ -890,7 +1070,17 @@ const ShopPage = () => {
                                   className="w-8 h-8 rounded object-cover"
                                 />
                               )}
-                              <span className="max-w-xs truncate">{product.name}</span>
+                              <div className="flex items-center gap-2 max-w-xs">
+                                <span className="truncate">{product.name}</span>
+                                {product.productId && (
+                                  <div className="flex items-center gap-1" title="已关联仓库产品">
+                                    <ArchiveBoxIcon className="w-3 h-3 text-blue-500" />
+                                    {product.lastSyncTime && (
+                                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full" title={`最后同步: ${new Date(product.lastSyncTime).toLocaleString()}`}></div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </td>
                           <td className="font-bold">¥{formatAmount(product.price)}</td>
@@ -1231,20 +1421,34 @@ const ShopPage = () => {
       {/* 添加商品模态框 */}
       {showAddModal && (
         <div className="modal modal-open">
-          <div className="modal-box">
+          <div className="modal-box max-w-4xl max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg mb-4">添加商品</h3>
             <div className="space-y-4">
               <div className="form-control">
                 <label className="label">
                   <span className="label-text">商品名称</span>
                 </label>
-                <input
-                  type="text"
-                  placeholder="请输入商品名称"
-                  className="input input-bordered"
-                  value={newProduct.name}
-                  onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="请输入商品名称"
+                    className="input input-bordered flex-1"
+                    value={newProduct.name}
+                    onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      loadInventoryProducts();
+                      setShowProductSelector(true);
+                    }}
+                    className="btn btn-outline btn-primary flex items-center gap-2"
+                    title="从仓库产品中选择"
+                  >
+                    <ArchiveBoxIcon className="w-4 h-4" />
+                    关联仓库产品
+                  </button>
+                </div>
               </div>
               <div className="form-control">
                 <label className="label">
@@ -1309,14 +1513,26 @@ const ShopPage = () => {
                 <label className="label">
                   <span className="label-text">商品图片</span>
                 </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="file-input file-input-bordered"
-                  onChange={handleImageUpload}
-                  disabled={uploadingImages}
-                />
+                {/* 图片上传选项 */}
+                <div className="flex gap-3 mb-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="file-input file-input-bordered flex-1"
+                    onChange={handleImageUpload}
+                    disabled={uploadingImages}
+                  />
+                  <button
+                    type="button"
+                    onClick={openImageSelector}
+                    className="btn btn-outline btn-primary flex items-center gap-2"
+                    disabled={uploadingImages}
+                  >
+                    <CloudIcon className="w-4 h-4" />
+                    从云存储选择
+                  </button>
+                </div>
                 <div className="flex gap-2 mt-2 flex-wrap">
                   {newProduct.images && newProduct.images.map((img, idx) => (
                     <div key={idx} className="relative group">
@@ -1332,12 +1548,18 @@ const ShopPage = () => {
                     </div>
                   ))}
                 </div>
+                {/* 上传状态提示 */}
                 {uploadingImages && (
                   <div className="text-center py-2 text-gray-500">
                     <ExclamationTriangleIcon className="w-5 h-5 mr-2 inline-block" />
                     图片上传中...
                   </div>
                 )}
+
+                {/* 图片数量提示 */}
+                <div className="text-sm text-gray-500 mt-2">
+                  已选择 {newProduct.images?.length || 0} 张图片 (最多5张)
+                </div>
               </div>
             </div>
             <div className="modal-action">
@@ -1362,20 +1584,34 @@ const ShopPage = () => {
       {/* 编辑商品模态框 */}
       {showEditModal && editingProduct && (
         <div className="modal modal-open">
-          <div className="modal-box">
+          <div className="modal-box max-w-4xl max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg mb-4">编辑商品</h3>
             <div className="space-y-4">
               <div className="form-control">
                 <label className="label">
                   <span className="label-text">商品名称</span>
                 </label>
-                <input
-                  type="text"
-                  placeholder="请输入商品名称"
-                  className="input input-bordered"
-                  value={newProduct.name}
-                  onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="请输入商品名称"
+                    className="input input-bordered flex-1"
+                    value={newProduct.name}
+                    onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      loadInventoryProducts();
+                      setShowProductSelector(true);
+                    }}
+                    className="btn btn-outline btn-primary flex items-center gap-2"
+                    title="从仓库产品中选择"
+                  >
+                    <ArchiveBoxIcon className="w-4 h-4" />
+                    关联仓库产品
+                  </button>
+                </div>
               </div>
               <div className="form-control">
                 <label className="label">
@@ -1440,14 +1676,26 @@ const ShopPage = () => {
                 <label className="label">
                   <span className="label-text">商品图片</span>
                 </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="file-input file-input-bordered"
-                  onChange={handleImageUpload}
-                  disabled={uploadingImages}
-                />
+                {/* 图片上传选项 */}
+                <div className="flex gap-3 mb-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="file-input file-input-bordered flex-1"
+                    onChange={handleImageUpload}
+                    disabled={uploadingImages}
+                  />
+                  <button
+                    type="button"
+                    onClick={openImageSelector}
+                    className="btn btn-outline btn-primary flex items-center gap-2"
+                    disabled={uploadingImages}
+                  >
+                    <CloudIcon className="w-4 h-4" />
+                    从云存储选择
+                  </button>
+                </div>
                 <div className="flex gap-2 mt-2 flex-wrap">
                   {newProduct.images && newProduct.images.map((img, idx) => (
                     <div key={idx} className="relative group">
@@ -1463,12 +1711,18 @@ const ShopPage = () => {
                     </div>
                   ))}
                 </div>
+                {/* 上传状态提示 */}
                 {uploadingImages && (
                   <div className="text-center py-2 text-gray-500">
                     <ExclamationTriangleIcon className="w-5 h-5 mr-2 inline-block" />
                     图片上传中...
                   </div>
                 )}
+
+                {/* 图片数量提示 */}
+                <div className="text-sm text-gray-500 mt-2">
+                  已选择 {newProduct.images?.length || 0} 张图片 (最多5张)
+                </div>
               </div>
             </div>
             <div className="modal-action">
@@ -1587,6 +1841,112 @@ const ShopPage = () => {
           </div>
         </div>
       )}
+
+      {/* 仓库产品选择弹窗 */}
+      {showProductSelector && (
+        <div className="modal modal-open">
+          <div className="modal-box max-w-4xl max-h-[80vh] overflow-y-auto">
+            <h3 className="font-bold text-lg mb-4">选择仓库产品</h3>
+            
+            {/* 搜索框 */}
+            <div className="form-control mb-4">
+              <input
+                type="text"
+                placeholder="搜索产品名称..."
+                className="input input-bordered"
+                value={productSearchTerm}
+                onChange={(e) => setProductSearchTerm(e.target.value)}
+              />
+            </div>
+
+            {/* 产品列表 */}
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {inventoryProducts
+                .filter(product => 
+                  product.name.toLowerCase().includes(productSearchTerm.toLowerCase())
+                )
+                .map(product => (
+                  <div
+                    key={product._id}
+                    className="card card-compact bg-base-100 shadow-sm border hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => selectInventoryProduct(product)}
+                  >
+                    <div className="card-body p-4">
+                      <div className="flex items-center gap-4">
+                        {/* 产品图片 */}
+                        <div className="avatar">
+                          <div className="w-16 h-16 rounded">
+                            {product.images && product.images.length > 0 ? (
+                              <img src={product.images[0]} alt={product.name} className="object-cover" />
+                            ) : (
+                              <div className="bg-gray-200 flex items-center justify-center">
+                                <PhotoIcon className="w-8 h-8 text-gray-400" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* 产品信息 */}
+                        <div className="flex-1">
+                          <h4 className="font-medium text-base">{product.name}</h4>
+                          <div className="text-sm text-gray-500 mt-1">
+                            <div>分类: {product.category || '未分类'}</div>
+                            <div>价格: ¥{product.price || '0'}</div>
+                            <div>库存: {product.stock || '0'} {product.unit || '件'}</div>
+                          </div>
+                          {product.description && (
+                            <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                              {product.description}
+                            </p>
+                          )}
+                        </div>
+                        
+                        {/* 选择按钮 */}
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            selectInventoryProduct(product);
+                          }}
+                        >
+                          选择
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            {inventoryProducts.filter(product => 
+              product.name.toLowerCase().includes(productSearchTerm.toLowerCase())
+            ).length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <ArchiveBoxIcon className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p>没有找到匹配的仓库产品</p>
+              </div>
+            )}
+
+            <div className="modal-action">
+              <button
+                className="btn"
+                onClick={() => setShowProductSelector(false)}
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 图片选择器 */}
+      <ImageSelector
+        isOpen={showImageSelector}
+        onClose={() => setShowImageSelector(false)}
+        onSelect={handleCloudImageSelect}
+        selectedImages={selectedCloudImages}
+        maxSelection={5}
+        category="product"
+      />
     </div>
   );
 };

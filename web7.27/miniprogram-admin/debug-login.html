@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录调试页面</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.24/dist/full.min.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <div class="min-h-screen bg-base-200 flex items-center justify-center">
+        <div class="card w-full max-w-md bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-2xl font-bold text-center mb-6">
+                    管理员登录
+                </h2>
+                
+                <form id="loginForm" class="space-y-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">用户名</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="username"
+                            placeholder="请输入用户名"
+                            class="input input-bordered w-full"
+                            value="admin"
+                            required
+                        />
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">密码</span>
+                        </label>
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="请输入密码"
+                            class="input input-bordered w-full"
+                            value="123456"
+                            required
+                        />
+                    </div>
+                    
+                    <div id="error" class="alert alert-error hidden">
+                        <span id="errorText"></span>
+                    </div>
+                    
+                    <div class="form-control mt-6">
+                        <button
+                            type="submit"
+                            id="loginBtn"
+                            class="btn btn-primary w-full"
+                        >
+                            登录
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="mt-4 text-sm text-base-content/70">
+                    <p>默认账号：admin</p>
+                    <p>默认密码：123456</p>
+                </div>
+                
+                <div class="mt-4">
+                    <button onclick="testLogin()" class="btn btn-outline btn-sm w-full">
+                        测试登录
+                    </button>
+                    <button onclick="clearStorage()" class="btn btn-outline btn-sm w-full mt-2">
+                        清除存储
+                    </button>
+                    <button onclick="checkStorage()" class="btn btn-outline btn-sm w-full mt-2">
+                        检查存储状态
+                    </button>
+                </div>
+                
+                <div id="status" class="mt-4 p-4 bg-base-300 rounded">
+                    <h3 class="font-bold">状态信息：</h3>
+                    <div id="statusContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === 'admin' && password === '123456') {
+                localStorage.setItem('admin_logged_in', '1');
+                localStorage.setItem('cloudbase_login_state', JSON.stringify({
+                    isLoggedIn: true,
+                    user: { uid: 'offline_admin', isOffline: true }
+                }));
+                
+                showStatus('✅ 登录成功！存储已设置');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
+            } else {
+                showError('账号或密码错误');
+            }
+        }
+        
+        function clearStorage() {
+            localStorage.removeItem('admin_logged_in');
+            localStorage.removeItem('cloudbase_login_state');
+            showStatus('🗑️ 存储已清除');
+        }
+        
+        function checkStorage() {
+            const loggedIn = localStorage.getItem('admin_logged_in');
+            const loginState = localStorage.getItem('cloudbase_login_state');
+            
+            let status = `登录状态: ${loggedIn || '未设置'}<br>`;
+            status += `登录详情: ${loginState || '未设置'}<br>`;
+            status += `当前URL: ${window.location.href}<br>`;
+            status += `用户代理: ${navigator.userAgent}`;
+            
+            showStatus(status);
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+        
+        function showStatus(message) {
+            document.getElementById('statusContent').innerHTML = message;
+        }
+        
+        // 页面加载时检查状态
+        window.onload = function() {
+            checkStorage();
+        };
+        
+        // 表单提交处理
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            testLogin();
+        });
+    </script>
+</body>
+</html>

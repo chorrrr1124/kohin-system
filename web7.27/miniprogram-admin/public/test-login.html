@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 登录测试页面</h1>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">用户名：</label>
+                <input type="text" id="username" value="admin" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">密码：</label>
+                <input type="password" id="password" value="123456" required>
+            </div>
+            
+            <button type="submit">登录测试</button>
+        </form>
+        
+        <div id="status" class="status info" style="display: none;">
+            等待测试...
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <h3>📋 测试步骤：</h3>
+            <ol>
+                <li>确认用户名是 <strong>admin</strong></li>
+                <li>确认密码是 <strong>123456</strong></li>
+                <li>点击"登录测试"按钮</li>
+                <li>查看状态信息</li>
+                <li>如果成功，点击"访问主页面"按钮</li>
+            </ol>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button onclick="testLogin()" style="background-color: #28a745;">🧪 自动测试登录</button>
+            <button onclick="checkStorage()" style="background-color: #ffc107; color: black;">📊 检查存储状态</button>
+            <button onclick="clearStorage()" style="background-color: #dc3545;">🗑️ 清除存储</button>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button onclick="goToMain()" style="background-color: #17a2b8;">🏠 访问主页面</button>
+            <button onclick="goToDebug()" style="background-color: #6f42c1;">🐛 调试页面</button>
+        </div>
+    </div>
+
+    <script>
+        const USERNAME = 'admin';
+        const PASSWORD = '123456';
+        
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+        
+        function testLogin() {
+            console.log('🧪 开始自动测试登录...');
+            showStatus('正在测试登录...', 'info');
+            
+            // 模拟登录过程
+            setTimeout(() => {
+                try {
+                    // 设置登录状态
+                    localStorage.setItem('admin_logged_in', '1');
+                    localStorage.setItem('cloudbase_login_state', JSON.stringify({
+                        isLoggedIn: true,
+                        user: { uid: 'offline_admin', isOffline: true }
+                    }));
+                    
+                    console.log('✅ 登录状态已设置');
+                    showStatus('✅ 登录测试成功！状态已保存到本地存储', 'success');
+                } catch (error) {
+                    console.error('❌ 登录测试失败:', error);
+                    showStatus('❌ 登录测试失败: ' + error.message, 'error');
+                }
+            }, 500);
+        }
+        
+        function checkStorage() {
+            console.log('📊 检查本地存储状态...');
+            
+            const adminLoggedIn = localStorage.getItem('admin_logged_in');
+            const cloudbaseState = localStorage.getItem('cloudbase_login_state');
+            
+            let message = `本地存储状态:\n`;
+            message += `admin_logged_in: ${adminLoggedIn}\n`;
+            message += `cloudbase_login_state: ${cloudbaseState}`;
+            
+            console.log(message);
+            showStatus(message, 'info');
+        }
+        
+        function clearStorage() {
+            console.log('🗑️ 清除本地存储...');
+            localStorage.removeItem('admin_logged_in');
+            localStorage.removeItem('cloudbase_login_state');
+            showStatus('🗑️ 本地存储已清除', 'info');
+        }
+        
+        function goToMain() {
+            console.log('🏠 跳转到主页面...');
+            window.location.href = '/';
+        }
+        
+        function goToDebug() {
+            console.log('🐛 跳转到调试页面...');
+            window.location.href = '/debug-login.html';
+        }
+        
+        // 表单提交处理
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            console.log('📝 表单提交:', { username, password });
+            
+            if (username === USERNAME && password === PASSWORD) {
+                testLogin();
+            } else {
+                showStatus('❌ 用户名或密码错误', 'error');
+            }
+        });
+        
+        // 页面加载时检查状态
+        window.addEventListener('load', function() {
+            console.log('📄 页面加载完成');
+            checkStorage();
+        });
+    </script>
+</body>
+</html>

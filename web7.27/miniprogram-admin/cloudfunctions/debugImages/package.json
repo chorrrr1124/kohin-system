@@ -1,0 +1,9 @@
+{
+  "name": "debugImages",
+  "version": "1.0.0",
+  "description": "调试图片数据",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^2.5.0"
+  }
+}

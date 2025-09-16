@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简化测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 简化测试页面</h1>
+        <p>这个页面用于测试基本的登录和页面跳转功能</p>
+        
+        <div>
+            <button onclick="testLogin()">测试登录</button>
+            <button onclick="testRedirect()">测试跳转</button>
+            <button onclick="checkStatus()">检查状态</button>
+            <button onclick="clearAll()">清除所有</button>
+        </div>
+        
+        <div id="status" class="status info" style="display: none;">
+            等待测试...
+        </div>
+        
+        <div id="log" class="log">等待测试...</div>
+    </div>
+
+    <script>
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+        
+        function addLog(message) {
+            const log = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            log.textContent += `[${timestamp}] ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+        
+        function testLogin() {
+            addLog('🧪 开始测试登录...');
+            
+            try {
+                // 设置登录状态
+                localStorage.setItem('admin_logged_in', '1');
+                localStorage.setItem('cloudbase_login_state', JSON.stringify({
+                    isLoggedIn: true,
+                    user: { uid: 'offline_admin', isOffline: true }
+                }));
+                
+                addLog('✅ 登录状态已设置');
+                showStatus('✅ 登录测试成功！', 'success');
+                
+                // 检查状态
+                checkStatus();
+                
+            } catch (error) {
+                addLog('❌ 登录测试失败: ' + error.message);
+                showStatus('❌ 登录测试失败: ' + error.message, 'error');
+            }
+        }
+        
+        function testRedirect() {
+            addLog('🔄 开始测试页面跳转...');
+            
+            try {
+                // 检查登录状态
+                const isLoggedIn = localStorage.getItem('admin_logged_in') === '1';
+                
+                if (isLoggedIn) {
+                    addLog('✅ 登录状态正常，准备跳转...');
+                    
+                    // 延迟跳转，让用户看到日志
+                    setTimeout(() => {
+                        addLog('🔄 正在跳转到主页面...');
+                        window.location.href = '/';
+                    }, 1000);
+                    
+                } else {
+                    addLog('❌ 未登录，无法跳转');
+                    showStatus('❌ 请先登录', 'error');
+                }
+                
+            } catch (error) {
+                addLog('❌ 跳转测试失败: ' + error.message);
+                showStatus('❌ 跳转测试失败: ' + error.message, 'error');
+            }
+        }
+        
+        function checkStatus() {
+            addLog('📊 检查当前状态...');
+            
+            const adminLoggedIn = localStorage.getItem('admin_logged_in');
+            const cloudbaseState = localStorage.getItem('cloudbase_login_state');
+            
+            addLog(`admin_logged_in: ${adminLoggedIn}`);
+            addLog(`cloudbase_login_state: ${cloudbaseState}`);
+            
+            if (adminLoggedIn === '1') {
+                addLog('✅ 登录状态正常');
+                showStatus('✅ 登录状态正常', 'success');
+            } else {
+                addLog('❌ 未登录');
+                showStatus('❌ 未登录', 'error');
+            }
+        }
+        
+        function clearAll() {
+            addLog('🗑️ 清除所有状态...');
+            
+            localStorage.removeItem('admin_logged_in');
+            localStorage.removeItem('cloudbase_login_state');
+            
+            addLog('✅ 所有状态已清除');
+            showStatus('✅ 所有状态已清除', 'info');
+        }
+        
+        // 页面加载时自动检查状态
+        window.addEventListener('load', function() {
+            addLog('📄 页面加载完成');
+            checkStatus();
+        });
+        
+        // 捕获错误
+        window.addEventListener('error', function(e) {
+            addLog('❌ 页面错误: ' + e.message);
+            showStatus('❌ 页面错误: ' + e.message, 'error');
+        });
+    </script>
+</body>
+</html>

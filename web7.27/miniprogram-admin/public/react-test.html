@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React应用测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        #root {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 100px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚛️ React应用测试</h1>
+        <p>这个页面用于测试React应用是否正常工作</p>
+        
+        <div>
+            <button onclick="testReact()">测试React</button>
+            <button onclick="testRouter()">测试路由</button>
+            <button onclick="testLogin()">测试登录</button>
+            <button onclick="goToMain()">访问主应用</button>
+        </div>
+        
+        <div id="status" class="status info" style="display: none;">
+            等待测试...
+        </div>
+        
+        <div id="log" class="log">等待测试...</div>
+        
+        <div id="root">
+            <p>React应用将在这里渲染...</p>
+        </div>
+    </div>
+
+    <script>
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+        
+        function addLog(message) {
+            const log = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            log.textContent += `[${timestamp}] ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+        
+        function testReact() {
+            addLog('🧪 开始测试React...');
+            
+            try {
+                // 检查React是否可用
+                if (typeof React !== 'undefined') {
+                    addLog('✅ React已加载');
+                    
+                    // 尝试创建简单的React元素
+                    const element = React.createElement('div', {
+                        style: { color: 'green', fontWeight: 'bold' }
+                    }, 'React测试成功！');
+                    
+                    // 尝试渲染
+                    const root = ReactDOM.createRoot(document.getElementById('root'));
+                    root.render(element);
+                    
+                    addLog('✅ React元素创建和渲染成功');
+                    showStatus('✅ React测试成功！', 'success');
+                    
+                } else {
+                    addLog('❌ React未加载');
+                    showStatus('❌ React未加载', 'error');
+                }
+                
+            } catch (error) {
+                addLog('❌ React测试失败: ' + error.message);
+                showStatus('❌ React测试失败: ' + error.message, 'error');
+            }
+        }
+        
+        function testRouter() {
+            addLog('🧪 开始测试路由...');
+            
+            try {
+                // 检查React Router是否可用
+                if (typeof ReactRouter !== 'undefined') {
+                    addLog('✅ React Router已加载');
+                    showStatus('✅ React Router已加载', 'success');
+                } else {
+                    addLog('❌ React Router未加载');
+                    showStatus('❌ React Router未加载', 'error');
+                }
+                
+            } catch (error) {
+                addLog('❌ 路由测试失败: ' + error.message);
+                showStatus('❌ 路由测试失败: ' + error.message, 'error');
+            }
+        }
+        
+        function testLogin() {
+            addLog('🧪 开始测试登录...');
+            
+            try {
+                // 设置登录状态
+                localStorage.setItem('admin_logged_in', '1');
+                localStorage.setItem('cloudbase_login_state', JSON.stringify({
+                    isLoggedIn: true,
+                    user: { uid: 'offline_admin', isOffline: true }
+                }));
+                
+                addLog('✅ 登录状态已设置');
+                showStatus('✅ 登录状态已设置', 'success');
+                
+            } catch (error) {
+                addLog('❌ 登录测试失败: ' + error.message);
+                showStatus('❌ 登录测试失败: ' + error.message, 'error');
+            }
+        }
+        
+        function goToMain() {
+            addLog('🔄 跳转到主应用...');
+            window.location.href = '/';
+        }
+        
+        // 页面加载时自动检查
+        window.addEventListener('load', function() {
+            addLog('📄 页面加载完成');
+            
+            // 检查各种库是否加载
+            if (typeof React !== 'undefined') {
+                addLog('✅ React已加载');
+            } else {
+                addLog('❌ React未加载');
+            }
+            
+            if (typeof ReactDOM !== 'undefined') {
+                addLog('✅ ReactDOM已加载');
+            } else {
+                addLog('❌ ReactDOM未加载');
+            }
+            
+            if (typeof ReactRouter !== 'undefined') {
+                addLog('✅ React Router已加载');
+            } else {
+                addLog('❌ React Router未加载');
+            }
+        });
+        
+        // 捕获错误
+        window.addEventListener('error', function(e) {
+            addLog('❌ 页面错误: ' + e.message);
+            showStatus('❌ 页面错误: ' + e.message, 'error');
+        });
+    </script>
+    
+    <!-- 尝试加载React -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+</body>
+</html>

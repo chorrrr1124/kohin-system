@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>库存同步功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover { background-color: #0056b3; }
+        .btn-success { background-color: #28a745; }
+        .btn-warning { background-color: #ffc107; color: #212529; }
+        .btn-danger { background-color: #dc3545; }
+        .test-scenario {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .test-scenario h4 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .order-form {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .item-row {
+            display: flex;
+            gap: 10px;
+            align-items: end;
+            margin: 10px 0;
+        }
+        .item-row input {
+            flex: 1;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 库存同步功能测试</h1>
+        
+        <div class="status info">
+            <strong>测试说明：</strong> 测试小程序下单时的库存同步功能
+        </div>
+        
+        <div class="test-scenario">
+            <h4>📋 测试场景</h4>
+            <ol>
+                <li><strong>创建测试商品：</strong> 在商品管理中创建商品并关联仓库产品</li>
+                <li><strong>模拟下单：</strong> 填写订单信息，模拟客户下单</li>
+                <li><strong>检查同步：</strong> 验证商品库存和仓库库存是否同步扣除</li>
+                <li><strong>验证结果：</strong> 检查库存数据的一致性</li>
+            </ol>
+        </div>
+        
+        <div class="order-form">
+            <h3>🛒 模拟订单</h3>
+            <div class="form-group">
+                <label>订单ID:</label>
+                <input type="text" id="orderId" value="TEST_ORDER_001" readonly>
+            </div>
+            <div class="form-group">
+                <label>客户信息:</label>
+                <input type="text" id="customerName" placeholder="客户姓名" value="测试客户">
+            </div>
+            
+            <h4>订单商品</h4>
+            <div id="orderItems">
+                <div class="item-row">
+                    <input type="text" id="productId1" placeholder="商品ID" value="">
+                    <input type="text" id="productName1" placeholder="商品名称" value="" readonly>
+                    <input type="number" id="quantity1" placeholder="数量" value="1" min="1">
+                    <button type="button" onclick="removeItem(1)" class="btn btn-danger">删除</button>
+                </div>
+            </div>
+            <button type="button" onclick="addItem()" class="btn btn-success">+ 添加商品</button>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <button class="btn" onclick="loadProducts()">
+                📦 加载商品列表
+            </button>
+            <button class="btn btn-success" onclick="simulateOrder()">
+                🛒 模拟下单
+            </button>
+            <button class="btn btn-warning" onclick="checkInventory()">
+                🔍 检查库存状态
+            </button>
+            <button class="btn" onclick="syncInventory()">
+                🔄 同步库存
+            </button>
+            <button class="btn btn-danger" onclick="clearResults()">
+                🗑️ 清空结果
+            </button>
+        </div>
+        
+        <div id="results">
+            <div class="loading" style="display: none;">
+                <p>⏳ 正在处理...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@cloudbase/js-sdk@latest/dist/index.umd.js"></script>
+    <script>
+        // 初始化 CloudBase
+        const app = cloudbase.init({
+            env: 'cloudbase-3g4w6lls8a5ce59b'
+        });
+        
+        let productList = [];
+        let itemCounter = 1;
+        
+        // 确保登录
+        async function ensureLogin() {
+            const auth = app.auth();
+            let loginState = await auth.getLoginState();
+            
+            if (!loginState || !loginState.isLoggedIn) {
+                console.log('🔐 用户未登录，尝试匿名登录...');
+                await auth.signInAnonymously();
+                console.log('✅ 匿名登录成功');
+            } else {
+                console.log('✅ 用户已登录');
+            }
+        }
+        
+        // 加载商品列表
+        async function loadProducts() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading"><p>⏳ 正在加载商品列表...</p></div>';
+            
+            try {
+                await ensureLogin();
+                const db = app.database();
+                
+                const result = await db.collection('shopProducts').get();
+                productList = result.data;
+                
+                console.log('📦 商品列表:', productList);
+                
+                let html = `
+                    <div class="status success">
+                        <strong>✅ 商品列表加载成功</strong><br>
+                        共找到 ${productList.length} 个商品
+                    </div>
+                    <div class="test-scenario">
+                        <h4>📦 可用商品列表</h4>
+                        <div style="max-height: 300px; overflow-y: auto;">
+                `;
+                
+                productList.forEach((product, index) => {
+                    html += `
+                        <div style="border: 1px solid #ddd; padding: 10px; margin: 5px 0; border-radius: 3px; background: white;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>${product.name}</strong><br>
+                                    <small>ID: ${product._id} | 价格: ¥${product.price} | 库存: ${product.stock || 0}</small>
+                                    ${product.productId ? `<br><small class="text-blue-600">关联仓库产品: ${product.productId}</small>` : ''}
+                                </div>
+                                <button class="btn btn-sm" onclick="selectProduct('${product._id}', '${product.name}')">
+                                    选择
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+                
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                console.error('❌ 加载商品列表失败:', error);
+                resultsDiv.innerHTML = `
+                    <div class="status error">
+                        <strong>❌ 加载失败</strong><br>
+                        错误信息: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // 选择商品
+        function selectProduct(productId, productName) {
+            // 找到第一个空的商品输入框
+            const emptyRow = document.querySelector('.item-row input[placeholder="商品ID"]:not([value])');
+            if (emptyRow) {
+                emptyRow.value = productId;
+                emptyRow.parentElement.querySelector('input[placeholder="商品名称"]').value = productName;
+            } else {
+                // 如果没有空的，添加新行
+                addItem();
+                const newRow = document.querySelector('.item-row:last-child');
+                newRow.querySelector('input[placeholder="商品ID"]').value = productId;
+                newRow.querySelector('input[placeholder="商品名称"]').value = productName;
+            }
+        }
+        
+        // 添加商品行
+        function addItem() {
+            itemCounter++;
+            const itemsDiv = document.getElementById('orderItems');
+            const newRow = document.createElement('div');
+            newRow.className = 'item-row';
+            newRow.innerHTML = `
+                <input type="text" id="productId${itemCounter}" placeholder="商品ID" value="">
+                <input type="text" id="productName${itemCounter}" placeholder="商品名称" value="" readonly>
+                <input type="number" id="quantity${itemCounter}" placeholder="数量" value="1" min="1">
+                <button type="button" onclick="removeItem(${itemCounter})" class="btn btn-danger">删除</button>
+            `;
+            itemsDiv.appendChild(newRow);
+        }
+        
+        // 删除商品行
+        function removeItem(itemId) {
+            const itemRow = document.getElementById(`productId${itemId}`).parentElement;
+            itemRow.remove();
+        }
+        
+        // 模拟下单
+        async function simulateOrder() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading"><p>⏳ 正在模拟下单...</p></div>';
+            
+            try {
+                await ensureLogin();
+                
+                // 收集订单数据
+                const orderData = {
+                    orderId: document.getElementById('orderId').value,
+                    customerName: document.getElementById('customerName').value,
+                    items: []
+                };
+                
+                // 收集商品信息
+                const itemRows = document.querySelectorAll('.item-row');
+                for (const row of itemRows) {
+                    const productId = row.querySelector('input[placeholder="商品ID"]').value;
+                    const quantity = parseInt(row.querySelector('input[placeholder="数量"]').value);
+                    
+                    if (productId && quantity > 0) {
+                        orderData.items.push({
+                            productId,
+                            quantity
+                        });
+                    }
+                }
+                
+                if (orderData.items.length === 0) {
+                    throw new Error('请至少添加一个商品');
+                }
+                
+                console.log('🛒 订单数据:', orderData);
+                
+                // 调用云函数模拟下单
+                const result = await app.callFunction({
+                    name: 'inventorySync',
+                    data: {
+                        action: 'syncOrderInventory',
+                        orderData
+                    }
+                });
+                
+                if (result.result.success) {
+                    let html = `
+                        <div class="status success">
+                            <strong>✅ 下单成功！</strong><br>
+                            订单ID: ${orderData.orderId}<br>
+                            客户: ${orderData.customerName}
+                        </div>
+                        <div class="test-scenario">
+                            <h4>📊 库存同步结果</h4>
+                    `;
+                    
+                    result.result.results.forEach(item => {
+                        if (item.success) {
+                            html += `
+                                <div style="border: 1px solid #d4edda; padding: 10px; margin: 5px 0; border-radius: 3px; background: #d4edda;">
+                                    <strong>✅ ${item.productName}</strong><br>
+                                    <small>数量: ${item.quantity} | 新库存: ${item.newStock}</small>
+                                </div>
+                            `;
+                        } else {
+                            html += `
+                                <div style="border: 1px solid #f8d7da; padding: 10px; margin: 5px 0; border-radius: 3px; background: #f8d7da;">
+                                    <strong>❌ 商品ID: ${item.productId}</strong><br>
+                                    <small>错误: ${item.error}</small>
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                    html += `
+                        </div>
+                        <div class="status info">
+                            <strong>📝 说明：</strong> 下单成功后，商品库存和关联的仓库库存都已同步扣除
+                        </div>
+                    `;
+                    
+                    resultsDiv.innerHTML = html;
+                } else {
+                    throw new Error(result.result.error || '下单失败');
+                }
+                
+            } catch (error) {
+                console.error('❌ 模拟下单失败:', error);
+                resultsDiv.innerHTML = `
+                    <div class="status error">
+                        <strong>❌ 下单失败</strong><br>
+                        错误信息: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // 检查库存状态
+        async function checkInventory() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading"><p>⏳ 正在检查库存状态...</p></div>';
+            
+            try {
+                await ensureLogin();
+                
+                const result = await app.callFunction({
+                    name: 'inventorySync',
+                    data: {
+                        action: 'getInventoryStatus'
+                    }
+                });
+                
+                if (result.result.success) {
+                    const data = result.result.data;
+                    
+                    let html = `
+                        <div class="status success">
+                            <strong>📊 库存状态检查完成</strong>
+                        </div>
+                        <div class="test-scenario">
+                            <h4>📈 库存统计</h4>
+                            <ul>
+                                <li>总商品数: ${data.totalProducts}</li>
+                                <li>已关联商品: ${data.linkedProducts}</li>
+                                <li>未关联商品: ${data.unlinkedProducts}</li>
+                                <li>库存预警商品: ${data.lowStockCount}</li>
+                                <li>最后同步时间: ${data.lastSyncTime ? new Date(data.lastSyncTime).toLocaleString() : '无'}</li>
+                            </ul>
+                        </div>
+                    `;
+                    
+                    if (data.lowStockProducts.length > 0) {
+                        html += `
+                            <div class="status warning">
+                                <strong>⚠️ 库存预警商品</strong>
+                            </div>
+                        `;
+                        
+                        data.lowStockProducts.forEach(product => {
+                            html += `
+                                <div style="border: 1px solid #fff3cd; padding: 10px; margin: 5px 0; border-radius: 3px; background: #fff3cd;">
+                                    <strong>${product.name}</strong><br>
+                                    <small>库存: ${product.stock} | 价格: ¥${product.price}</small>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    resultsDiv.innerHTML = html;
+                } else {
+                    throw new Error(result.result.error || '检查库存状态失败');
+                }
+                
+            } catch (error) {
+                console.error('❌ 检查库存状态失败:', error);
+                resultsDiv.innerHTML = `
+                    <div class="status error">
+                        <strong>❌ 检查失败</strong><br>
+                        错误信息: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // 同步库存
+        async function syncInventory() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading"><p>⏳ 正在同步库存...</p></div>';
+            
+            try {
+                await ensureLogin();
+                
+                const result = await app.callFunction({
+                    name: 'inventorySync',
+                    data: {
+                        action: 'syncInventoryToShop'
+                    }
+                });
+                
+                if (result.result.success) {
+                    let html = `
+                        <div class="status success">
+                            <strong>✅ 库存同步完成</strong><br>
+                            ${result.result.message}
+                        </div>
+                    `;
+                    
+                    if (result.result.results && result.result.results.length > 0) {
+                        html += `
+                            <div class="test-scenario">
+                                <h4>📊 同步详情</h4>
+                        `;
+                        
+                        result.result.results.forEach(item => {
+                            if (item.success) {
+                                html += `
+                                    <div style="border: 1px solid #d4edda; padding: 10px; margin: 5px 0; border-radius: 3px; background: #d4edda;">
+                                        <strong>✅ ${item.productName}</strong><br>
+                                        <small>库存: ${item.oldStock} → ${item.newStock}</small>
+                                    </div>
+                                `;
+                            } else {
+                                html += `
+                                    <div style="border: 1px solid #f8d7da; padding: 10px; margin: 5px 0; border-radius: 3px; background: #f8d7da;">
+                                        <strong>❌ ${item.productName}</strong><br>
+                                        <small>错误: ${item.error}</small>
+                                    </div>
+                                `;
+                            }
+                        });
+                        
+                        html += `</div>`;
+                    }
+                    
+                    resultsDiv.innerHTML = html;
+                } else {
+                    throw new Error(result.result.error || '库存同步失败');
+                }
+                
+            } catch (error) {
+                console.error('❌ 库存同步失败:', error);
+                resultsDiv.innerHTML = `
+                    <div class="status error">
+                        <strong>❌ 同步失败</strong><br>
+                        错误信息: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // 清空结果
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        console.log('🔄 库存同步功能测试页面已加载');
+    </script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>控制台测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .error { color: red; }
+        .success { color: green; }
+        .warning { color: orange; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 控制台测试页面</h1>
+        <p>这个页面用于测试JavaScript功能和诊断问题</p>
+        
+        <div>
+            <button onclick="testBasicJS()">测试基础JavaScript</button>
+            <button onclick="testLocalStorage()">测试本地存储</button>
+            <button onclick="testRouter()">测试路由</button>
+            <button onclick="testReact()">测试React</button>
+            <button onclick="clearLog()">清除日志</button>
+        </div>
+        
+        <div id="log" class="log">等待测试...</div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '';
+            log.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            log.scrollTop = log.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+        
+        function clearLog() {
+            log.innerHTML = '';
+        }
+        
+        function testBasicJS() {
+            addLog('🧪 开始测试基础JavaScript...');
+            
+            try {
+                // 测试基本功能
+                addLog('✅ 变量声明正常');
+                const testVar = 'test';
+                addLog('✅ 函数调用正常');
+                addLog('✅ 对象操作正常');
+                const testObj = { name: 'test', value: 123 };
+                addLog('✅ 数组操作正常');
+                const testArray = [1, 2, 3];
+                addLog('✅ 基础JavaScript测试通过', 'success');
+            } catch (error) {
+                addLog('❌ 基础JavaScript测试失败: ' + error.message, 'error');
+            }
+        }
+        
+        function testLocalStorage() {
+            addLog('🧪 开始测试本地存储...');
+            
+            try {
+                // 测试localStorage
+                localStorage.setItem('test_key', 'test_value');
+                const retrieved = localStorage.getItem('test_key');
+                if (retrieved === 'test_value') {
+                    addLog('✅ localStorage写入和读取正常', 'success');
+                } else {
+                    addLog('❌ localStorage读取值不匹配', 'error');
+                }
+                
+                // 测试JSON操作
+                const testData = { user: 'admin', loggedIn: true };
+                localStorage.setItem('test_json', JSON.stringify(testData));
+                const parsedData = JSON.parse(localStorage.getItem('test_json'));
+                if (parsedData.user === 'admin' && parsedData.loggedIn === true) {
+                    addLog('✅ JSON序列化和反序列化正常', 'success');
+                } else {
+                    addLog('❌ JSON操作失败', 'error');
+                }
+                
+                // 清理测试数据
+                localStorage.removeItem('test_key');
+                localStorage.removeItem('test_json');
+                addLog('✅ 本地存储测试完成', 'success');
+            } catch (error) {
+                addLog('❌ 本地存储测试失败: ' + error.message, 'error');
+            }
+        }
+        
+        function testRouter() {
+            addLog('🧪 开始测试路由功能...');
+            
+            try {
+                // 测试URL操作
+                const currentUrl = window.location.href;
+                addLog('✅ 当前URL: ' + currentUrl);
+                
+                // 测试hash路由
+                if (currentUrl.includes('#')) {
+                    addLog('✅ 检测到hash路由', 'success');
+                } else {
+                    addLog('⚠️ 未检测到hash路由，可能使用browser路由', 'warning');
+                }
+                
+                // 测试history API
+                if (typeof history !== 'undefined') {
+                    addLog('✅ History API可用', 'success');
+                } else {
+                    addLog('❌ History API不可用', 'error');
+                }
+                
+                addLog('✅ 路由测试完成', 'success');
+            } catch (error) {
+                addLog('❌ 路由测试失败: ' + error.message, 'error');
+            }
+        }
+        
+        function testReact() {
+            addLog('🧪 开始测试React相关功能...');
+            
+            try {
+                // 检查React是否加载
+                if (typeof React !== 'undefined') {
+                    addLog('✅ React已加载', 'success');
+                } else {
+                    addLog('❌ React未加载', 'error');
+                }
+                
+                // 检查React Router
+                if (typeof ReactRouter !== 'undefined') {
+                    addLog('✅ React Router已加载', 'success');
+                } else {
+                    addLog('❌ React Router未加载', 'error');
+                }
+                
+                // 检查是否有React应用挂载点
+                const appElement = document.getElementById('root');
+                if (appElement) {
+                    addLog('✅ 找到React应用挂载点', 'success');
+                } else {
+                    addLog('❌ 未找到React应用挂载点', 'error');
+                }
+                
+                addLog('✅ React测试完成', 'success');
+            } catch (error) {
+                addLog('❌ React测试失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 页面加载时自动运行基础测试
+        window.addEventListener('load', function() {
+            addLog('📄 页面加载完成，开始自动测试...');
+            testBasicJS();
+            testLocalStorage();
+        });
+        
+        // 捕获全局错误
+        window.addEventListener('error', function(e) {
+            addLog('❌ 全局错误: ' + e.message + ' at ' + e.filename + ':' + e.lineno, 'error');
+        });
+        
+        // 捕获未处理的Promise拒绝
+        window.addEventListener('unhandledrejection', function(e) {
+            addLog('❌ 未处理的Promise拒绝: ' + e.reason, 'error');
+        });
+    </script>
+</body>
+</html>

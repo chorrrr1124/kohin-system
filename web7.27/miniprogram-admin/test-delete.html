@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试删除功能</title>
+    <script src="https://unpkg.com/@cloudbase/js-sdk@latest/dist/index.umd.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        .btn { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .result { margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 4px; }
+        .error { background: #f8d7da; color: #721c24; }
+        .success { background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+    <h1>删除功能测试</h1>
+    
+    <div class="test-section">
+        <h3>1. 初始化云开发</h3>
+        <button class="btn btn-primary" onclick="initCloudbase()">初始化</button>
+        <div id="init-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. 获取图片列表</h3>
+        <button class="btn btn-primary" onclick="getImages()">获取图片</button>
+        <div id="images-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. 测试删除功能</h3>
+        <input type="text" id="imageId" placeholder="输入图片ID" style="padding: 8px; margin: 5px; width: 300px;">
+        <button class="btn btn-danger" onclick="testDelete()">测试删除</button>
+        <div id="delete-result" class="result"></div>
+    </div>
+
+    <script>
+        let app = null;
+        
+        async function initCloudbase() {
+            try {
+                const resultDiv = document.getElementById('init-result');
+                resultDiv.innerHTML = '正在初始化...';
+                
+                // 初始化云开发
+                app = cloudbase.init({
+                    env: 'kohin-system-7g8x8x8x8' // 请替换为您的环境ID
+                });
+                
+                // 匿名登录
+                const auth = app.auth();
+                await auth.signInAnonymously();
+                
+                resultDiv.innerHTML = '<div class="success">✅ 云开发初始化成功</div>';
+            } catch (error) {
+                document.getElementById('init-result').innerHTML = `<div class="error">❌ 初始化失败: ${error.message}</div>`;
+            }
+        }
+        
+        async function getImages() {
+            try {
+                const resultDiv = document.getElementById('images-result');
+                resultDiv.innerHTML = '正在获取图片列表...';
+                
+                const result = await app.callFunction({
+                    name: 'cloudStorageManager',
+                    data: {
+                        action: 'getImagesByCategory',
+                        data: { category: 'all' }
+                    }
+                });
+                
+                if (result.result && result.result.success) {
+                    const images = result.result.data;
+                    let html = `<div class="success">✅ 获取到 ${images.length} 张图片</div>`;
+                    html += '<ul>';
+                    images.slice(0, 5).forEach(img => {
+                        html += `<li>ID: ${img._id}, 文件名: ${img.fileName || img.title || '未知'}</li>`;
+                    });
+                    if (images.length > 5) {
+                        html += `<li>... 还有 ${images.length - 5} 张图片</li>`;
+                    }
+                    html += '</ul>';
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ 获取图片失败: ${result.result?.error || '未知错误'}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('images-result').innerHTML = `<div class="error">❌ 获取图片失败: ${error.message}</div>`;
+            }
+        }
+        
+        async function testDelete() {
+            try {
+                const imageId = document.getElementById('imageId').value.trim();
+                if (!imageId) {
+                    alert('请输入图片ID');
+                    return;
+                }
+                
+                const resultDiv = document.getElementById('delete-result');
+                resultDiv.innerHTML = '正在删除图片...';
+                
+                const result = await app.callFunction({
+                    name: 'cloudStorageManager',
+                    data: {
+                        action: 'deleteImage',
+                        data: { imageId: imageId }
+                    }
+                });
+                
+                console.log('删除结果:', result);
+                
+                if (result.result && result.result.success) {
+                    resultDiv.innerHTML = '<div class="success">✅ 图片删除成功</div>';
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ 删除失败: ${result.result?.error || '未知错误'}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('delete-result').innerHTML = `<div class="error">❌ 删除失败: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -12,9 +12,9 @@ import ImageManagePage from './pages/ImageManagePage';
 import PaymentsPage from './pages/PaymentsPage';
 import SettingsPage from './pages/SettingsPage';
 import PopupContentManagePage from './pages/PopupContentManagePage';
-import CosTestPage from './pages/CosTestPage';
 import LoginPage from './pages/LoginPage';
 import ErrorBoundary from './components/ErrorBoundary';
+import ImageManageErrorBoundary from './components/ImageManageErrorBoundary';
 import { ToastContainer, useToast } from './components/Toast';
 
 function RequireAuth({ children }) {
@@ -49,11 +49,10 @@ function App() {
               <Route path="coupons" element={<CouponManagePage />} />
               <Route path="coupons/analytics" element={<CouponAnalyticsPage />} />
               <Route path="inventory" element={<InventoryManagePage />} />
-              <Route path="images" element={<ImageManagePage />} />
+              <Route path="images" element={<ImageManageErrorBoundary><ImageManagePage /></ImageManageErrorBoundary>} />
               <Route path="payments" element={<PaymentsPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="popup-content" element={<PopupContentManagePage />} />
-              <Route path="cos-test" element={<CosTestPage />} />
             </Route>
           </Routes>
           <ToastContainer toasts={toasts} removeToast={removeToast} />

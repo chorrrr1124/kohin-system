@@ -23,7 +23,23 @@
 ## 环境配置
 
 项目已配置为使用你的 CloudBase 环境：
-- 环境ID: `cloudbase-3g4w6lls8a5ce59b`
+- 环境ID: `kohin-system-7g8k8x8y5a0b2c4d`
+
+### CloudBase 认证配置
+
+项目支持两种认证方式：
+
+1. **API Key 认证** (推荐)
+   - 使用 Publishable Key 进行资源访问
+   - 无需登录步骤，访问速度快
+   - 适合公开资源访问
+
+2. **匿名登录认证** (默认)
+   - 使用默认访客身份进行资源访问
+   - 配置简单，无需额外密钥
+   - 适合需要用户身份的场景
+
+详细配置说明请参考 [CLOUDBASE_CONFIG.md](./CLOUDBASE_CONFIG.md)
 
 ## 安装和运行
 
@@ -127,10 +143,17 @@ src/
 ```
 
 ### CloudBase 配置
-CloudBase 配置位于 `src/utils/cloudbase.js`，包含：
+CloudBase 配置位于以下文件：
+- `src/config/cloudbase.js` - 环境配置和认证设置
+- `src/utils/cloudStorage.js` - 云存储管理工具
+- `src/utils/cloudbase.js` - 数据库连接工具
+
+配置包含：
 - 环境ID配置
-- 登录状态管理
+- API Key 认证配置
+- 匿名登录配置
 - 数据库连接
+- 云存储管理
 
 ## 云函数
 

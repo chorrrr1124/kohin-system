@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   PhotoIcon, 
   CloudArrowUpIcon, 
@@ -45,7 +45,7 @@ const ImageManagementPage = () => {
   };
 
   // 加载图片列表
-  const loadImages = async () => {
+  const loadImages = useCallback(async () => {
     setLoading(true);
     try {
       const imageList = await cloudStorage.getImages(selectedCategory);
@@ -55,12 +55,12 @@ const ImageManagementPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCategory]);
 
   // 当分类改变时重新加载图片
   useEffect(() => {
     loadImages();
-  }, [selectedCategory]);
+  }, [loadImages]);
 
   // 文件选择处理
   const handleFileSelect = (event) => {
@@ -131,13 +131,27 @@ const ImageManagementPage = () => {
     try {
       await cloudStorage.updateImage(editingImage.id, {
         title: editingImage.title,
-        category: editingImage.category
+        category: editingImage.category,
+        isActive: editingImage.isActive
       });
       setEditingImage(null);
       await loadImages();
       console.log('✅ 更新成功');
     } catch (error) {
       console.error('❌ 更新失败:', error);
+    }
+  };
+
+  // 切换图片启用/禁用状态
+  const handleToggleActive = async (imageId, currentStatus) => {
+    try {
+      await cloudStorage.updateImage(imageId, {
+        isActive: !currentStatus
+      });
+      await loadImages();
+      console.log('✅ 状态更新成功');
+    } catch (error) {
+      console.error('❌ 状态更新失败:', error);
     }
   };
 
@@ -296,23 +310,43 @@ const ImageManagementPage = () => {
                 <p>大小: {formatFileSize(image.size || 0)}</p>
                 <p>分类: {image.category || '未分类'}</p>
                 <p>上传: {formatDate(image.createTime || image.uploadTime)}</p>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs">状态:</span>
+                  <div className={`badge badge-sm ${image.isActive ? 'badge-success' : 'badge-error'}`}>
+                    {image.isActive ? '启用' : '禁用'}
+                  </div>
+                </div>
               </div>
               <div className="card-actions justify-end">
                 <button
                   onClick={() => setPreviewImage(image)}
                   className="btn btn-sm btn-ghost"
+                  title="预览"
                 >
                   <EyeIcon className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setEditingImage(image)}
                   className="btn btn-sm btn-ghost"
+                  title="编辑"
                 >
                   <PencilIcon className="w-4 h-4" />
                 </button>
                 <button
+                  onClick={() => handleToggleActive(image.id || image._id, image.isActive)}
+                  className={`btn btn-sm ${image.isActive ? 'btn-warning' : 'btn-success'}`}
+                  title={image.isActive ? '禁用' : '启用'}
+                >
+                  {image.isActive ? (
+                    <ExclamationTriangleIcon className="w-4 h-4" />
+                  ) : (
+                    <CheckCircleIcon className="w-4 h-4" />
+                  )}
+                </button>
+                <button
                   onClick={() => handleDelete(image.id || image._id)}
                   className="btn btn-sm btn-error"
+                  title="删除"
                 >
                   <TrashIcon className="w-4 h-4" />
                 </button>
@@ -401,6 +435,34 @@ const ImageManagementPage = () => {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">状态</span>
+              </label>
+              <div className="flex items-center space-x-4">
+                <label className="cursor-pointer label">
+                  <input
+                    type="radio"
+                    name="status"
+                    className="radio radio-success"
+                    checked={editingImage.isActive === true}
+                    onChange={() => setEditingImage({ ...editingImage, isActive: true })}
+                  />
+                  <span className="label-text ml-2">启用</span>
+                </label>
+                <label className="cursor-pointer label">
+                  <input
+                    type="radio"
+                    name="status"
+                    className="radio radio-error"
+                    checked={editingImage.isActive === false}
+                    onChange={() => setEditingImage({ ...editingImage, isActive: false })}
+                  />
+                  <span className="label-text ml-2">禁用</span>
+                </label>
+              </div>
             </div>
 
             <div className="modal-action">

@@ -5,10 +5,29 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: './',
+  define: {
+    global: 'globalThis',
+    'process.env': {}
+  },
   server: {
-    port: 8080,
+    port: 3000,
     host: '0.0.0.0',
-    open: true
+    open: true,
+    // 添加代理配置解决CloudBase证书问题
+    proxy: {
+      '/tcb': {
+        target: 'https://tcb-api.tencentcloudapi.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/tcb/, '')
+      },
+      '/cloudbase': {
+        target: 'https://tcb-api.tencentcloudapi.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/cloudbase/, '')
+      }
+    }
   },
   build: {
     rollupOptions: {

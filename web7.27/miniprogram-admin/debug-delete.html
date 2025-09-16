@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调试删除功能</title>
+    <script src="https://unpkg.com/@cloudbase/js-sdk@latest/dist/index.umd.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .btn { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 4px; white-space: pre-wrap; }
+        .error { background: #f8d7da; color: #721c24; }
+        .success { background: #d4edda; color: #155724; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .warning { background: #fff3cd; color: #856404; }
+        input, select { padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        .image-item { display: flex; align-items: center; padding: 10px; border: 1px solid #eee; margin: 5px 0; border-radius: 4px; }
+        .image-preview { width: 60px; height: 60px; object-fit: cover; margin-right: 10px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 删除功能调试工具</h1>
+    
+    <div class="section">
+        <h3>1. 环境配置</h3>
+        <input type="text" id="envId" placeholder="环境ID" value="cloudbase-3g4w6lls8a5ce59b" style="width: 300px;">
+        <button class="btn btn-primary" onclick="initCloudbase()">初始化云开发</button>
+        <div id="init-result" class="result"></div>
+    </div>
+    
+    <div class="section">
+        <h3>2. 获取图片列表</h3>
+        <button class="btn btn-primary" onclick="getImages()">获取所有图片</button>
+        <div id="images-result" class="result"></div>
+        <div id="images-list"></div>
+    </div>
+    
+    <div class="section">
+        <h3>3. 测试删除功能</h3>
+        <input type="text" id="imageId" placeholder="输入图片ID" style="width: 300px;">
+        <button class="btn btn-danger" onclick="testDelete()">测试删除</button>
+        <div id="delete-result" class="result"></div>
+    </div>
+    
+    <div class="section">
+        <h3>4. 云函数测试</h3>
+        <select id="testAction">
+            <option value="getImagesByCategory">获取图片列表</option>
+            <option value="deleteImage">删除图片</option>
+            <option value="getCategories">获取分类</option>
+        </select>
+        <button class="btn btn-success" onclick="testCloudFunction()">测试云函数</button>
+        <div id="cloudfunction-result" class="result"></div>
+    </div>
+
+    <script>
+        let app = null;
+        let images = [];
+        
+        async function initCloudbase() {
+            try {
+                const resultDiv = document.getElementById('init-result');
+                const envId = document.getElementById('envId').value.trim();
+                
+                if (!envId) {
+                    resultDiv.innerHTML = '<div class="error">❌ 请输入环境ID</div>';
+                    return;
+                }
+                
+                resultDiv.innerHTML = '正在初始化云开发...';
+                
+                // 初始化云开发
+                app = cloudbase.init({
+                    env: envId
+                });
+                
+                // 匿名登录
+                const auth = app.auth();
+                await auth.signInAnonymously();
+                
+                resultDiv.innerHTML = `<div class="success">✅ 云开发初始化成功\n环境ID: ${envId}</div>`;
+            } catch (error) {
+                document.getElementById('init-result').innerHTML = `<div class="error">❌ 初始化失败: ${error.message}\n${error.stack}</div>`;
+            }
+        }
+        
+        async function getImages() {
+            try {
+                const resultDiv = document.getElementById('images-result');
+                const listDiv = document.getElementById('images-list');
+                
+                resultDiv.innerHTML = '正在获取图片列表...';
+                listDiv.innerHTML = '';
+                
+                const result = await app.callFunction({
+                    name: 'cloudStorageManager',
+                    data: {
+                        action: 'getImagesByCategory',
+                        data: { category: 'all' }
+                    }
+                });
+                
+                console.log('获取图片结果:', result);
+                
+                if (result.result && result.result.success) {
+                    images = result.result.data;
+                    let html = `<div class="success">✅ 获取到 ${images.length} 张图片</div>`;
+                    resultDiv.innerHTML = html;
+                    
+                    // 显示图片列表
+                    let listHtml = '';
+                    images.forEach((img, index) => {
+                        listHtml += `
+                            <div class="image-item">
+                                <img src="${img.imageUrl || img.url || '/placeholder.png'}" 
+                                     class="image-preview" 
+                                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik0yMCAyMEg0MFY0MEgyMFYyMFoiIGZpbGw9IiNDQ0MiLz4KPC9zdmc+'">
+                                <div>
+                                    <div><strong>ID:</strong> ${img._id}</div>
+                                    <div><strong>文件名:</strong> ${img.fileName || img.title || '未知'}</div>
+                                    <div><strong>分类:</strong> ${img.category || '未分类'}</div>
+                                    <div><strong>状态:</strong> ${img.isActive ? '启用' : '禁用'}</div>
+                                    <button class="btn btn-danger" onclick="deleteImageById('${img._id}')" style="margin-top: 5px;">删除</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    listDiv.innerHTML = listHtml;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ 获取图片失败: ${result.result?.error || '未知错误'}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('images-result').innerHTML = `<div class="error">❌ 获取图片失败: ${error.message}\n${error.stack}</div>`;
+            }
+        }
+        
+        async function deleteImageById(imageId) {
+            if (!confirm(`确定要删除图片 ${imageId} 吗？`)) {
+                return;
+            }
+            
+            try {
+                const result = await app.callFunction({
+                    name: 'cloudStorageManager',
+                    data: {
+                        action: 'deleteImage',
+                        data: { imageId: imageId }
+                    }
+                });
+                
+                console.log('删除结果:', result);
+                
+                if (result.result && result.result.success) {
+                    alert('✅ 图片删除成功');
+                    // 重新获取图片列表
+                    await getImages();
+                } else {
+                    alert(`❌ 删除失败: ${result.result?.error || '未知错误'}`);
+                }
+            } catch (error) {
+                alert(`❌ 删除失败: ${error.message}`);
+            }
+        }
+        
+        async function testDelete() {
+            try {
+                const imageId = document.getElementById('imageId').value.trim();
+                if (!imageId) {
+                    alert('请输入图片ID');
+                    return;
+                }
+                
+                const resultDiv = document.getElementById('delete-result');
+                resultDiv.innerHTML = '正在删除图片...';
+                
+                const result = await app.callFunction({
+                    name: 'cloudStorageManager',
+                    data: {
+                        action: 'deleteImage',
+                        data: { imageId: imageId }
+                    }
+                });
+                
+                console.log('删除结果:', result);
+                
+                if (result.result && result.result.success) {
+                    resultDiv.innerHTML = '<div class="success">✅ 图片删除成功</div>';
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ 删除失败: ${result.result?.error || '未知错误'}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('delete-result').innerHTML = `<div class="error">❌ 删除失败: ${error.message}\n${error.stack}</div>`;
+            }
+        }
+        
+        async function testCloudFunction() {
+            try {
+                const action = document.getElementById('testAction').value;
+                const resultDiv = document.getElementById('cloudfunction-result');
+                
+                resultDiv.innerHTML = '正在测试云函数...';
+                
+                let data = {};
+                if (action === 'getImagesByCategory') {
+                    data = { category: 'all' };
+                } else if (action === 'deleteImage') {
+                    const imageId = document.getElementById('imageId').value.trim();
+                    if (!imageId) {
+                        resultDiv.innerHTML = '<div class="error">❌ 请先输入图片ID</div>';
+                        return;
+                    }
+                    data = { imageId: imageId };
+                }
+                
+                const result = await app.callFunction({
+                    name: 'cloudStorageManager',
+                    data: {
+                        action: action,
+                        data: data
+                    }
+                });
+                
+                console.log('云函数测试结果:', result);
+                
+                if (result.result && result.result.success) {
+                    resultDiv.innerHTML = `<div class="success">✅ 云函数调用成功\n${JSON.stringify(result.result, null, 2)}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ 云函数调用失败: ${result.result?.error || '未知错误'}\n${JSON.stringify(result, null, 2)}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('cloudfunction-result').innerHTML = `<div class="error">❌ 云函数调用失败: ${error.message}\n${error.stack}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

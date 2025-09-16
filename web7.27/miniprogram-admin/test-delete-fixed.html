@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>删除功能测试 - 修复版</title>
+    <script src="https://unpkg.com/@cloudbase/js-sdk@latest/dist/index.umd.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .btn { padding: 10px 20px; margin: 10px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 4px; white-space: pre-wrap; }
+        .error { background: #f8d7da; color: #721c24; }
+        .success { background: #d4edda; color: #155724; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .warning { background: #fff3cd; color: #856404; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 4px; width: 300px; }
+        .image-item { display: flex; align-items: center; padding: 10px; border: 1px solid #eee; margin: 5px 0; border-radius: 4px; }
+        .image-preview { width: 50px; height: 50px; object-fit: cover; margin-right: 10px; border-radius: 4px; }
+        .debug-info { background: #f8f9fa; border: 1px solid #dee2e6; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .step { margin: 10px 0; padding: 10px; border-left: 4px solid #007bff; background: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <h1>🔧 删除功能测试 - 修复版</h1>
+    
+    <div class="step">
+        <h3>📋 问题分析</h3>
+        <p><strong>错误信息：</strong> Cannot read properties of undefined (reading 'fileID')</p>
+        <p><strong>原因：</strong> 云函数中获取图片信息时，imageResult.data[0] 可能为 undefined</p>
+        <p><strong>修复：</strong> 添加了详细的日志和空值检查</p>
+    </div>
+    
+    <div>
+        <h3>1. 初始化云开发</h3>
+        <button class="btn btn-primary" onclick="initApp()">初始化云开发</button>
+        <div id="init-result" class="result"></div>
+    </div>
+    
+    <div>
+        <h3>2. 获取图片列表</h3>
+        <button class="btn btn-primary" onclick="getImages()">获取图片</button>
+        <div id="images-result" class="result"></div>
+        <div id="images-list"></div>
+    </div>
+    
+    <div>
+        <h3>3. 测试删除功能</h3>
+        <input type="text" id="imageId" placeholder="输入图片ID">
+        <button class="btn btn-danger" onclick="testDelete()">测试删除</button>
+        <div id="delete-result" class="result"></div>
+    </div>
+
+    <div class="debug-info">
+        <h4>🔍 调试信息</h4>
+        <div id="debug-log"></div>
+    </div>
+
+    <script>
+        let app = null;
+        let images = [];
+        
+        function addDebugLog(message) {
+            const debugDiv = document.getElementById('debug-log');
+            const timestamp = new Date().toLocaleTimeString();
+            debugDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            console.log(`[DEBUG] ${message}`);
+        }
+        
+        async function initApp() {
+            try {
+                addDebugLog('开始初始化云开发...');
+                const resultDiv = document.getElementById('init-result');
+                resultDiv.innerHTML = '正在初始化...';
+                
+                app = cloudbase.init({
+                    env: 'cloudbase-3g4w6lls8a5ce59b'
+                });
+                
+                addDebugLog('云开发SDK初始化完成');
+                
+                const auth = app.auth();
+                addDebugLog('开始匿名登录...');
+                
+                await auth.signInAnonymously();
+                addDebugLog('匿名登录成功');
+                
+                resultDiv.innerHTML = '<div class="success">✅ 初始化成功</div>';
+            } catch (error) {
+                addDebugLog(`初始化失败: ${error.message}`);
+                document.getElementById('init-result').innerHTML = `<div class="error">❌ 初始化失败: ${error.message}</div>`;
+            }
+        }
+        
+        async function getImages() {
+            try {
+                addDebugLog('开始获取图片列表...');
+                const resultDiv = document.getElementById('images-result');
+                const listDiv = document.getElementById('images-list');
+                
+                resultDiv.innerHTML = '正在获取图片...';
+                listDiv.innerHTML = '';
+                
+                const result = await app.callFunction({
+                    name: 'cloudStorageManager',
+                    data: {
+                        action: 'getImagesByCategory',
+                        data: { category: 'all' }
+                    }
+                });
+                
+                addDebugLog(`云函数调用结果: ${JSON.stringify(result, null, 2)}`);
+                
+                if (result.result && result.result.success) {
+                    images = result.result.data.images || result.result.data || [];
+                    addDebugLog(`获取到 ${images.length} 张图片`);
+                    
+                    resultDiv.innerHTML = `<div class="success">✅ 获取到 ${images.length} 张图片</div>`;
+                    
+                    let listHtml = '';
+                    images.slice(0, 10).forEach((img, index) => {
+                        addDebugLog(`图片 ${index + 1}: ID=${img._id}, fileID=${img.fileID || '无'}, fileName=${img.fileName || '未知'}`);
+                        listHtml += `
+                            <div class="image-item">
+                                <img src="${img.imageUrl || img.url || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik0xNSAxNUgzNVYzNUgxNVYxNVoiIGZpbGw9IiNDQ0MiLz4KPC9zdmc+'}" 
+                                     class="image-preview" 
+                                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik0xNSAxNUgzNVYzNUgxNVYxNVoiIGZpbGw9IiNDQ0MiLz4KPC9zdmc+'">
+                                <div>
+                                    <div><strong>ID:</strong> ${img._id}</div>
+                                    <div><strong>文件名:</strong> ${img.fileName || img.title || '未知'}</div>
+                                    <div><strong>分类:</strong> ${img.category || '未分类'}</div>
+                                    <div><strong>fileID:</strong> ${img.fileID || '无'}</div>
+                                    <button class="btn btn-danger" onclick="deleteImageById('${img._id}')" style="margin-top: 5px; padding: 5px 10px;">删除</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    listDiv.innerHTML = listHtml;
+                } else {
+                    addDebugLog(`获取图片失败: ${result.result?.error || '未知错误'}`);
+                    resultDiv.innerHTML = `<div class="error">❌ 获取图片失败: ${result.result?.error || '未知错误'}</div>`;
+                }
+            } catch (error) {
+                addDebugLog(`获取图片异常: ${error.message}`);
+                document.getElementById('images-result').innerHTML = `<div class="error">❌ 获取图片失败: ${error.message}</div>`;
+            }
+        }
+        
+        async function deleteImageById(imageId) {
+            if (!confirm(`确定要删除图片 ${imageId} 吗？`)) {
+                addDebugLog('用户取消删除操作');
+                return;
+            }
+            
+            try {
+                addDebugLog(`开始删除图片: ${imageId}`);
+                
+                const result = await app.callFunction({
+                    name: 'cloudStorageManager',
+                    data: {
+                        action: 'deleteImage',
+                        data: { imageId: imageId }
+                    }
+                });
+                
+                addDebugLog(`删除结果: ${JSON.stringify(result, null, 2)}`);
+                
+                if (result.result && result.result.success) {
+                    addDebugLog('删除成功');
+                    alert('✅ 删除成功');
+                    await getImages(); // 重新获取列表
+                } else {
+                    addDebugLog(`删除失败: ${result.result?.error || '未知错误'}`);
+                    alert(`❌ 删除失败: ${result.result?.error || '未知错误'}`);
+                }
+            } catch (error) {
+                addDebugLog(`删除异常: ${error.message}`);
+                console.error('删除失败:', error);
+                alert(`❌ 删除失败: ${error.message}`);
+            }
+        }
+        
+        async function testDelete() {
+            const imageId = document.getElementById('imageId').value.trim();
+            if (!imageId) {
+                alert('请输入图片ID');
+                return;
+            }
+            
+            await deleteImageById(imageId);
+        }
+        
+        // 页面加载时自动初始化
+        window.onload = function() {
+            addDebugLog('页面加载完成，准备初始化');
+        };
+    </script>
+</body>
+</html>

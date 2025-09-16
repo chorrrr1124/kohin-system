@@ -29,7 +29,13 @@ export const getScreenSize = () => {
 // 检查是否为移动设备
 export const isMobile = () => {
   if (!isBrowser) return false;
-  return window.innerWidth < breakpoints.md;
+  // 简化移动端判断：主要基于屏幕宽度
+  const width = window.innerWidth;
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+  
+  // 屏幕宽度小于1024px就认为是移动端，或者明确是移动设备
+  return width < breakpoints.lg || isMobileUA;
 };
 
 // 检查是否为平板设备

@@ -1,5 +1,5 @@
 import COS from 'cos-js-sdk-v5';
-import { initCloudBase } from './cloudbase';
+import { initCloudBase } from './cloudbase.js';
 
 // COS 配置（根据用户提供信息）
 export const COS_BUCKET = 'kohin-1327524326';

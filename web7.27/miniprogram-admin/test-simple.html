@@ -1,15 +1,102 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Page</title>
+    <title>简单测试页面</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.24/dist/full.min.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
-    <h1>Test Page</h1>
-    <p>If you can see this, the server is working.</p>
+    <div class="min-h-screen bg-base-200 flex items-center justify-center">
+        <div class="card w-full max-w-md bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h1 class="text-2xl font-bold text-center mb-6">测试页面</h1>
+                
+                <div class="space-y-4">
+                    <button onclick="testLocalStorage()" class="btn btn-primary w-full">
+                        测试本地存储
+                    </button>
+                    
+                    <button onclick="testNavigation()" class="btn btn-secondary w-full">
+                        测试导航
+                    </button>
+                    
+                    <button onclick="testLogin()" class="btn btn-accent w-full">
+                        模拟登录
+                    </button>
+                </div>
+                
+                <div id="output" class="mt-6 p-4 bg-base-300 rounded">
+                    <h3 class="font-bold">输出：</h3>
+                    <div id="content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        console.log('Test page loaded');
+        function log(message) {
+            const content = document.getElementById('content');
+            content.innerHTML += '<div>' + new Date().toLocaleTimeString() + ': ' + message + '</div>';
+        }
+        
+        function testLocalStorage() {
+            try {
+                localStorage.setItem('test', 'value');
+                const value = localStorage.getItem('test');
+                log('✅ 本地存储测试成功: ' + value);
+            } catch (e) {
+                log('❌ 本地存储测试失败: ' + e.message);
+            }
+        }
+        
+        function testNavigation() {
+            try {
+                log('当前URL: ' + window.location.href);
+                log('当前协议: ' + window.location.protocol);
+                log('当前主机: ' + window.location.host);
+                log('当前路径: ' + window.location.pathname);
+                log('当前哈希: ' + window.location.hash);
+            } catch (e) {
+                log('❌ 导航测试失败: ' + e.message);
+            }
+        }
+        
+        function testLogin() {
+            try {
+                localStorage.setItem('admin_logged_in', '1');
+                localStorage.setItem('cloudbase_login_state', JSON.stringify({
+                    isLoggedIn: true,
+                    user: { uid: 'offline_admin', isOffline: true }
+                }));
+                
+                log('✅ 登录状态已设置');
+                
+                // 检查设置是否成功
+                const loggedIn = localStorage.getItem('admin_logged_in');
+                const loginState = localStorage.getItem('cloudbase_login_state');
+                
+                log('登录状态: ' + loggedIn);
+                log('登录详情: ' + loginState);
+                
+                // 尝试跳转
+                setTimeout(() => {
+                    log('尝试跳转到主页面...');
+                    window.location.href = '/';
+                }, 1000);
+                
+            } catch (e) {
+                log('❌ 登录测试失败: ' + e.message);
+            }
+        }
+        
+        // 页面加载时自动测试
+        window.onload = function() {
+            log('页面加载完成');
+            testLocalStorage();
+            testNavigation();
+        };
     </script>
 </body>
 </html>

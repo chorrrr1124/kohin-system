@@ -36,7 +36,7 @@ exports.main = async (event, context) => {
       case "saveImageInfo":
         return await saveImageInfo(data);
       case "listImages":
-        return await listImages();
+        return await listImages(data);
       case "getImageInfo":
         return await getImageInfo(data);
       case "getTempFileURL":
@@ -143,7 +143,17 @@ async function getImages(data) {
   try {
     let query = {};
     if (category !== 'all') {
-      query.category = category;
+      // 如果传入的是分类ID，需要先获取分类名称
+      if (category && typeof category === 'string' && category.length > 10) {
+        // 看起来是分类ID，需要查询分类名称
+        const categoryResult = await db.collection('categories').doc(category).get();
+        if (categoryResult.data.length > 0) {
+          query.category = categoryResult.data[0].name;
+        }
+      } else {
+        // 直接使用传入的分类名称
+        query.category = category;
+      }
     }
     
     const result = await db.collection('images')
@@ -203,10 +213,15 @@ async function getImagesByCategory(data) {
 async function deleteImage(data) {
   const { imageId } = data;
   
+  console.log("删除图片开始，imageId:", imageId);
+  
   try {
     // 先获取图片信息
     const imageResult = await db.collection('images').doc(imageId).get();
-    if (imageResult.data.length === 0) {
+    console.log("获取图片信息结果:", JSON.stringify(imageResult, null, 2));
+    
+    if (!imageResult.data || imageResult.data.length === 0) {
+      console.log("图片不存在");
       return {
         success: false,
         error: "图片不存在"
@@ -214,16 +229,23 @@ async function deleteImage(data) {
     }
     
     const image = imageResult.data[0];
+    console.log("图片信息:", JSON.stringify(image, null, 2));
     
     // 删除云存储文件
-    if (image.fileID) {
+    if (image && image.fileID) {
+      console.log("删除云存储文件:", image.fileID);
       await cloud.deleteFile({
         fileList: [image.fileID]
       });
+      console.log("云存储文件删除成功");
+    } else {
+      console.log("图片没有fileID，跳过云存储删除");
     }
     
     // 删除数据库记录
+    console.log("删除数据库记录");
     await db.collection('images').doc(imageId).remove();
+    console.log("数据库记录删除成功");
     
     return {
       success: true,
@@ -304,6 +326,7 @@ async function getCategories() {
     // 为每个分类计算图片数量
     const categoriesWithCount = await Promise.all(
       result.data.map(async (category) => {
+        // 使用 category.name 来匹配图片的分类字段
         const imageCountResult = await db.collection('images')
           .where({ category: category.name })
           .count();
@@ -455,15 +478,35 @@ async function saveImageInfo(data) {
 }
 
 // 列出所有图片
-async function listImages() {
+async function listImages(data = {}) {
   try {
-    const result = await db.collection('images')
+    console.log("listImages 接收到的参数:", JSON.stringify(data, null, 2));
+    
+    const { category, limit = 100 } = data;
+    
+    let query = db.collection('images');
+    
+    // 如果有分类筛选，添加分类条件
+    if (category && category !== 'all') {
+      console.log("添加分类筛选条件:", category);
+      query = query.where({
+        category: category
+      });
+    }
+    
+    const result = await query
       .orderBy('createTime', 'desc')
+      .limit(limit)
       .get();
+    
+    console.log("查询结果:", result.data.length, "张图片");
     
     return {
       success: true,
-      data: result.data
+      data: {
+        images: result.data,
+        total: result.data.length
+      }
     };
   } catch (error) {
     console.error("列出图片失败:", error);

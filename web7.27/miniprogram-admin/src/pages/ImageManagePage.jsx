@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { PhotoIcon, PlusIcon, PencilIcon, TrashIcon, EyeIcon, FolderIcon, CloudArrowUpIcon } from '@heroicons/react/24/outline';
+import { PhotoIcon, TrashIcon, EyeIcon, FolderIcon, CloudArrowUpIcon } from '@heroicons/react/24/outline';
 import { app, ensureLogin } from '../utils/cloudbase';
 import { ContentLoading, CardLoading } from '../components/LoadingSpinner';
 import { useToast } from '../components/Toast';
@@ -10,20 +10,15 @@ const ImageManagePage = () => {
   const [images, setImages] = useState([]);
   const [activeTab, setActiveTab] = useState('banner');
   const { addToast } = useToast();
-  const [showModal, setShowModal] = useState(false);
-  const [editingImage, setEditingImage] = useState(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    imageUrl: '',
-    linkUrl: '',
-    sortOrder: 0,
-    isActive: true,
-    category: 'banner'
-  });
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef();
+  const fetchTimeoutRef = useRef(null);
+  const lastFetchTimeRef = useRef(0);
+  const cacheRef = useRef({});
 
   const imageCategories = [
     { key: 'all', label: '全部图片', path: 'all' },
@@ -34,181 +29,152 @@ const ImageManagePage = () => {
     { key: 'ad', label: '广告图片', path: 'ad' }
   ];
 
-  // 获取图片列表
-  const fetchImages = async () => {
-    setLoading(true);
-    try {
-      console.log('🔍 开始获取图片列表...');
-      await ensureLogin();
-      console.log('✅ 登录成功，开始调用云函数...');
-      
-      // 使用云函数查询图片
-      const result = await app.callFunction({
-        name: 'cloudStorageManager',
-        data: {
-          action: 'listImages',
-          data: {
-            category: activeTab === 'all' ? 'all' : activeTab, limit: 100
-          }
-        }
-      });
-      
-      console.log('📊 云函数查询结果:', result);
-      console.log('🔍 当前分类:', activeTab);
-      console.log('🔍 传递给云函数的分类参数:', activeTab === 'all' ? undefined : activeTab);
-      
-      if (result.result && result.result.success) {
-        let imageList = result.result.data?.images || result.result.data || [];
-        console.log('✅ 图片列表更新成功，共', imageList.length, '张图片');
-        console.log('📸 返回的图片数据:', imageList);
+  // 获取图片列表（带防抖和缓存）
+  const fetchImages = async (force = false) => {
+    // 如果正在加载且不是强制刷新，则跳过
+    if (loading && !force) {
+      console.log('⏳ 正在加载中，跳过重复请求');
+      return;
+    }
+
+    // 检查缓存和频率限制
+    const now = Date.now();
+    const cacheKey = activeTab;
+    const cacheTime = 30000; // 30秒缓存
+    
+    if (!force && cacheRef.current[cacheKey] && (now - lastFetchTimeRef.current) < cacheTime) {
+      console.log('📦 使用缓存数据');
+      setImages(cacheRef.current[cacheKey]);
+      return;
+    }
+
+    // 频率限制：最少间隔3秒
+    if (!force && (now - lastFetchTimeRef.current) < 3000) {
+      console.log('⏰ 请求过于频繁，跳过');
+      return;
+    }
+
+    // 清除之前的定时器
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
+
+    // 设置防抖延迟
+    fetchTimeoutRef.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        console.log('🔍 开始获取图片列表...');
+        await ensureLogin();
+        console.log('✅ 登录成功，开始调用云函数...');
         
-        // 修复图片URL
-        imageList = await fixImageUrls(imageList);
-        
-        // 按最新上传时间排序
-        imageList.sort((a, b) => {
-          const timeA = new Date(a.createdAt || a.createTime || 0).getTime();
-          const timeB = new Date(b.createdAt || b.createTime || 0).getTime();
-          return timeB - timeA; // 最新的在前
+        // 添加超时机制
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('请求超时')), 15000); // 15秒超时
         });
         
-        setImages(imageList);
-        console.log('✅ 图片列表处理完成，共', imageList.length, '张图片');
-      } else {
-        console.error('❌ 云函数查询失败:', result.result?.error);
-        addToast(`获取图片失败: ${result.result?.error || '未知错误'}`, 'error');
-        setImages([]);
-      }
-    } catch (error) {
-      console.error('❌ 获取图片失败:', error);
-      addToast(`获取图片失败: ${error.message}`, 'error');
-      setImages([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 修复图片URL
-  const fixImageUrls = async (imageList) => {
-    try {
-      console.log('🔧 开始修复图片URL...');
-      console.log('📊 原始图片数据:', imageList);
-      
-      // 收集需要获取临时URL的fileID
-      const fileIDsToFix = [];
-      const imageMap = new Map();
-      
-      imageList.forEach((img, index) => {
-        const currentUrl = img.imageUrl || img.url;
-        
-        // 如果URL无效，需要获取临时URL
-        if (!currentUrl || 
-            currentUrl.includes('mock-cdn.example.com') || 
-            currentUrl.includes('undefined') ||
-            currentUrl.includes('example.com')) {
-          
-          if (img.fileID) {
-            fileIDsToFix.push(img.fileID);
-            imageMap.set(img.fileID, { index, img });
-          }
-        }
-      });
-      
-      // 如果有需要修复的图片，批量获取临时URL
-      if (fileIDsToFix.length > 0) {
-        console.log('🔄 批量获取临时URL，文件数量:', fileIDsToFix.length);
-        
-        try {
-          const urlResult = await app.callFunction({
-            name: 'cloudStorageFileManager',
+        // 使用云函数查询图片
+        const functionPromise = app.callFunction({
+          name: 'cloudStorageManager',
+          data: {
+            action: 'listImages',
             data: {
-              action: 'getTemporaryUrl',
-              data: {
-                fileList: fileIDsToFix
-              }
+              category: activeTab === 'all' ? undefined : activeTab, 
+              limit: 100
             }
+          }
+        });
+        
+        const result = await Promise.race([functionPromise, timeoutPromise]);
+        
+        console.log('📊 云函数查询结果:', result);
+        console.log('🔍 当前分类:', activeTab);
+        console.log('🔍 传递给云函数的分类参数:', activeTab === 'all' ? undefined : activeTab);
+        
+        if (result.result && result.result.success) {
+          let imageList = result.result.data?.images || result.result.data || [];
+          console.log('✅ 图片列表更新成功，共', imageList.length, '张图片');
+          console.log('📸 返回的图片数据:', imageList);
+          
+          // 修复图片URL
+          
+          // 按最新上传时间排序
+          imageList.sort((a, b) => {
+            const timeA = new Date(a.createdAt || a.createTime || 0).getTime();
+            const timeB = new Date(b.createdAt || b.createTime || 0).getTime();
+            return timeB - timeA; // 最新的在前
           });
           
-          if (urlResult.result && urlResult.result.success) {
-            const urlData = urlResult.result.data;
-            console.log('✅ 获取临时URL成功:', urlData);
-            
-            // 更新图片URL
-            const updatedImages = [...imageList];
-            urlData.forEach(fileInfo => {
-              if (fileInfo.tempFileURL && imageMap.has(fileInfo.fileID)) {
-                const { index, img } = imageMap.get(fileInfo.fileID);
-                updatedImages[index] = {
-                  ...img,
-                  imageUrl: fileInfo.tempFileURL,
-                  url: fileInfo.tempFileURL,
-                  originalUrl: img.imageUrl || img.url,
-                  fixedAt: new Date().toISOString()
-                };
-                console.log('✅ 图片URL已修复:', fileInfo.fileID, fileInfo.tempFileURL);
-              }
-            });
-            
-            console.log('✅ 图片URL修复完成，修复后的数据:', updatedImages);
-            return updatedImages;
+          setImages(imageList);
+          console.log('✅ 图片列表处理完成，共', imageList.length, '张图片');
+          
+          // 更新缓存
+          cacheRef.current[cacheKey] = imageList;
+          lastFetchTimeRef.current = now;
+        } else {
+          console.error('❌ 云函数查询失败:', result.result?.error);
+          
+          // 检查是否是频率限制错误
+          const errorMsg = result.result?.error || '未知错误';
+          if (errorMsg.includes('EXCEED_RATELIMIT') || errorMsg.includes('ratelimit')) {
+            addToast('请求过于频繁，请稍后再试', 'warning');
+            // 设置重试机制，5秒后重试
+            setTimeout(() => {
+              console.log('🔄 频率限制，5秒后重试...');
+              fetchImages(true);
+            }, 5000);
+          } else {
+            addToast(`获取图片失败: ${errorMsg}`, 'error');
           }
-        } catch (urlError) {
-          console.error('❌ 获取临时URL失败:', urlError);
+          setImages([]);
         }
+      } catch (error) {
+        console.error('❌ 获取图片失败:', error);
+        
+        // 更友好的错误提示
+        let errorMessage = '获取图片失败';
+        if (error.message.includes('超时')) {
+          errorMessage = '网络连接超时，请检查网络后重试';
+        } else if (error.message.includes('network') || error.message.includes('Network')) {
+          errorMessage = '网络连接失败，请检查网络后重试';
+        } else if (error.message.includes('CERT_DATE_INVALID')) {
+          errorMessage = 'SSL证书错误，请稍后重试';
+        } else if (error.message.includes('EXCEED_RATELIMIT') || error.message.includes('ratelimit')) {
+          errorMessage = '请求过于频繁，请稍后再试';
+          // 设置重试机制
+          setTimeout(() => {
+            console.log('🔄 频率限制，5秒后重试...');
+            fetchImages(true);
+          }, 5000);
+        } else {
+          errorMessage = `获取图片失败: ${error.message}`;
+        }
+        
+        addToast(errorMessage, 'error');
+        setImages([]);
+      } finally {
+        setLoading(false);
       }
-      
-      // 如果没有需要修复的图片或获取临时URL失败，使用备用方案
-      const updatedImages = imageList.map((img, index) => {
-        const currentUrl = img.imageUrl || img.url;
-        
-        if (!currentUrl || 
-            currentUrl.includes('mock-cdn.example.com') || 
-            currentUrl.includes('undefined') ||
-            currentUrl.includes('example.com')) {
-          
-          let newUrl = null;
-          
-          // 尝试从fileID生成URL
-          if (img.fileID && img.fileID.startsWith('cloud://')) {
-            const path = img.fileID.replace('cloud://cloudbase-3g4w6lls8a5ce59b.', '');
-            newUrl = `https://636c-cloudbase-3g4w6lls8a5ce59b-1327524326.tcb.qcloud.la/${path}`;
-          }
-          // 尝试从cloudPath生成URL
-          else if (img.cloudPath) {
-            newUrl = `https://636c-cloudbase-3g4w6lls8a5ce59b-1327524326.tcb.qcloud.la/${img.cloudPath}`;
-          }
-          // 尝试从fileName生成URL
-          else if (img.fileName) {
-            newUrl = `https://636c-cloudbase-3g4w6lls8a5ce59b-1327524326.tcb.qcloud.la/${img.fileName}`;
-          }
-          
-          if (newUrl) {
-            return {
-              ...img,
-              imageUrl: newUrl,
-              url: newUrl,
-              originalUrl: currentUrl,
-              fixedAt: new Date().toISOString()
-            };
-          }
-        }
-        
-        return img;
-      });
-      
-      console.log('✅ 图片URL修复完成（备用方案）:', updatedImages);
-      return updatedImages;
-      
-    } catch (error) {
-      console.error('❌ 修复图片URL失败:', error);
-      return imageList;
-    }
+    }, force ? 0 : 2000); // 强制刷新立即执行，否则延迟2秒，减少请求频率
   };
+
 
   useEffect(() => {
     console.log('🔄 页面加载，开始获取图片...');
-    fetchImages();
-  }, [activeTab]);
+    // 添加错误边界保护
+    try {
+      fetchImages(true); // 强制刷新
+    } catch (error) {
+      console.error('❌ useEffect中获取图片失败:', error);
+      addToast('页面加载失败，请刷新重试', 'error');
+    }
+
+    // 清理函数
+    return () => {
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
+  }, [activeTab]); // 只依赖activeTab
 
   // 文件选择处理
   const handleFileSelect = (event) => {
@@ -228,65 +194,100 @@ const ImageManagePage = () => {
     setUploading(true);
     setUploadProgress(0);
 
-    try {
-      console.log('🚀 开始上传图片，文件数量:', selectedFiles.length);
-      
-      let successCount = 0;
-      let failCount = 0;
+    const maxRetries = 3;
+    let lastError = null;
 
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i];
-        const progress = ((i + 1) / selectedFiles.length) * 100;
-        setUploadProgress(progress);
-
-        console.log(`📤 正在上传 ${i + 1}/${selectedFiles.length}: ${file.name}`);
-
-        // 生成文件路径 - 修复分类问题
-        const uploadCategory = activeTab === 'all' ? 'general' : activeTab;
-        const cloudPath = cloudStorageManager.generateCloudPath(file.name, `images/${uploadCategory}/`);
-        console.log('🔍 生成的cloudPath:', cloudPath);
-        console.log('🔍 activeTab:', activeTab);
-        console.log('🔍 uploadCategory:', uploadCategory);
-        console.log('🔍 文件名:', file.name);
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`🚀 开始上传图片 (尝试 ${attempt}/${maxRetries})，文件数量:`, selectedFiles.length);
         
-        // 上传到云存储
-        const uploadResult = await cloudStorageManager.uploadFile(file, cloudPath, (progressData) => {
-          console.log(`上传进度: ${Math.round(progressData.percent || 0)}%`);
-        });
+        let successCount = 0;
+        let failCount = 0;
 
-        if (uploadResult.success) {
-          console.log(`✅ ${file.name} 上传成功`);
-          successCount++;
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const file = selectedFiles[i];
+          const progress = ((i + 1) / selectedFiles.length) * 100;
+          setUploadProgress(progress);
+
+          console.log(`📤 正在上传 ${i + 1}/${selectedFiles.length}: ${file.name}`);
+
+          // 生成文件路径 - 修复分类问题
+          const uploadCategory = activeTab === 'all' ? 'general' : activeTab;
+          const cloudPath = cloudStorageManager.generateCloudPath(file.name, `images/${uploadCategory}/`);
+          console.log('🔍 生成的cloudPath:', cloudPath);
+          console.log('🔍 activeTab:', activeTab);
+          console.log('🔍 uploadCategory:', uploadCategory);
+          console.log('🔍 文件名:', file.name);
+          
+          // 上传到云存储
+          const uploadResult = await cloudStorageManager.uploadImage(file, uploadCategory);
+
+          if (uploadResult.success) {
+            console.log(`✅ ${file.name} 上传成功`);
+            successCount++;
+          } else {
+            console.error(`❌ ${file.name} 上传失败:`, uploadResult.error);
+            failCount++;
+          }
+        }
+
+        console.log(`🎯 上传完成！成功: ${successCount}, 失败: ${failCount}`);
+        
+        // 重新加载图片列表
+        await fetchImages();
+
+        setSelectedFiles([]);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+
+        // 显示结果提示
+        if (successCount > 0) {
+          addToast(`上传完成！成功上传 ${successCount} 张图片${failCount > 0 ? `，失败 ${failCount} 张` : ''}`, 'success');
         } else {
-          console.error(`❌ ${file.name} 上传失败:`, uploadResult.error);
-          failCount++;
+          addToast('上传失败，请检查网络连接或文件格式', 'error');
+        }
+
+        // 成功完成，跳出重试循环
+        break;
+
+      } catch (error) {
+        lastError = error;
+        console.error(`❌ 上传失败 (尝试 ${attempt}/${maxRetries}):`, error);
+        
+        // 检查是否是SSL证书错误
+        if (error.message && error.message.includes('CERT_DATE_INVALID')) {
+          console.warn('⚠️ 检测到SSL证书日期无效错误，将在2秒后重试...');
+          if (attempt < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            continue;
+          }
+        }
+        
+        // 检查是否是网络错误
+        if (error.message && (error.message.includes('network') || error.message.includes('timeout'))) {
+          console.warn('⚠️ 检测到网络错误，将在3秒后重试...');
+          if (attempt < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            continue;
+          }
+        }
+        
+        // 如果不是可重试的错误，直接抛出
+        if (attempt === maxRetries) {
+          break;
         }
       }
-
-      console.log(`🎯 上传完成！成功: ${successCount}, 失败: ${failCount}`);
-      
-      // 重新加载图片列表
-      await fetchImages();
-
-      setSelectedFiles([]);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-
-      // 显示结果提示
-      if (successCount > 0) {
-        addToast(`上传完成！成功上传 ${successCount} 张图片${failCount > 0 ? `，失败 ${failCount} 张` : ''}`, 'success');
-      } else {
-        addToast('上传失败，请检查网络连接或文件格式', 'error');
-      }
-
-    } catch (error) {
-      console.error('上传失败:', error);
-      addToast(`上传失败: ${error.message}`, 'error');
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
     }
+    
+    // 所有重试都失败了
+    if (lastError) {
+      console.error('❌ 上传失败，已重试', maxRetries, '次');
+      addToast(`上传失败: ${lastError.message}`, 'error');
+    }
+    
+    setUploading(false);
+    setUploadProgress(0);
   };
 
   if (loading && images.length === 0) {
@@ -306,7 +307,15 @@ const ImageManagePage = () => {
           {imageCategories.map((category) => (
             <button
               key={category.key}
-              onClick={() => setActiveTab(category.key)}
+              onClick={() => {
+                try {
+                  console.log('🔄 切换分类到:', category.key);
+                  setActiveTab(category.key);
+                } catch (error) {
+                  console.error('❌ 切换分类失败:', error);
+                  addToast('切换分类失败，请重试', 'error');
+                }
+              }}
               className={`
                 px-4 py-2 rounded-lg text-sm font-medium transition-colors
                 ${activeTab === category.key
@@ -366,7 +375,7 @@ const ImageManagePage = () => {
           <button
             onClick={async () => {
               console.log('🔄 手动刷新图片列表...');
-              await fetchImages();
+              await fetchImages(true); // 强制刷新
               addToast('图片列表已刷新', 'success');
             }}
             className="btn btn-outline"
@@ -385,69 +394,6 @@ const ImageManagePage = () => {
                 刷新列表
               </>
             )}
-          </button>
-          <button
-            onClick={async () => {
-              try {
-                setLoading(true);
-                console.log('🔧 开始修复数据库中的图片URL...');
-                await ensureLogin();
-                
-                const fixResult = await app.callFunction({
-                  name: 'fixImageUrls',
-                  data: {}
-                });
-                
-                console.log('📊 修复结果:', fixResult);
-                
-                if (fixResult.result && fixResult.result.success) {
-                  addToast(`修复完成！更新了 ${fixResult.result.data?.updated || 0} 张图片`, 'success');
-                  // 修复完成后重新加载图片列表
-                  await fetchImages();
-                } else {
-                  addToast(`修复失败: ${fixResult.result?.error || '未知错误'}`, 'error');
-                }
-              } catch (error) {
-                console.error('❌ 修复失败:', error);
-                addToast(`修复失败: ${error.message}`, 'error');
-              } finally {
-                setLoading(false);
-              }
-            }}
-            className="btn btn-warning"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <span className="loading loading-spinner loading-sm mr-2"></span>
-                修复中...
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                修复URL
-              </>
-            )}
-          </button>
-          <button
-            onClick={() => {
-              setEditingImage(null);
-              setFormData({
-                title: '',
-                imageUrl: '',
-                linkUrl: '',
-                sortOrder: 0,
-                isActive: true,
-                category: activeTab
-              });
-              setShowModal(true);
-            }}
-            className="btn btn-secondary"
-          >
-            <PlusIcon className="w-4 h-4 mr-2" />
-            手动添加
           </button>
         </div>
       </div>
@@ -512,23 +458,26 @@ const ImageManagePage = () => {
                 {images.map((image) => (
                   <tr key={image._id}>
                     <td>
-                      <div className="w-16 h-12 bg-gray-100 rounded overflow-hidden">
-                        {image.imageUrl ? (
+                      <div className="w-16 h-12 bg-gray-100 rounded overflow-hidden cursor-pointer" onClick={() => {
+                        setPreviewImage(image);
+                        setShowPreviewModal(true);
+                      }}>
+                        {(image.imageUrl || image.url) ? (
                           <img
-                            src={image.imageUrl}
+                            src={image.imageUrl || image.url}
                             alt={image.title}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover hover:opacity-80 transition-opacity"
                             onError={(e) => {
-                              console.log('图片加载失败:', image.imageUrl);
+                              console.log('图片加载失败:', image.imageUrl || image.url);
                               e.target.style.display = 'none';
                               e.target.nextSibling.style.display = 'flex';
                             }}
                             onLoad={() => {
-                              console.log('图片加载成功:', image.imageUrl);
+                              console.log('图片加载成功:', image.imageUrl || image.url);
                             }}
                           />
                         ) : null}
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs" style={{display: image.imageUrl ? 'none' : 'flex'}}>
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs" style={{display: (image.imageUrl || image.url) ? 'none' : 'flex'}}>
                           <PhotoIcon className="w-6 h-6" />
                         </div>
                       </div>
@@ -570,30 +519,62 @@ const ImageManagePage = () => {
                     <td>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => {
-                            setEditingImage(image);
-                            setFormData({
-                              title: image.title || '',
-                              imageUrl: image.imageUrl || '',
-                              linkUrl: image.linkUrl || '',
-                              sortOrder: image.sortOrder || 0,
-                              isActive: image.isActive !== false,
-                              category: image.category || activeTab
-                            });
-                            setShowModal(true);
-                          }}
-                          className="btn btn-sm btn-outline"
-                        >
-                          <PencilIcon className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (window.confirm('确定要删除这张图片吗？')) {
-                              // 这里可以添加删除逻辑
-                              addToast('删除功能待实现', 'info');
+                          onClick={async () => {
+                            console.log('🔴 删除按钮被点击，图片ID:', image._id);
+                            
+                            if (window.confirm('确定要删除这张图片吗？此操作不可撤销！')) {
+                              console.log('✅ 用户确认删除');
+                              
+                              try {
+                                setLoading(true);
+                                console.log('🗑️ 开始删除图片:', image._id);
+                                console.log('🔧 当前app对象:', app);
+                                
+                                // 确保登录
+                                console.log('🔐 检查登录状态...');
+                                await ensureLogin();
+                                console.log('✅ 登录状态确认');
+                                
+                                // 调用云函数
+                                console.log('☁️ 调用云函数...');
+                                const result = await app.callFunction({
+                                  name: 'cloudStorageManager',
+                                  data: {
+                                    action: 'deleteImage',
+                                    data: {
+                                      imageId: image._id
+                                    }
+                                  }
+                                });
+                                
+                                console.log('📊 删除结果:', result);
+                                console.log('📊 删除结果类型:', typeof result);
+                                console.log('📊 删除结果.result:', result.result);
+                                
+                                if (result.result && result.result.success) {
+                                  console.log('✅ 删除成功');
+                                  addToast('图片删除成功', 'success');
+                                  // 重新加载图片列表
+                                  await fetchImages(true); // 强制刷新
+                                } else {
+                                  console.log('❌ 删除失败，错误信息:', result.result?.error);
+                                  addToast(`删除失败: ${result.result?.error || '未知错误'}`, 'error');
+                                }
+                              } catch (error) {
+                                console.error('❌ 删除图片失败:', error);
+                                console.error('❌ 错误堆栈:', error.stack);
+                                addToast(`删除失败: ${error.message}`, 'error');
+                              } finally {
+                                setLoading(false);
+                                console.log('🏁 删除操作完成');
+                              }
+                            } else {
+                              console.log('❌ 用户取消删除');
                             }
                           }}
                           className="btn btn-sm btn-error"
+                          disabled={loading}
+                          title="删除图片"
                         >
                           <TrashIcon className="w-4 h-4" />
                         </button>
@@ -607,103 +588,83 @@ const ImageManagePage = () => {
         )}
       </div>
 
-      {/* 添加/编辑图片模态框 */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">
-              {editingImage ? '编辑图片' : '添加图片'}
-            </h3>
+      {/* 图片预览模态框 */}
+      {showPreviewModal && previewImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" onClick={() => setShowPreviewModal(false)}>
+          <div className="relative max-w-4xl max-h-[90vh] p-4" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setShowPreviewModal(false)}
+              className="absolute top-2 right-2 z-10 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-75 transition-all"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
             
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  标题
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  className="input input-bordered w-full"
-                  placeholder="请输入图片标题"
+            <div className="bg-white rounded-lg overflow-hidden">
+              <div className="p-4 border-b">
+                <h3 className="text-lg font-semibold">{previewImage.title || previewImage.fileName}</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  分类: {imageCategories.find(c => c.key === previewImage.category)?.label || previewImage.category}
+                </p>
+              </div>
+              
+              <div className="p-4">
+                <img
+                  src={previewImage.imageUrl || previewImage.url}
+                  alt={previewImage.title || previewImage.fileName}
+                  className="max-w-full max-h-[60vh] object-contain mx-auto"
+                  onError={(e) => {
+                    e.target.src = '/images/placeholder.png';
+                  }}
                 />
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  图片链接
-                </label>
-                <input
-                  type="url"
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
-                  className="input input-bordered w-full"
-                  placeholder="请输入图片URL"
-                />
+              <div className="p-4 border-t bg-gray-50">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">文件大小:</span>
+                    <span className="ml-2 text-gray-600">
+                      {previewImage.fileSize ? `${(previewImage.fileSize / 1024).toFixed(1)}KB` : '-'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium">上传时间:</span>
+                    <span className="ml-2 text-gray-600">
+                      {previewImage.createdAt ? new Date(previewImage.createdAt).toLocaleString() : '-'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium">状态:</span>
+                    <span className={`ml-2 badge ${previewImage.isActive ? 'badge-success' : 'badge-error'}`}>
+                      {previewImage.isActive ? '启用' : '禁用'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium">排序:</span>
+                    <span className="ml-2 text-gray-600">{previewImage.sortOrder || 0}</span>
+                  </div>
+                </div>
+                
+                {previewImage.linkUrl && (
+                  <div className="mt-3">
+                    <span className="font-medium text-sm">跳转链接:</span>
+                    <a
+                      href={previewImage.linkUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-2 text-blue-600 hover:text-blue-800 text-sm break-all"
+                    >
+                      {previewImage.linkUrl}
+                    </a>
+                  </div>
+                )}
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  跳转链接
-                </label>
-                <input
-                  type="url"
-                  value={formData.linkUrl}
-                  onChange={(e) => setFormData({...formData, linkUrl: e.target.value})}
-                  className="input input-bordered w-full"
-                  placeholder="点击图片跳转的链接（可选）"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  排序
-                </label>
-                <input
-                  type="number"
-                  value={formData.sortOrder}
-                  onChange={(e) => setFormData({...formData, sortOrder: parseInt(e.target.value) || 0})}
-                  className="input input-bordered w-full"
-                  placeholder="数字越小越靠前"
-                />
-              </div>
-              
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="isActive"
-                  checked={formData.isActive}
-                  onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
-                  className="checkbox"
-                />
-                <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">
-                  启用
-                </label>
-              </div>
-            </div>
-            
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                onClick={() => setShowModal(false)}
-                className="btn btn-outline"
-              >
-                取消
-              </button>
-              <button
-                onClick={() => {
-                  // 这里可以添加保存逻辑
-                  addToast('保存功能待实现', 'info');
-                  setShowModal(false);
-                }}
-                className="btn btn-primary"
-                disabled={loading}
-              >
-                {loading ? '保存中...' : '保存'}
-              </button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 };

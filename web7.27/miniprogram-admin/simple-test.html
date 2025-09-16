@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单删除测试</title>
+    <script src="https://unpkg.com/@cloudbase/js-sdk@latest/dist/index.umd.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .btn { padding: 10px 20px; margin: 10px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .error { background: #f8d7da; color: #721c24; }
+        .success { background: #d4edda; color: #155724; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 4px; width: 300px; }
+    </style>
+</head>
+<body>
+    <h1>简单删除测试</h1>
+    
+    <div>
+        <input type="text" id="imageId" placeholder="输入图片ID" value="">
+        <button class="btn btn-danger" onclick="testDelete()">测试删除</button>
+    </div>
+    
+    <div id="result" class="result"></div>
+
+    <script>
+        // 初始化云开发
+        const app = cloudbase.init({
+            env: 'cloudbase-3g4w6lls8a5ce59b'
+        });
+        
+        // 匿名登录
+        app.auth().signInAnonymously().then(() => {
+            console.log('登录成功');
+        }).catch(err => {
+            console.error('登录失败:', err);
+        });
+        
+        async function testDelete() {
+            const imageId = document.getElementById('imageId').value.trim();
+            if (!imageId) {
+                alert('请输入图片ID');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '正在删除...';
+            
+            try {
+                console.log('开始删除图片:', imageId);
+                
+                const result = await app.callFunction({
+                    name: 'cloudStorageManager',
+                    data: {
+                        action: 'deleteImage',
+                        data: { imageId: imageId }
+                    }
+                });
+                
+                console.log('删除结果:', result);
+                
+                if (result.result && result.result.success) {
+                    resultDiv.innerHTML = '<div class="success">✅ 删除成功</div>';
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ 删除失败: ${result.result?.error || '未知错误'}</div>`;
+                }
+            } catch (error) {
+                console.error('删除失败:', error);
+                resultDiv.innerHTML = `<div class="error">❌ 删除失败: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

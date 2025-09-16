@@ -15,6 +15,9 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { ContentLoading, CardLoading } from '../components/LoadingSpinner';
 import { useResponsive } from '../utils/responsive';
+import MobileCard, { MobileStatCard, MobileListItem } from '../components/MobileCard';
+import MobileTable, { MobileStatusBadge, MobileTimeDisplay } from '../components/MobileTable';
+import { isMobile } from '../utils/deviceDetection';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -129,143 +132,109 @@ const DashboardPage = () => {
       {/* 统计卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* 总客户数 */}
-        <div className="card bg-base-100 shadow-sm">
-          <div className="card-body p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-base-content/70">总客户数</p>
-                <p className="text-2xl font-bold text-base-content">{stats.totalCustomers.toLocaleString()}</p>
-              </div>
-              <div className="p-3 bg-primary/10 rounded-full">
-                <UsersIcon className="w-6 h-6 text-primary" />
-              </div>
-            </div>
-          </div>
-        </div>
+        <MobileStatCard
+          title="总客户数"
+          value={stats.totalCustomers.toLocaleString()}
+          icon={<UsersIcon className="w-6 h-6" />}
+          color="blue"
+        />
 
         {/* 今日订单 */}
-        <div className="card bg-base-100 shadow-sm">
-          <div className="card-body p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-base-content/70">今日订单</p>
-                <p className="text-2xl font-bold text-base-content">{stats.todayOrders}</p>
-                <p className="text-xs text-base-content/50">
-                  待处理: {stats.todayPendingOrders} | 已完成: {stats.todayCompletedOrders}
-                </p>
-              </div>
-              <div className="p-3 bg-success/10 rounded-full">
-                <ShoppingBagIcon className="w-6 h-6 text-success" />
-              </div>
-            </div>
-          </div>
-        </div>
+        <MobileStatCard
+          title="今日订单"
+          value={stats.todayOrders}
+          subtitle={`待处理: ${stats.todayPendingOrders} | 已完成: ${stats.todayCompletedOrders}`}
+          icon={<ShoppingBagIcon className="w-6 h-6" />}
+          color="green"
+        />
 
         {/* 今日收入 */}
-        <div className="card bg-base-100 shadow-sm">
-          <div className="card-body p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-base-content/70">今日收入</p>
-                <p className="text-2xl font-bold text-base-content">¥{stats.todayRevenue.toLocaleString()}</p>
-                <p className="text-xs text-base-content/50">
-                  总收入: ¥{stats.totalRevenue.toLocaleString()}
-                </p>
-              </div>
-              <div className="p-3 bg-warning/10 rounded-full">
-                <CurrencyDollarIcon className="w-6 h-6 text-warning" />
-              </div>
-            </div>
-          </div>
-        </div>
+        <MobileStatCard
+          title="今日收入"
+          value={`¥${stats.todayRevenue.toLocaleString()}`}
+          subtitle={`总收入: ¥${stats.totalRevenue.toLocaleString()}`}
+          icon={<CurrencyDollarIcon className="w-6 h-6" />}
+          color="yellow"
+        />
 
         {/* 库存预警 */}
-        <div className="card bg-base-100 shadow-sm">
-          <div className="card-body p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-base-content/70">库存预警</p>
-                <p className="text-2xl font-bold text-base-content">{stats.lowStockProducts}</p>
-                <p className="text-xs text-base-content/50">
-                  总商品: {stats.totalProducts}
-                </p>
-              </div>
-              <div className="p-3 bg-error/10 rounded-full">
-                <ExclamationTriangleIcon className="w-6 h-6 text-error" />
-              </div>
-            </div>
-          </div>
-        </div>
+        <MobileStatCard
+          title="库存预警"
+          value={stats.lowStockProducts}
+          subtitle={`总商品: ${stats.totalProducts}`}
+          icon={<ExclamationTriangleIcon className="w-6 h-6" />}
+          color="red"
+        />
       </div>
 
       {/* 最近订单 */}
-      <div className="card bg-base-100 shadow-sm">
-        <div className="card-body">
-          <h3 className="card-title">最近订单</h3>
-          <div className="overflow-x-auto">
-            <table className="table table-zebra">
-              <thead>
-                <tr>
-                  <th>订单ID</th>
-                  <th>客户</th>
-                  <th>金额</th>
-                  <th>状态</th>
-                  <th>时间</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentOrders.map((order) => (
-                  <tr key={order.id}>
-                    <td>{order.id}</td>
-                    <td>{order.customerName}</td>
-                    <td>¥{order.amount}</td>
-                    <td>
-                      <span className={`badge ${
-                        order.status === '已完成' ? 'badge-success' : 'badge-warning'
-                      }`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td>{order.createTime.toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      <MobileCard title="最近订单">
+        <MobileTable
+          data={recentOrders}
+          columns={[
+            {
+              key: 'id',
+              title: '订单ID',
+              render: (value) => value
+            },
+            {
+              key: 'customerName',
+              title: '客户',
+              render: (value) => value
+            },
+            {
+              key: 'amount',
+              title: '金额',
+              render: (value) => `¥${value}`
+            },
+            {
+              key: 'status',
+              title: '状态',
+              render: (value) => <MobileStatusBadge status={value} type="order" />
+            },
+            {
+              key: 'createTime',
+              title: '时间',
+              render: (value) => <MobileTimeDisplay time={value} format="relative" />
+            }
+          ]}
+        />
+      </MobileCard>
 
       {/* 库存预警 */}
       {lowStockProducts.length > 0 && (
-        <div className="card bg-base-100 shadow-sm">
-          <div className="card-body">
-            <h3 className="card-title text-error">库存预警</h3>
-            <div className="overflow-x-auto">
-              <table className="table table-zebra">
-                <thead>
-                  <tr>
-                    <th>商品名称</th>
-                    <th>当前库存</th>
-                    <th>最低库存</th>
-                    <th>状态</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lowStockProducts.map((product) => (
-                    <tr key={product.id}>
-                      <td>{product.name}</td>
-                      <td>{product.stock}</td>
-                      <td>{product.minStock}</td>
-                      <td>
-                        <span className="badge badge-error">库存不足</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <MobileCard title="库存预警" className="border-l-4 border-l-red-500">
+          <MobileTable
+            data={lowStockProducts}
+            columns={[
+              {
+                key: 'name',
+                title: '商品名称',
+                render: (value) => value
+              },
+              {
+                key: 'stock',
+                title: '当前库存',
+                render: (value) => value
+              },
+              {
+                key: 'minStock',
+                title: '最低库存',
+                render: (value) => value
+              },
+              {
+                key: 'status',
+                title: '状态',
+                render: (value, row) => (
+                  <MobileStatusBadge 
+                    status="库存不足" 
+                    type="inventory" 
+                  />
+                )
+              }
+            ]}
+          />
+        </MobileCard>
       )}
     </div>
   );

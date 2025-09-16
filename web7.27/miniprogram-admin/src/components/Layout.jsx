@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import Sidebar from './Sidebar';
-import { isMobile, useResponsive } from '../utils/responsive';
+import { isMobile, useResponsive } from '../utils/deviceDetection';
 
 const Layout = () => {
-  const { isMobile: isMobileView, screenSize } = useResponsive();
+  const { isMobile: isMobileView, screenSize, windowSize } = useResponsive();
   // 桌面端默认展开，移动端默认折叠
-  const [sidebarOpen, setSidebarOpen] = useState(!isMobileView);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // 响应屏幕尺寸变化
   useEffect(() => {
@@ -34,6 +34,27 @@ const Layout = () => {
       
       {/* 主内容区域 */}
       <div className="drawer-content flex flex-col">
+        {/* 移动端顶部导航栏 - 临时强制显示用于调试 */}
+        {(isMobileView || windowSize.width < 1200) && (
+          <div className="navbar bg-base-100 shadow-sm lg:hidden">
+            <div className="flex-none">
+              <button 
+                className="btn btn-square btn-ghost"
+                onClick={toggleSidebar}
+              >
+                <Bars3Icon className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="flex-1">
+              <h1 className="text-lg font-semibold">小程序管理后台</h1>
+            </div>
+            {/* 调试信息 */}
+            <div className="text-xs text-gray-500">
+              {screenSize} ({windowSize.width}px) {isMobileView ? 'MOBILE' : 'DESKTOP'}
+            </div>
+          </div>
+        )}
+        
         {/* 页面内容 */}
         <main className={`flex-1 ${
           isMobileView ? 'p-4' : 'p-6'
@@ -45,8 +66,8 @@ const Layout = () => {
       {/* 侧边栏 */}
       <div className="drawer-side">
         <div className="drawer-overlay" onClick={toggleSidebar}></div>
-        <div className="min-h-full w-80">
-          <Sidebar />
+        <div className={`min-h-full ${isMobileView ? 'w-80' : 'w-80'}`}>
+          <Sidebar onItemClick={() => isMobileView && setSidebarOpen(false)} />
         </div>
       </div>
     </div>
