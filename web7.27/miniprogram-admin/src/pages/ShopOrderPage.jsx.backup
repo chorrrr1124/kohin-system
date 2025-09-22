@@ -1,0 +1,1427 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  ShoppingCartIcon, 
+  PlusIcon, 
+  MinusIcon, 
+  TrashIcon,
+  CreditCardIcon,
+  UserIcon,
+  PhoneIcon,
+  MapPinIcon,
+  CheckCircleIcon,
+  MagnifyingGlassIcon,
+  BanknotesIcon,
+  WalletIcon,
+  GiftIcon,
+  CurrencyDollarIcon,
+  CubeIcon
+} from '@heroicons/react/24/outline';
+import { app, ensureLogin } from '../utils/cloudbase';
+
+const ShopOrderPage = () => {
+  const [products, setProducts] = useState([]);
+  const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [orderForm, setOrderForm] = useState({
+    customerId: '',
+    customerName: '',
+    customerPhone: '',
+    customerAddress: '',
+    paymentMethod: 'cash', // 支付方式
+    notes: '',
+    usePrepaid: false, // 是否使用预存
+    prepaidAmount: 0, // 预存扣减金额
+    prepaidProducts: [], // 预存产品列表
+    prepaidType: 'amount' // 预存类型：amount 或 product
+  });
+  const [showOrderForm, setShowOrderForm] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
+  
+  // 客户选择弹窗
+  const [showCustomerSelector, setShowCustomerSelector] = useState(false);
+  const [customers, setCustomers] = useState([]);
+  const [customerSearch, setCustomerSearch] = useState('');
+
+  // 预存信息
+  const [prepaidRecords, setPrepaidRecords] = useState([]);
+  const [showPrepaidSelector, setShowPrepaidSelector] = useState(false);
+
+  // 预存产品创建相关状态
+  const [createPrepaidMode, setCreatePrepaidMode] = useState(false); // 是否处于创建预存产品模式
+  const [prepaidProductData, setPrepaidProductData] = useState({
+    selectedProducts: [], // 选中的商品
+    totalAmount: 0 // 预存总金额
+  });
+
+  // 支付方式选项
+  const paymentMethods = [
+    { value: 'cash', label: '现金支付', icon: BanknotesIcon, color: 'badge-warning' },
+    { value: 'wechat', label: '微信支付', icon: CreditCardIcon, color: 'badge-success' },
+    { value: 'alipay', label: '支付宝', icon: CreditCardIcon, color: 'badge-primary' },
+    { value: 'prestore', label: '预存扣费', icon: WalletIcon, color: 'badge-info' },
+    { value: 'prepaid', label: '预存产品', icon: GiftIcon, color: 'badge-accent' }
+  ];
+
+  // 获取商品列表
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      await ensureLogin();
+      const db = app.database();
+      const result = await db.collection('shopProducts').where({
+        onSale: true
+      }).get();
+      
+      const list = (result.data || []).map(p => ({
+        ...p,
+        image: p.image || (Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : undefined)
+      }));
+      setProducts(list);
+    } catch (error) {
+      console.error('获取商品失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 加载客户列表
+  const fetchCustomers = async () => {
+    try {
+      await ensureLogin();
+      const db = app.database();
+      let query = db.collection('customers');
+      if (customerSearch) {
+        query = query.where(db.command.or([
+          { name: db.RegExp({ regexp: customerSearch, options: 'i' }) },
+          { phone: db.RegExp({ regexp: customerSearch, options: 'i' }) }
+        ]));
+      }
+      const res = await query.orderBy('createTime', 'desc').limit(50).get();
+      setCustomers(res.data || []);
+    } catch (e) {
+      console.error('获取客户失败:', e);
+    }
+  };
+
+  // 加载客户预存记录（只显示与购物车商品匹配的预存产品）
+  const fetchPrepaidRecords = async (customerId) => {
+    if (!customerId) return;
+    
+    try {
+      await ensureLogin();
+      const db = app.database();
+      
+      // 获取购物车中的商品ID列表
+      const cartProductIds = cart.map(item => item._id);
+      console.log('购物车商品ID列表:', cartProductIds);
+      
+      // 查询预存记录
+      let query = db.collection('prepaidRecords').where({
+        customerId: customerId,
+        balance: db.command.gt(0)
+      });
+      
+      // 如果有购物车商品，只查询匹配的预存产品
+      if (cartProductIds.length > 0) {
+        query = query.where(db.command.or([
+          // 金额型预存（可以抵扣任意商品）
+          { type: 'amount' },
+          // 产品型预存（只显示购物车中有的商品）
+          db.command.and([
+            { type: 'product' },
+            { productId: db.command.in(cartProductIds) }
+          ])
+        ]));
+      } else {
+        // 购物车为空时，只显示金额型预存
+        query = query.where({ type: 'amount' });
+      }
+      
+      const res = await query.orderBy('createTime', 'desc').get();
+      const records = res.data || [];
+
+      // 为产品型预存补全产品名称，便于渲染
+      const enrichedRecords = records.map(r => {
+        if (r.type === 'product') {
+          const matchedProduct = Array.isArray(products)
+            ? products.find(p => p._id === r.productId)
+            : undefined;
+          const nameFromProduct = matchedProduct && (matchedProduct.name || matchedProduct.title || matchedProduct.productName);
+          return {
+            ...r,
+            productName: r.productName || nameFromProduct || '产品预存'
+          };
+        }
+        return { ...r, productName: r.productName };
+      });
+
+      console.log('找到的预存记录:', enrichedRecords);
+      setPrepaidRecords(enrichedRecords);
+    } catch (e) {
+      console.error('获取预存记录失败:', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    if (showCustomerSelector) {
+      fetchCustomers();
+    }
+  }, [showCustomerSelector]);
+
+  // 输入即搜：当弹窗打开且搜索词变化时，防抖触发查询
+  useEffect(() => {
+    if (!showCustomerSelector) return;
+    const timer = setTimeout(() => {
+      fetchCustomers();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [customerSearch, showCustomerSelector]);
+
+  useEffect(() => {
+    if (orderForm.customerId) {
+      fetchPrepaidRecords(orderForm.customerId);
+    }
+  }, [orderForm.customerId, cart]); // 添加cart依赖，购物车变化时重新查询
+
+  // 选择客户
+  const selectCustomer = (c) => {
+    console.log('选择客户:', c);
+    
+    // 构建完整地址
+    let fullAddress = '';
+    if (c.address) {
+      if (typeof c.address === 'string') {
+        fullAddress = c.address;
+      } else if (c.address.fullAddress) {
+        fullAddress = c.address.fullAddress;
+      } else if (c.address.address) {
+        fullAddress = c.address.address;
+      } else if (c.address.province || c.address.city || c.address.district || c.address.detail) {
+        const parts = [
+          c.address.province,
+          c.address.city,
+          c.address.district,
+          c.address.detail
+        ].filter(Boolean);
+        fullAddress = parts.join('');
+      } else {
+        // 更多字段命名兼容：provinceName/cityName/districtName/countyName/area/areaName + detail/addressDetail/detailInfo/street
+        const provinceVal = c.address.provinceName || c.address.province || '';
+        const cityVal = c.address.cityName || c.address.city || '';
+        const districtVal = c.address.districtName || c.address.countyName || c.address.area || c.address.areaName || c.address.district || '';
+        const streetVal = c.address.streetName || c.address.street || '';
+        const detailVal = c.address.addressDetail || c.address.detailInfo || c.address.detail || '';
+        const namedParts = [provinceVal, cityVal, districtVal, streetVal, detailVal].filter(Boolean);
+        if (namedParts.length > 0) {
+          fullAddress = namedParts.join('');
+        } else if (Array.isArray(c.address.region) && c.address.region.length > 0) {
+          // region: [province, city, district]
+          fullAddress = [...c.address.region, c.address.addressDetail || c.address.detailInfo || c.address.detail || c.address.street || '']
+            .filter(Boolean)
+            .join('');
+        } else if (c.address.address_component) {
+          // 腾讯地图风格 address_component
+          const ac = c.address.address_component;
+          fullAddress = [ac.province, ac.city, ac.district, ac.street, ac.street_number, c.address.addressDetail || c.address.detail]
+            .filter(Boolean)
+            .join('');
+        }
+      }
+    }
+
+    // 回退解析 contacts 获取电话与地址
+    let firstContact = null;
+    try {
+      if (c.contacts) {
+        const contactsParsed = typeof c.contacts === 'string' ? JSON.parse(c.contacts) : c.contacts;
+        if (Array.isArray(contactsParsed) && contactsParsed.length > 0) {
+          firstContact = contactsParsed[0];
+        }
+      }
+    } catch (e) {
+      console.error('解析客户 contacts 失败:', e);
+    }
+
+    // 处理电话回退
+    const phoneValue = c.phone || (firstContact && firstContact.phone) || '';
+    // 处理地址回退
+    if (!fullAddress && firstContact) {
+      const source = (firstContact.address && typeof firstContact.address === 'object')
+        ? firstContact.address
+        : firstContact;
+
+      const provinceVal = (source && (source.provinceName || source.province)) || '';
+      const cityVal = (source && (source.cityName || source.city)) || '';
+      const districtVal = (source && (source.districtName || source.countyName || source.area || source.areaName || source.district)) || '';
+      const streetVal = (source && (source.streetName || source.street)) || '';
+      const detailVal = (source && (source.addressDetail || source.detailInfo || source.detail)) || '';
+
+      if (provinceVal || cityVal || districtVal || (Array.isArray(source.region) && source.region.length > 0) || source.address_component) {
+        // 优先结构化/region
+        if (Array.isArray(source.region) && source.region.length > 0) {
+          fullAddress = [...source.region, detailVal || streetVal || (firstContact.address && typeof firstContact.address === 'string' ? firstContact.address : '')]
+            .filter(Boolean)
+            .join('');
+        } else if (source.address_component) {
+          const ac = source.address_component;
+          fullAddress = [ac.province, ac.city, ac.district, ac.street, ac.street_number, detailVal || streetVal]
+            .filter(Boolean)
+            .join('');
+        } else {
+          fullAddress = [provinceVal, cityVal, districtVal, streetVal, detailVal]
+            .filter(Boolean)
+            .join('');
+        }
+      } else if (firstContact.address && typeof firstContact.address === 'string') {
+        // 最后才退回纯字符串
+        fullAddress = firstContact.address;
+      }
+    }
+    
+    console.log('客户地址信息:', {
+      original: c.address,
+      fromContact: firstContact && (firstContact.address || firstContact.region || firstContact.address_component),
+      fullAddress: fullAddress
+    });
+    
+    setOrderForm(prev => ({
+      ...prev,
+      customerId: c._id,
+      customerName: c.name || "",
+      customerPhone: phoneValue || "",
+      customerAddress: fullAddress || "",
+      // 重置预存状态
+      usePrepaid: false,
+      prepaidAmount: 0,
+      prepaidProducts: [],
+      prepaidType: 'amount'
+    }));
+    setShowCustomerSelector(false);
+  };
+
+  // 添加到购物车
+  const addToCart = (product) => {
+    setCart(prevCart => {
+      const existingItem = prevCart.find(item => item._id === product._id);
+      if (existingItem) {
+        return prevCart.map(item =>
+          item._id === product._id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      } else {
+        return [...prevCart, { ...product, quantity: 1 }];
+      }
+    });
+  };
+
+  // 从购物车移除
+  const removeFromCart = (productId) => {
+    setCart(prevCart => prevCart.filter(item => item._id !== productId));
+  };
+
+  // 更新购物车商品数量
+  const updateQuantity = (productId, quantity) => {
+    if (quantity <= 0) {
+      removeFromCart(productId);
+      return;
+    }
+    setCart(prevCart =>
+      prevCart.map(item =>
+        item._id === productId
+          ? { ...item, quantity }
+          : item
+      )
+    );
+  };
+
+  // 计算总价
+  const calculateTotal = () => {
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  // 计算实际支付金额（考虑预存扣减）
+  const calculateActualAmount = () => {
+    const total = calculateTotal();
+    if (orderForm.usePrepaid) {
+      if (orderForm.paymentMethod === 'prestore' && orderForm.prepaidType === 'amount') {
+        return Math.max(0, total - orderForm.prepaidAmount);
+      } else if (orderForm.paymentMethod === 'prepaid' && orderForm.prepaidType === 'product') {
+        // 预存产品直接抵扣，不需要额外支付
+        return 0;
+      }
+    }
+    return total;
+  };
+
+  // 选择预存记录
+  const selectPrepaidRecord = (record) => {
+    if (record.type === 'amount') {
+      // 金额型预存
+      const maxAmount = Math.min(record.balance, calculateTotal());
+      setOrderForm(prev => ({
+        ...prev,
+        usePrepaid: true,
+        prepaidAmount: maxAmount,
+        prepaidType: 'amount',
+        prepaidProducts: []
+      }));
+    } else if (record.type === 'product') {
+      // 产品型预存
+      setOrderForm(prev => ({
+        ...prev,
+        usePrepaid: true,
+        prepaidAmount: 0,
+        prepaidType: 'product',
+        prepaidProducts: [record]
+      }));
+    }
+    setShowPrepaidSelector(false);
+  };
+
+  // 取消预存扣减
+  const cancelPrepaid = () => {
+    setOrderForm(prev => ({
+      ...prev,
+      usePrepaid: false,
+      prepaidAmount: 0,
+      prepaidProducts: [],
+      prepaidType: 'amount'
+    }));
+  };
+
+  // 调用云函数扣减预存余额
+  const updatePrepaidBalance = async (customerId, customerPhone, amount, orderId, prepaidType = 'amount') => {
+    try {
+      await ensureLogin();
+      const result = await app.callFunction({
+        name: 'updatePrepaidBalance',
+        data: {
+          customerId,
+          customerPhone,
+          amount,
+          orderId,
+          receiver: orderForm.customerName,
+          phone: orderForm.customerPhone,
+          address: orderForm.customerAddress,
+          prepaidType
+        }
+      });
+      
+      if (result.result.success) {
+        console.log('预存扣减成功:', result.result);
+        return true;
+      } else {
+        console.error('预存扣减失败:', result.result.message);
+        alert(`预存扣减失败: ${result.result.message}`);
+        return false;
+      }
+    } catch (error) {
+      console.error('调用预存扣减云函数失败:', error);
+      alert('预存扣减失败，请重试');
+      return false;
+    }
+  };
+
+  // 调用云函数扣减库存
+  const updateStock = async (items, orderId) => {
+    try {
+      await ensureLogin();
+      const result = await app.callFunction({
+        name: 'updateStock',
+        data: {
+          items: items.map(item => ({
+            productId: item._id,
+            productName: item.name,
+            quantity: item.quantity
+          })),
+          orderId
+        }
+      });
+      
+      if (result.result.success) {
+        console.log('库存扣减成功:', result.result);
+        return true;
+      } else {
+        console.error('库存扣减失败:', result.result.message);
+        alert(`库存扣减失败: ${result.result.message}`);
+        return false;
+      }
+    } catch (error) {
+      console.error('调用库存扣减云函数失败:', error);
+      alert('库存扣减失败，请重试');
+      return false;
+    }
+  };
+
+  // 处理预存产品模式
+  const handlePrepaidProductMode = () => {
+    if (!orderForm.customerId || !orderForm.customerName) {
+      alert('请先选择客户');
+      return;
+    }
+    
+    if (cart.length === 0) {
+      alert('购物车为空，无法创建预存产品');
+      return;
+    }
+    
+    setCreatePrepaidMode(true);
+    setOrderForm(prev => ({ 
+      ...prev, 
+      paymentMethod: 'prepaid',
+      usePrepaid: false,
+      prepaidAmount: 0,
+      prepaidProducts: [],
+      prepaidType: 'product'
+    }));
+    
+    // 初始化预存产品数据
+    setPrepaidProductData({
+      selectedProducts: cart.map(item => ({
+        productId: item._id,
+        productName: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        selected: true
+      })),
+      totalAmount: calculateTotal()
+    });
+  };
+
+  // 创建预存产品记录
+
+  // 切换预存产品选择状态
+
+  // 取消预存产品创建模式
+
+  // 提交订单
+  const submitOrder = async () => {
+    if (!orderForm.customerName || !orderForm.customerPhone || !orderForm.customerAddress) {
+      alert('请填写完整的客户信息');
+      return;
+    }
+
+    if (cart.length === 0) {
+      alert('购物车为空');
+      return;
+    }
+
+    try {
+      await ensureLogin();
+      const db = app.database();
+      const _ = db.command;
+
+      const now = new Date();
+      const id = 'ORD' + now.getTime();
+
+      // 检查预存余额（如果是预存支付）
+      if (orderForm.paymentMethod === 'prestore' && orderForm.usePrepaid && orderForm.prepaidType === 'amount') {
+        const totalPrepaidBalance = prepaidRecords
+          .filter(record => record.type === 'amount')
+          .reduce((sum, record) => sum + record.balance, 0);
+        if (totalPrepaidBalance < orderForm.prepaidAmount) {
+          alert('预存余额不足');
+          return;
+        }
+      }
+
+      // 检查预存产品（如果是预存产品支付）
+      if (orderForm.paymentMethod === 'prepaid' && orderForm.usePrepaid && orderForm.prepaidType === 'product') {
+        const selectedProduct = orderForm.prepaidProducts[0];
+        if (!selectedProduct || selectedProduct.balance <= 0) {
+          alert('预存产品余额不足');
+          return;
+        }
+      }
+
+      const orderData = {
+        id,
+        customerId: orderForm.customerId || '',
+        customerName: orderForm.customerName,
+        customerPhone: orderForm.customerPhone,
+        address: {
+          name: orderForm.customerName,
+          phone: orderForm.customerPhone,
+          fullAddress: orderForm.customerAddress
+        },
+        notes: orderForm.notes,
+        items: cart.map(item => ({
+          productId: item._id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          totalPrice: item.price * item.quantity,
+          snapshot: {
+            name: item.name,
+            price: item.price,
+            image: item.image,
+            category: item.category || '',
+          }
+        })),
+        totalAmount: calculateTotal(),
+        actualAmount: calculateActualAmount(),
+        paymentMethod: orderForm.paymentMethod,
+        prepaidAmount: orderForm.usePrepaid ? orderForm.prepaidAmount : 0,
+        prepaidType: orderForm.prepaidType,
+        prepaidProducts: orderForm.prepaidProducts,
+        status: orderForm.paymentMethod === 'prepaid' ? 'pending_shipment' : 'pending',
+        createTime: now,
+        updateTime: now,
+        remark: orderForm.notes || ''
+      };
+
+      // 1. 先创建订单
+      console.log('创建订单...');
+      await db.collection('orders').add(orderData);
+      console.log('订单创建成功');
+
+      // 2. 使用云函数扣减库存（事务保证一致性）
+      console.log('扣减库存...');
+      const stockSuccess = await updateStock(cart, id);
+      if (!stockSuccess) {
+        console.warn('库存扣减失败，订单已创建但可能存在问题');
+        alert('库存扣减失败，请检查订单状态');
+        return;
+      }
+
+      // 3. 如果是预存扣费，扣减预存余额
+      if (orderForm.paymentMethod === 'prestore' && orderForm.usePrepaid && orderForm.prepaidType === 'amount') {
+        console.log('扣减预存金额...');
+        const prepaidSuccess = await updatePrepaidBalance(
+          orderForm.customerId,
+          orderForm.customerPhone,
+          orderForm.prepaidAmount,
+          id,
+          'amount'
+        );
+        if (!prepaidSuccess) {
+          console.warn('预存金额扣减失败，但订单和库存扣减已成功');
+        }
+      }
+
+      // 4. 如果是预存产品，扣减预存产品数量
+      if (orderForm.paymentMethod === 'prepaid' && orderForm.usePrepaid && orderForm.prepaidType === 'product') {
+        console.log('扣减预存产品...');
+        const selectedProduct = orderForm.prepaidProducts[0];
+        const prepaidSuccess = await updatePrepaidBalance(
+          orderForm.customerId,
+          orderForm.customerPhone,
+          1, // 扣减1个产品
+          id,
+          'product'
+        );
+        if (!prepaidSuccess) {
+          console.warn('预存产品扣减失败，但订单和库存扣减已成功');
+        }
+      }
+      
+      setOrderSuccess(true);
+      setCart([]);
+      setOrderForm({
+        customerId: '',
+        customerName: '',
+        customerPhone: '',
+        customerAddress: '',
+        paymentMethod: 'cash',
+        notes: '',
+        usePrepaid: false,
+        prepaidAmount: 0,
+        prepaidProducts: [],
+        prepaidType: 'amount'
+      });
+      setShowOrderForm(false);
+      
+    
+    // 如果是现金/微信/支付宝支付，显示已支付状态
+    if (["cash", "wechat", "alipay"].includes(orderForm.paymentMethod)) {
+      alert(`订单创建成功！订单号：${id}，状态：已支付`);
+    }
+    
+    setTimeout(() => setOrderSuccess(false), 3000);    } catch (error) {
+      console.error('提交订单失败:', error);
+      alert('提交订单失败，请重试');
+    }
+  };
+
+  // 获取预存记录显示文本
+  const getPrepaidRecordText = (record) => {
+    if (record.type === 'amount') {
+      return `余额: ¥${record.balance.toFixed(2)}`;
+    } else if (record.type === 'product') {
+      return `余额: ${record.balance}个`;
+    }
+    return `余额: ${record.balance}`;
+  };
+
+  // 获取预存记录图标
+  const getPrepaidRecordIcon = (record) => {
+    if (record.type === 'amount') {
+      return CurrencyDollarIcon;
+    } else if (record.type === 'product') {
+      return CubeIcon;
+    }
+    return WalletIcon;
+  };
+
+  // 检查预存记录是否与购物车商品匹配
+  const isPrepaidRecordMatched = (record) => {
+    if (record.type === 'amount') {
+      return true; // 金额型预存可以抵扣任意商品
+    }
+    if (record.type === 'product') {
+      return cart.some(item => item._id === record.productId);
+    }
+    return false;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="loading loading-spinner loading-lg"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* 页面标题 */}
+      <div className="flex items-center gap-3">
+        <ShoppingCartIcon className="w-8 h-8 text-primary" />
+        <h1 className="text-3xl font-bold">商城下单</h1>
+      </div>
+
+      {/* 成功提示 */}
+      {orderSuccess && (
+        <div className="alert alert-success">
+          <CheckCircleIcon className="w-6 h-6" />
+          <span>订单提交成功！</span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* 商品列表 */}
+        <div className="lg:col-span-2">
+          <div className="bg-base-100 rounded-lg shadow-sm p-6">
+            <h2 className="text-xl font-semibold mb-4">商品列表</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {products.map(product => (
+                <div key={product._id} className="card bg-base-200 shadow-sm">
+                  <div className="card-body p-4">
+                    <div className="flex items-start gap-3">
+                      {product.image && (
+                        <img 
+                          src={product.image} 
+                          alt={product.name}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">{product.name}</h3>
+                        <p className="text-sm text-base-content/70 mb-2">{product.description}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-primary font-bold text-lg">¥{product.price}</span>
+                          <button
+                            onClick={() => addToCart(product)}
+                            className="btn btn-primary btn-sm"
+                          >
+                            <PlusIcon className="w-4 h-4" />
+                            加入购物车
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 购物车 */}
+        <div className="lg:col-span-1">
+          <div className="bg-base-100 rounded-lg shadow-sm p-6 sticky top-6">
+            <h2 className="text-xl font-semibold mb-4">购物车</h2>
+            
+            {cart.length === 0 ? (
+              <div className="text-center text-base-content/50 py-8">
+                <ShoppingCartIcon className="w-12 h-12 mx-auto mb-2" />
+                <p>购物车为空</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {cart.map(item => (
+                  <div key={item._id} className="flex items-center gap-3 p-3 bg-base-200 rounded-lg">
+                    {item.image && (
+                      <img 
+                        src={item.image} 
+                        alt={item.name}
+                        className="w-12 h-12 object-cover rounded"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm">{item.name}</h4>
+                      <p className="text-primary font-semibold">¥{item.price}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                        className="btn btn-ghost btn-xs"
+                      >
+                        <MinusIcon className="w-3 h-3" />
+                      </button>
+                      <span className="w-8 text-center">{item.quantity}</span>
+                      <button
+                        onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                        className="btn btn-ghost btn-xs"
+                      >
+                        <PlusIcon className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => removeFromCart(item._id)}
+                        className="btn btn-ghost btn-xs text-error"
+                      >
+                        <TrashIcon className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                
+                <div className="border-t pt-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-semibold">商品总价：</span>
+                      <span className="text-xl font-bold text-primary">¥{calculateTotal().toFixed(2)}</span>
+                    </div>
+                    
+                    {orderForm.usePrepaid && orderForm.paymentMethod === 'prestore' && orderForm.prepaidType === 'amount' && (
+                      <div className="flex justify-between items-center text-info">
+                        <span>预存扣减：</span>
+                        <span>-¥{orderForm.prepaidAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    
+                    {orderForm.usePrepaid && orderForm.paymentMethod === 'prepaid' && orderForm.prepaidType === 'product' && (
+                      <div className="flex justify-between items-center text-info">
+                        <span>预存产品抵扣：</span>
+                        <span>已抵扣</span>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-between items-center text-lg font-bold border-t pt-2">
+                      <span>实付金额：</span>
+                      <span className="text-2xl text-error">¥{calculateActualAmount().toFixed(2)}</span>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => setShowOrderForm(true)}
+                    className="btn btn-primary w-full mt-4"
+                    disabled={cart.length === 0}
+                  >
+                    <CreditCardIcon className="w-5 h-5" />
+                    立即下单
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 订单表单模态框 */}
+      {showOrderForm && (
+        <div className="modal modal-open">
+          <div className="modal-box max-w-4xl">
+            <h3 className="text-2xl font-bold mb-6">填写订单信息</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 客户信息 */}
+            <div className="space-y-4">
+                <h4 className="text-lg font-semibold border-b pb-2">客户信息</h4>
+                
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-base-content/60">
+                    可从客户库选择快速填充信息
+                  </div>
+                  <button
+                    className="btn btn-outline btn-sm"
+                    onClick={() => setShowCustomerSelector(true)}
+                  >
+                    <UserIcon className="w-4 h-4" />
+                    选择客户
+                  </button>
+                </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">客户姓名 *</span>
+                </label>
+                <div className="relative">
+                  <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-base-content/50" />
+                  <input
+                    type="text"
+                    className="input input-bordered w-full pl-10"
+                    placeholder="请输入客户姓名"
+                    value={orderForm.customerName}
+                    onChange={(e) => setOrderForm(prev => ({ ...prev, customerName: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">联系电话 *</span>
+                </label>
+                <div className="relative">
+                  <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-base-content/50" />
+                  <input
+                    type="tel"
+                    className="input input-bordered w-full pl-10"
+                    placeholder="请输入联系电话"
+                    value={orderForm.customerPhone}
+                    onChange={(e) => setOrderForm(prev => ({ ...prev, customerPhone: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">收货地址 *</span>
+                </label>
+                <div className="relative">
+                  <MapPinIcon className="absolute left-3 top-3 w-5 h-5 text-base-content/50" />
+                  <textarea
+                    className="textarea textarea-bordered w-full pl-10"
+                    placeholder="请输入详细收货地址"
+                    rows={3}
+                    value={orderForm.customerAddress}
+                    onChange={(e) => setOrderForm(prev => ({ ...prev, customerAddress: e.target.value }))}
+                  />
+                </div>
+              </div>
+              </div>
+
+              {/* 支付信息 */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-semibold border-b pb-2">支付信息</h4>
+                
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">支付方式 *</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {paymentMethods.map(method => {
+                      const Icon = method.icon;
+                      return (
+                        <button
+                          key={method.value}
+                          type="button"
+                          className={`btn btn-outline ${orderForm.paymentMethod === method.value ? 'btn-active' : ''}`}
+                          onClick={() => {
+                            if (method.value === "prepaid") {
+                              // 预存产品：直接确认下单并创建预存记录
+                              handlePrepaidProductMode();
+                            } else if (method.value === "prestore") {
+                              // 预存扣费：检查并扣除预存库存
+                              handlePrepaidDeduction();
+                            } else {
+                              // 现金/微信/支付宝：跳转到订单页面，显示已支付状态
+                              setOrderForm(prev => ({ 
+                                ...prev, 
+                                paymentMethod: method.value,
+                                usePrepaid: false,
+                                prepaidAmount: 0,
+                                prepaidProducts: [],
+                                prepaidType: "amount"
+                              }));
+                              setCreatePrepaidMode(false);
+                              setPrepaidProductData({ selectedProducts: [], totalAmount: 0 });
+                            }
+                          }}                        >
+                          <Icon className="w-4 h-4" />
+                          {method.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 预存信息 */}
+                {orderForm.customerId && prepaidRecords.length > 0 && (
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">预存记录</span>
+                      <span className="label-text-alt text-info">
+                        {cart.length > 0 ? '仅显示可用的预存记录' : '购物车为空，仅显示金额型预存'}
+                      </span>
+                    </label>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {prepaidRecords.map(record => {
+                        const Icon = getPrepaidRecordIcon(record);
+                        const isMatched = isPrepaidRecordMatched(record);
+                        return (
+                          <div 
+                            key={record._id} 
+                            className={`flex items-center justify-between p-3 rounded-lg ${
+                              isMatched ? 'bg-base-200' : 'bg-base-300 opacity-60'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <Icon className="w-5 h-5 text-primary" />
+                              <div>
+                                <div className="font-medium">{record.productName || '预存金额'}</div>
+                                <div className="text-sm text-base-content/60">
+                                  {getPrepaidRecordText(record)}
+                                  {!isMatched && record.type === 'product' && (
+                                    <span className="text-warning ml-2">(不在购物车中)</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              className={`btn btn-sm ${isMatched ? 'btn-primary' : 'btn-disabled'}`}
+                              onClick={() => isMatched && selectPrepaidRecord(record)}
+                              disabled={!isMatched}
+                            >
+                              使用
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 预存扣减状态显示 */}
+                {orderForm.usePrepaid && (
+                  <div className="alert alert-info">
+                    <WalletIcon className="w-5 h-5" />
+                    <div className="flex-1">
+                      <div className="font-medium">使用预存扣减</div>
+                      <div className="text-sm">
+                        {orderForm.prepaidType === 'amount' 
+                          ? `扣减金额: ¥${orderForm.prepaidAmount.toFixed(2)}`
+                          : `扣减产品: ${orderForm.prepaidProducts[0]?.productName || '未知产品'}`
+                        }
+                      </div>
+                    </div>
+                    <button 
+                      className="btn btn-sm btn-ghost"
+                      onClick={cancelPrepaid}
+                    >
+                      取消
+                    </button>
+                  </div>
+                )}
+
+                {/* 预存产品创建界面 */}
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">备注信息</span>
+                </label>
+                <textarea
+                  className="textarea textarea-bordered"
+                  placeholder="请输入备注信息（选填）"
+                  rows={3}
+                  value={orderForm.notes}
+                  onChange={(e) => setOrderForm(prev => ({ ...prev, notes: e.target.value }))}
+                />
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-action">
+              <button
+                className="btn btn-ghost"
+                onClick={() => setShowOrderForm(false)}
+              >
+                取消
+              </button>
+              {!createPrepaidMode && (
+                <button
+                  className="btn btn-primary"
+                  onClick={submitOrder}
+                >
+                  确认下单
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 客户选择弹窗 */}
+      {showCustomerSelector && (
+        <div className="modal modal-open">
+          <div className="modal-box max-w-3xl">
+            <h3 className="font-bold text-lg mb-4">选择客户</h3>
+            <div className="form-control mb-4">
+              <div className="input-group">
+                <input
+                  type="text"
+                  placeholder="搜索客户姓名或电话"
+                  className="input input-bordered w-full"
+                  value={customerSearch}
+                  onChange={(e) => setCustomerSearch(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="max-h-80 overflow-y-auto space-y-2">
+              {customers.map(c => (
+                <div key={c._id} className="flex items-center justify-between p-3 bg-base-200 rounded-lg">
+                  <div>
+                    <div className="font-medium">{c.name || '未命名客户'}</div>
+                    <div className="text-sm text-base-content/60">{c.phone || '无电话'}</div>
+                    {c.address && (
+                      <div className="text-sm text-base-content/60 line-clamp-1">
+                        {(c.address.fullAddress || c.address.address) || ''}
+                      </div>
+                    )}
+                  </div>
+                  <button className="btn btn-primary btn-sm" onClick={() => selectCustomer(c)}>选择</button>
+                </div>
+              ))}
+              {customers.length === 0 && (
+                <div className="text-center text-base-content/60 py-8">未找到客户</div>
+              )}
+            </div>
+            <div className="modal-action">
+              <button className="btn" onClick={() => setShowCustomerSelector(false)}>关闭</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ShopOrderPage;
+
+// 提交预存产品订单
+const submitPrepaidProductOrder = async () => {
+  if (!orderForm.customerName || !orderForm.customerPhone || !orderForm.customerAddress) {
+    alert('请填写完整的客户信息');
+    return;
+  }
+
+  if (cart.length === 0) {
+    alert('购物车为空');
+    return;
+  }
+
+  try {
+    await ensureLogin();
+    const db = app.database();
+
+    const now = new Date();
+    const id = 'ORD' + now.getTime();
+
+    const orderData = {
+      id,
+      customerId: orderForm.customerId || '',
+      customerName: orderForm.customerName,
+      customerPhone: orderForm.customerPhone,
+      address: {
+        name: orderForm.customerName,
+        phone: orderForm.customerPhone,
+        fullAddress: orderForm.customerAddress
+      },
+      notes: orderForm.notes,
+      items: cart.map(item => ({
+        productId: item._id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        totalPrice: item.price * item.quantity,
+        snapshot: {
+          name: item.name,
+          price: item.price,
+          image: item.image,
+          category: item.category || '',
+        }
+      })),
+      totalAmount: calculateTotal(),
+      actualAmount: calculateTotal(),
+      paymentMethod: 'prepaid',
+      prepaidAmount: 0,
+      prepaidType: 'product',
+      prepaidProducts: [],
+      status: 'pending_shipment', // 预存产品订单直接待发货
+      createTime: now,
+      updateTime: now,
+      remark: orderForm.notes || ''
+    };
+
+    // 1. 先创建订单
+    console.log('创建预存产品订单...');
+    await db.collection('orders').add(orderData);
+    console.log('订单创建成功');
+
+    // 2. 使用云函数扣减库存
+    console.log('扣减库存...');
+    const stockSuccess = await updateStock(cart, id);
+    if (!stockSuccess) {
+      console.warn('库存扣减失败，订单已创建但可能存在问题');
+      alert('库存扣减失败，请检查订单状态');
+      return;
+    }
+
+    // 3. 为每个商品创建预存记录
+    console.log('创建预存产品记录...');
+    const createPromises = cart.map(async (item) => {
+      const prepaidRecord = {
+        customerId: orderForm.customerId,
+        customerName: orderForm.customerName,
+        customerPhone: orderForm.customerPhone,
+        productId: item._id,
+        productName: item.name,
+        type: 'product',
+        balance: item.quantity,
+        originalBalance: item.quantity,
+        unitPrice: item.price,
+        totalAmount: item.price * item.quantity,
+        createTime: now,
+        updateTime: now,
+        source: '商城下单预存',
+        status: 'active'
+      };
+      
+      return db.collection('prepaidRecords').add(prepaidRecord);
+    });
+    
+    await Promise.all(createPromises);
+    console.log('预存产品记录创建成功');
+    
+    setOrderSuccess(true);
+    setCart([]);
+    setOrderForm({
+      customerId: '',
+      customerName: '',
+      customerPhone: '',
+      customerAddress: '',
+      paymentMethod: 'cash',
+      notes: '',
+      usePrepaid: false,
+      prepaidAmount: 0,
+      prepaidProducts: [],
+      prepaidType: 'amount'
+    });
+    setShowOrderForm(false);
+    
+    alert(`预存产品订单创建成功！已为 ${orderForm.customerName} 创建了 ${cart.length} 个预存产品记录`);
+    
+    
+    // 如果是现金/微信/支付宝支付，显示已支付状态
+    if (["cash", "wechat", "alipay"].includes(orderForm.paymentMethod)) {
+      alert(`订单创建成功！订单号：${id}，状态：已支付`);
+    }
+    
+    setTimeout(() => setOrderSuccess(false), 3000);  } catch (error) {
+    console.error('提交预存产品订单失败:', error);
+    alert('提交预存产品订单失败，请重试');
+  }
+};
+
+// 处理预存扣费 - 检查并扣除预存库存
+const handlePrepaidDeduction = async () => {
+  if (!orderForm.customerId || !orderForm.customerName) {
+    alert('请先选择客户');
+    return;
+  }
+  
+  if (cart.length === 0) {
+    alert('购物车为空');
+    return;
+  }
+
+  try {
+    await ensureLogin();
+    const db = app.database();
+
+    // 检查客户是否有足够的预存产品
+    const prepaidQuery = await db.collection('prepaidRecords')
+      .where({
+        customerId: orderForm.customerId,
+        type: 'product',
+        status: 'active'
+      })
+      .get();
+
+    const prepaidRecords = prepaidQuery.data;
+    
+    // 检查购物车中的每个商品是否有对应的预存记录
+    const insufficientProducts = [];
+    for (const cartItem of cart) {
+      const prepaidRecord = prepaidRecords.find(record => 
+        record.productId === cartItem._id && record.balance >= cartItem.quantity
+      );
+      
+      if (!prepaidRecord) {
+        const availableBalance = prepaidRecords
+          .filter(record => record.productId === cartItem._id)
+          .reduce((sum, record) => sum + record.balance, 0);
+        
+        insufficientProducts.push({
+          productName: cartItem.name,
+          required: cartItem.quantity,
+          available: availableBalance
+        });
+      }
+    }
+
+    if (insufficientProducts.length > 0) {
+      const message = insufficientProducts.map(item => 
+        `${item.productName}: 需要${item.required}个，可用${item.available}个`
+      ).join('\n');
+      alert(`预存产品不足：\n${message}`);
+      return;
+    }
+
+    // 所有商品都有足够的预存，直接确认下单
+    await submitPrepaidDeductionOrder();
+    
+  } catch (error) {
+    console.error('检查预存产品失败:', error);
+    alert('检查预存产品失败，请重试');
+  }
+};
+
+// 提交预存扣费订单
+const submitPrepaidDeductionOrder = async () => {
+  if (!orderForm.customerName || !orderForm.customerPhone || !orderForm.customerAddress) {
+    alert('请填写完整的客户信息');
+    return;
+  }
+
+  if (cart.length === 0) {
+    alert('购物车为空');
+    return;
+  }
+
+  try {
+    await ensureLogin();
+    const db = app.database();
+
+    const now = new Date();
+    const id = 'ORD' + now.getTime();
+
+    const orderData = {
+      id,
+      customerId: orderForm.customerId || '',
+      customerName: orderForm.customerName,
+      customerPhone: orderForm.customerPhone,
+      address: {
+        name: orderForm.customerName,
+        phone: orderForm.customerPhone,
+        fullAddress: orderForm.customerAddress
+      },
+      notes: orderForm.notes,
+      items: cart.map(item => ({
+        productId: item._id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        totalPrice: item.price * item.quantity,
+        snapshot: {
+          name: item.name,
+          price: item.price,
+          image: item.image,
+          category: item.category || '',
+        }
+      })),
+      totalAmount: calculateTotal(),
+      actualAmount: 0, // 预存扣费，实际支付为0
+      paymentMethod: 'prestore',
+      prepaidAmount: calculateTotal(),
+      prepaidType: 'product',
+      prepaidProducts: cart.map(item => ({
+        productId: item._id,
+        productName: item.name,
+        balance: item.quantity
+      })),
+      status: 'pending_shipment', // 预存扣费订单直接待发货
+      createTime: now,
+      updateTime: now,
+      remark: orderForm.notes || ''
+    };
+
+    // 1. 先创建订单
+    console.log('创建预存扣费订单...');
+    await db.collection('orders').add(orderData);
+    console.log('订单创建成功');
+
+    // 2. 使用云函数扣减库存
+    console.log('扣减库存...');
+    const stockSuccess = await updateStock(cart, id);
+    if (!stockSuccess) {
+      console.warn('库存扣减失败，订单已创建但可能存在问题');
+      alert('库存扣减失败，请检查订单状态');
+      return;
+    }
+
+    // 3. 扣减预存产品数量
+    console.log('扣减预存产品...');
+    for (const cartItem of cart) {
+      const prepaidQuery = await db.collection('prepaidRecords')
+        .where({
+          customerId: orderForm.customerId,
+          productId: cartItem._id,
+          type: 'product',
+          status: 'active'
+        })
+        .orderBy('createTime', 'asc')
+        .get();
+
+      const prepaidRecords = prepaidQuery.data;
+      let remainingQuantity = cartItem.quantity;
+
+      // 按时间顺序扣减预存记录
+      for (const record of prepaidRecords) {
+        if (remainingQuantity <= 0) break;
+        
+        const deductQuantity = Math.min(remainingQuantity, record.balance);
+        remainingQuantity -= deductQuantity;
+
+        await db.collection('prepaidRecords').doc(record._id).update({
+          balance: record.balance - deductQuantity,
+          updateTime: now
+        });
+      }
+    }
+    console.log('预存产品扣减成功');
+    
+    setOrderSuccess(true);
+    setCart([]);
+    setOrderForm({
+      customerId: '',
+      customerName: '',
+      customerPhone: '',
+      customerAddress: '',
+      paymentMethod: 'cash',
+      notes: '',
+      usePrepaid: false,
+      prepaidAmount: 0,
+      prepaidProducts: [],
+      prepaidType: 'amount'
+    });
+    setShowOrderForm(false);
+    
+    alert(`预存扣费订单创建成功！已为 ${orderForm.customerName} 扣减预存产品`);
+    
+    
+    // 如果是现金/微信/支付宝支付，显示已支付状态
+    if (["cash", "wechat", "alipay"].includes(orderForm.paymentMethod)) {
+      alert(`订单创建成功！订单号：${id}，状态：已支付`);
+    }
+    
+    setTimeout(() => setOrderSuccess(false), 3000);  } catch (error) {
+    console.error('提交预存扣费订单失败:', error);
+    alert('提交预存扣费订单失败，请重试');
+  }
+};

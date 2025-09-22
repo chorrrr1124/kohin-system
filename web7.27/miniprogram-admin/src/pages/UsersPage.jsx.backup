@@ -65,11 +65,39 @@ const CustomersPage = () => {
   const pageSize = 10;
 
   // 获取客户性质的显示文本
-  // 获取客户性质的显示文本
   const getCustomerNatureDisplay = (customer) => {
-    // 直接使用数据库中的 nature 字段，因为已经通过云函数统一更新
+    // 优先使用 nature 字段
+    if (customer.nature && customer.nature !== "预存客户") {
+      return customer.nature;
+    }
+    
+    // 如果 nature 是"预存客户"，尝试从其他字段获取具体类型
+    if (customer.type && customer.type !== "预存客户") {
+      return customer.type;
+    }
+    
+    // 如果有预存记录，根据记录类型判断
+    if (customer.prepaidRecords && customer.prepaidRecords.length > 0) {
+      const hasAmountPrepaid = customer.prepaidRecords.some(record => 
+        record.type === "金额预存" || record.balance > 0
+      );
+      const hasProductPrepaid = customer.prepaidRecords.some(record => 
+        record.type === "产品预存" || record.products && record.products.length > 0
+      );
+      
+      if (hasAmountPrepaid && !hasProductPrepaid) {
+        return "金额预存客户";
+      } else if (hasProductPrepaid && !hasAmountPrepaid) {
+        return "产品预存客户";
+      } else if (hasAmountPrepaid && hasProductPrepaid) {
+        return "金额预存客户"; // 优先显示金额预存
+      }
+    }
+    
+    // 默认返回原始值
     return customer.nature || customer.type || "零售客户";
   };
+
   // 获取客户统计数据
   const fetchCustomerStats = async () => {
     try {

@@ -46,7 +46,7 @@ const Layout = () => {
               </button>
             </div>
             <div className="flex-1">
-              <h1 className="text-lg font-semibold">小程序管理后台</h1>
+              <h1 className="text-lg font-semibold">科银系统</h1>
             </div>
             {/* 调试信息 */}
             <div className="text-xs text-gray-500">

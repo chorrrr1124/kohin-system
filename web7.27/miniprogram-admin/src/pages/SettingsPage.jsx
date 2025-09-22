@@ -403,7 +403,7 @@ const SettingsPage = () => {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="table w-full">
+                <table className="table w-full table-fixed">
                   <thead>
                     <tr>
                       <th>操作</th>

@@ -440,7 +440,7 @@ const ImageManagePage = () => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="table w-full">
+            <table className="table w-full table-fixed">
               <thead>
                 <tr>
                   <th>预览</th>

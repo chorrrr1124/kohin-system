@@ -237,7 +237,7 @@ const PaymentsPage = () => {
       {/* 支付记录表格 */}
       <div className="bg-white rounded-lg shadow">
         <div className="overflow-x-auto">
-          <table className="table w-full">
+          <table className="table w-full table-fixed">
             <thead>
               <tr>
                 <th>订单号</th>

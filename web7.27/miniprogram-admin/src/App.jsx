@@ -5,6 +5,7 @@ import UsersPage from './pages/UsersPage';
 import OrdersPage from './pages/OrdersPage';
 import DepositsPage from './pages/DepositsPage';
 import ShopPage from './pages/ShopPage';
+import ShopOrderPage from './pages/ShopOrderPage';
 import CouponManagePage from './pages/CouponManagePage';
 import CouponAnalyticsPage from './pages/CouponAnalyticsPage';
 import InventoryManagePage from './pages/InventoryManagePage';
@@ -46,6 +47,7 @@ function App() {
               <Route path="orders" element={<OrdersPage />} />
               <Route path="deposits" element={<DepositsPage />} />
               <Route path="shop" element={<ShopPage />} />
+              <Route path="shop-order" element={<ShopOrderPage />} />
               <Route path="coupons" element={<CouponManagePage />} />
               <Route path="coupons/analytics" element={<CouponAnalyticsPage />} />
               <Route path="inventory" element={<InventoryManagePage />} />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import SearchBar from '../components/SearchBar';import { 
   ShoppingBagIcon, 
   MagnifyingGlassIcon, 
   EyeIcon, 
@@ -72,8 +72,66 @@ const ShopPage = () => {
   const [syncStatus, setSyncStatus] = useState('idle'); // idle, syncing, success, error
   const [lastSyncTime, setLastSyncTime] = useState(null);
   const [syncMessage, setSyncMessage] = useState('');
+  
+  // 本地筛选相关状态
+  const [allProducts, setAllProducts] = useState([]); // 存储所有商品数据
+  const [filteredProducts, setFilteredProducts] = useState([]); // 存储筛选后的商品数据
 
   const pageSize = 10;
+
+  // 本地筛选函数
+  const applyLocalFilters = () => {
+    let filtered = [...allProducts];
+    
+    // 搜索筛选
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(product => 
+        product.name?.toLowerCase().includes(term) ||
+        product.description?.toLowerCase().includes(term) ||
+        product.category?.toLowerCase().includes(term)
+      );
+    }
+    
+    // 状态筛选
+    if (statusFilter !== '') {
+      const isOnSale = statusFilter === 'true';
+      filtered = filtered.filter(product => product.onSale === isOnSale);
+    }
+    
+    // 分类筛选
+    if (categoryFilter) {
+      filtered = filtered.filter(product => product.category === categoryFilter);
+    }
+    
+    setFilteredProducts(filtered);
+    setFilteredProducts(filtered);
+      setProducts(filtered);
+    
+    // 重新计算分页
+    const total = filtered.length;
+    setTotalPages(Math.ceil(total / pageSize));
+    setCurrentPage(1);
+  };
+
+  // 搜索处理函数
+  const handleSearch = () => {
+    applyLocalFilters();
+  };
+
+  // 筛选变化处理
+  const handleFilterChange = (filterType, value) => {
+    if (filterType === 'status') {
+      setStatusFilter(value);
+    } else if (filterType === 'category') {
+      setCategoryFilter(value);
+    }
+    
+    // 延迟执行筛选，避免频繁更新
+    setTimeout(() => {
+      applyLocalFilters();
+    }, 100);
+  };
 
   const statusOptions = [
     { value: '', label: '全部状态' },
@@ -353,7 +411,7 @@ const ShopPage = () => {
 
   // 全选/取消全选
   const toggleSelectAll = () => {
-    if (selectedProducts.length === products.length) {
+    if (selectedProducts.length === filteredProducts.length) {
       setSelectedProducts([]);
     } else {
       setSelectedProducts(products.map(p => p._id));
@@ -400,39 +458,17 @@ const ShopPage = () => {
       await ensureLogin();
       const db = app.database();
 
-      // 构建查询条件
-      let query = db.collection('shopProducts');
-      
-      if (searchTerm) {
-        query = query.where({
-          name: db.RegExp({
-            regexp: searchTerm,
-            options: 'i'
-          })
-        });
-      }
-
-      if (statusFilter !== '') {
-        query = query.where({ onSale: statusFilter });
-      }
-
-      if (categoryFilter) {
-        query = query.where({ category: categoryFilter });
-      }
-
-      // 获取总数
-      const countResult = await query.count();
-      const total = countResult.total;
-      setTotalPages(Math.ceil(total / pageSize));
-
-      // 获取分页数据
-      const result = await query
-        .skip((currentPage - 1) * pageSize)
-        .limit(pageSize)
+      // 获取所有商品数据，不进行服务端筛选
+      const result = await db.collection('shopProducts')
         .orderBy('createTime', 'desc')
         .get();
 
+      setAllProducts(result.data);
+      setFilteredProducts(result.data);
       setProducts(result.data);
+      
+      // 应用当前筛选条件
+      applyLocalFilters();
     } catch (error) {
       console.error('获取商品列表失败:', error);
       alert('获取商品列表失败，请重试');
@@ -440,6 +476,16 @@ const ShopPage = () => {
       setLoading(false);
     }
   };
+
+
+  const computedTotalPages = React.useMemo(() => {
+    return Math.max(1, Math.ceil((filteredProducts.length || 0) / pageSize));
+  }, [products, pageSize]);
+
+  const paginatedProducts = React.useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredProducts.slice(start, start + pageSize);
+  }, [products, currentPage, pageSize]);
 
   // 加载已删除的分类
   useEffect(() => {
@@ -454,7 +500,7 @@ const ShopPage = () => {
     fetchCategories();
     checkLowStock();
     checkSyncStatus(); // 检查同步状态
-  }, [currentPage, searchTerm, statusFilter, categoryFilter, stockThreshold, deletedCategories]);
+  }, [stockThreshold, deletedCategories]);
 
   // 定期检查库存预警
   useEffect(() => {
@@ -691,12 +737,6 @@ const ShopPage = () => {
     }
   };
 
-  // 搜索处理
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setCurrentPage(1);
-    fetchProducts();
-  };
 
   // 格式化时间
   const formatTime = (timestamp) => {
@@ -916,57 +956,38 @@ const ShopPage = () => {
       {/* 根据activeTab显示不同内容 */}
       {activeTab === 'products' && (
         <>
-          {/* 搜索和筛选栏 */}
+          {/* 搜索和筛选栏 - 使用新的SearchBar组件 */}
+          <SearchBar
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            onSearch={handleSearch}
+            placeholder="搜索商品名称、描述或分类..."
+            filterOptions={[
+              { value: '', label: '全部状态' },
+              { value: true, label: '上架' },
+              { value: false, label: '下架' }
+            ]}
+            filterValue={statusFilter}
+            onFilterChange={(e) => handleFilterChange('status', e.target.value)}
+            filterLabel="全部状态"
+          />
+          
+          {/* 分类筛选栏 */}
           <div className="bg-base-100 shadow rounded-lg p-4 mb-6">
-            <form onSubmit={handleSearch} className="flex gap-4 flex-wrap">
-              <div className="form-control flex-1 min-w-64">
-                <div className="flex">
-                  <input
-                    type="text"
-                    placeholder="搜索商品名称..."
-                    className="input input-bordered flex-1 rounded-r-none"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                  <button type="submit" className="btn btn-square rounded-l-none border-l-0">
-                    <MagnifyingGlassIcon className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-              <div className="form-control">
-                <select
-                  className="select select-bordered"
-                  value={statusFilter}
-                  onChange={(e) => {
-                    setStatusFilter(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  {statusOptions.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-control">
-                <select
-                  className="select select-bordered"
-                  value={categoryFilter}
-                  onChange={(e) => {
-                    setCategoryFilter(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <option value="">全部分类</option>
-                  {categories.map(category => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </form>
+            <div className="form-control">
+              <select
+                className="select select-bordered w-full max-w-xs"
+                value={categoryFilter}
+                onChange={(e) => handleFilterChange('category', e.target.value)}
+              >
+                <option value="">全部分类</option>
+                {categories.map(category => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* 批量操作栏 */}
@@ -1020,37 +1041,37 @@ const ShopPage = () => {
 
           {/* 商品列表 */}
           <div className="bg-base-100 shadow rounded-lg overflow-hidden">
-            {products.length === 0 ? (
+            {filteredProducts.length === 0 ? (
               <div className="text-center py-12">
                 <ShoppingBagIcon className="w-16 h-16 mx-auto text-gray-400 mb-4" />
                 <p className="text-gray-500">暂无商品数据</p>
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto">
-                  <table className="table table-zebra w-full">
+                                <div className="overflow-x-auto">
+                  <table className="table table-zebra w-full table-fixed">
                     <thead>
                       <tr>
-                        <th>
+                        <th className="w-12">
                           <input
                             type="checkbox"
                             className="checkbox"
-                            checked={selectedProducts.length === products.length && products.length > 0}
+                            checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
                             onChange={toggleSelectAll}
                           />
                         </th>
-                        <th>商品ID</th>
-                        <th>商品名称</th>
-                        <th>价格</th>
-                        <th>库存</th>
-                        <th>分类</th>
-                        <th>状态</th>
-                        <th>创建时间</th>
-                        <th>操作</th>
+                        <th className="w-48">产品信息</th>
+                        <th className="w-24">分类</th>
+                        <th className="w-20">品牌</th>
+                        <th className="w-20">价格</th>
+                        <th className="w-20">原价</th>
+                        <th className="w-16">库存</th>
+                        <th className="w-20">状态</th>
+                        <th className="w-24">操作</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {products.map((product) => (
+                      {paginatedProducts.map((product) => (
                         <tr key={product._id} className={selectedProducts.includes(product._id) ? 'bg-base-200' : ''}>
                           <td>
                             <input
@@ -1060,8 +1081,7 @@ const ShopPage = () => {
                               onChange={() => toggleSelectProduct(product._id)}
                             />
                           </td>
-                          <td className="font-mono text-sm">{product._id?.slice(-8)}</td>
-                          <td>
+                          <td >
                             <div className="flex items-center gap-2">
                               {product.images && product.images.length > 0 && (
                                 <img 
@@ -1070,37 +1090,32 @@ const ShopPage = () => {
                                   className="w-8 h-8 rounded object-cover"
                                 />
                               )}
-                              <div className="flex items-center gap-2 max-w-xs">
-                                <span className="truncate">{product.name}</span>
-                                {product.productId && (
-                                  <div className="flex items-center gap-1" title="已关联仓库产品">
-                                    <ArchiveBoxIcon className="w-3 h-3 text-blue-500" />
-                                    {product.lastSyncTime && (
-                                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full" title={`最后同步: ${new Date(product.lastSyncTime).toLocaleString()}`}></div>
-                                    )}
-                                  </div>
-                                )}
+                              <div className="flex flex-col min-w-0">
+                                <span className="font-medium truncate">{product.name}</span>
                               </div>
                             </div>
                           </td>
-                          <td className="font-bold">¥{formatAmount(product.price)}</td>
                           <td>
-                            <span className={product.stock <= stockThreshold ? 'text-error font-bold' : ''}>
+                            <span className="badge badge-primary">{product.category || '未分类'}</span>
+                          </td>
+                          <td>{product.brand || '-'}</td>
+                          <td className="font-bold">¥{formatAmount(product.price)}</td>
+                          <td className="text-gray-500">¥{formatAmount(product.originalPrice || 0)}</td>
+                          <td>
+                            <span className={`badge ${product.stock <= stockThreshold ? 'badge-error' : 'badge-success'}`}>
                               {product.stock || 0}
                               {product.stock <= stockThreshold && (
                                 <ExclamationTriangleIcon className="w-4 h-4 inline ml-1" />
                               )}
                             </span>
                           </td>
-                          <td>{product.category || '未分类'}</td>
                           <td>
                             <span className={`badge ${product.onSale ? 'badge-success' : 'badge-warning'}`}>
-                              {product.onSale ? '上架' : '下架'}
+                              {product.onSale ? '在售' : '下架'}
                             </span>
                           </td>
-                          <td>{formatTime(product.createTime)}</td>
                           <td>
-                            <div className="flex gap-2">
+                            <div className="flex gap-1">
                               <button
                                 onClick={() => viewProduct(product)}
                                 className="btn btn-sm btn-ghost"
@@ -1115,30 +1130,17 @@ const ShopPage = () => {
                               >
                                 <PencilIcon className="w-4 h-4" />
                               </button>
-                              <button
-                                onClick={() => toggleProductStatus(product._id, product.onSale)}
-                                className={`btn btn-sm ${product.onSale ? 'btn-warning' : 'btn-success'}`}
-                                title={product.onSale ? '下架' : '上架'}
-                              >
-                                {product.onSale ? '下架' : '上架'}
-                              </button>
-                              <button
-                                onClick={() => deleteProduct(product._id)}
-                                className="btn btn-sm btn-error"
-                                title="删除"
-                              >
-                                <TrashIcon className="w-4 h-4" />
-                              </button>
                             </div>
                           </td>
                         </tr>
                       ))}
                     </tbody>
-              </table>
-            </div>
+                  </table>
+                </div>
+
 
                  {/* 分页 */}
-                 {totalPages > 1 && (
+                 {computedTotalPages > 1 && (
                    <div className="flex justify-center p-4">
                      <div className="join">
                        <button
@@ -1149,11 +1151,11 @@ const ShopPage = () => {
                          上一页
                        </button>
                        <button className="join-item btn btn-active">
-                         {currentPage} / {totalPages}
+                         {currentPage} / {computedTotalPages}
                        </button>
                        <button
                          className="join-item btn"
-                         disabled={currentPage === totalPages}
+                         disabled={currentPage === computedTotalPages}
                          onClick={() => setCurrentPage(currentPage + 1)}
                        >
                          下一页
@@ -1223,7 +1225,7 @@ const ShopPage = () => {
                 <ShoppingBagIcon className="w-8 h-8" />
               </div>
               <div className="stat-title">商品总数</div>
-              <div className="stat-value text-primary">{products.length}</div>
+              <div className="stat-value text-primary">{filteredProducts.length}</div>
             </div>
             
             <div className="stat bg-base-100 shadow rounded-lg">
@@ -1286,32 +1288,98 @@ const ShopPage = () => {
                 <ExclamationTriangleIcon className="w-5 h-5 inline mr-2" />
                 库存预警商品 ({lowStockProducts.length})
               </h3>
-              <div className="overflow-x-auto">
-                <table className="table table-zebra w-full">
-                  <thead>
-                    <tr>
-                      <th>商品名称</th>
-                      <th>当前库存</th>
-                      <th>分类</th>
-                      <th>状态</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {lowStockProducts.map((product) => (
-                      <tr key={product._id}>
-                        <td>{product.name}</td>
-                        <td className="text-error font-bold">{product.stock}</td>
-                        <td>{product.category || '未分类'}</td>
-                        <td>
-                          <span className={`badge ${product.onSale ? 'badge-success' : 'badge-warning'}`}>
-                            {product.onSale ? '上架' : '下架'}
-                          </span>
-                        </td>
+                              <div className="overflow-x-auto">
+                  <table className="table table-zebra w-full table-fixed">
+                    <thead>
+                      <tr>
+                        <th className="w-12">
+                          <input
+                            type="checkbox"
+                            className="checkbox"
+                            checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
+                            onChange={toggleSelectAll}
+                          />
+                        </th>
+                        <th className="w-48">产品信息</th>
+                        <th className="w-24">分类</th>
+                        <th className="w-20">品牌</th>
+                        <th className="w-20">价格</th>
+                        <th className="w-20">原价</th>
+                        <th className="w-16">库存</th>
+                        <th className="w-20">状态</th>
+                        <th className="w-24">操作</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {paginatedProducts.map((product) => (
+                        <tr key={product._id} className={selectedProducts.includes(product._id) ? 'bg-base-200' : ''}>
+                          <td>
+                            <input
+                              type="checkbox"
+                              className="checkbox"
+                              checked={selectedProducts.includes(product._id)}
+                              onChange={() => toggleSelectProduct(product._id)}
+                            />
+                          </td>
+                          <td >
+                            <div className="flex items-center gap-2">
+                              {product.images && product.images.length > 0 && (
+                                <img 
+                                  src={product.images[0]} 
+                                  alt={product.name}
+                                  className="w-8 h-8 rounded object-cover"
+                                />
+                              )}
+                              <div className="flex flex-col min-w-0">
+                                <span className="font-medium truncate">{product.name}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <span className="badge badge-primary">{product.category || '未分类'}</span>
+                          </td>
+                          <td>{product.brand || '-'}</td>
+                          <td className="font-bold">¥{formatAmount(product.price)}</td>
+                          <td className="text-gray-500">
+                            {product.originalPrice ? `¥${formatAmount(product.originalPrice)}` : '-'}
+                          </td>
+                          <td>
+                            <span className={`badge ${product.stock <= stockThreshold ? 'badge-error' : 'badge-success'}`}>
+                              {product.stock || 0}
+                              {product.stock <= stockThreshold && (
+                                <ExclamationTriangleIcon className="w-4 h-4 inline ml-1" />
+                              )}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={`badge ${product.onSale ? 'badge-success' : 'badge-warning'}`}>
+                              {product.onSale ? '在售' : '下架'}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => viewProduct(product)}
+                                className="btn btn-sm btn-ghost"
+                                title="查看详情"
+                              >
+                                <EyeIcon className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => editProduct(product)}
+                                className="btn btn-sm btn-ghost"
+                                title="编辑"
+                              >
+                                <PencilIcon className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
             </div>
           )}
         </div>

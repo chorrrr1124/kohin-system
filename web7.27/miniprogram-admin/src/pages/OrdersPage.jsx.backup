@@ -630,7 +630,7 @@ const OrdersPage = () => {
               <table className="table table-zebra w-full table-fixed">
                 <thead>
                   <tr>
-                    <th className="w-8">
+                    <th className="w-11">
                       <input
                         type="checkbox"
                         className="checkbox"
@@ -638,13 +638,13 @@ const OrdersPage = () => {
                         onChange={toggleSelectAll}
                       />
                     </th>
-                    <th className="w-28">订单号</th>
+                    <th className="w-26">订单号</th>
                     <th className="w-24">客户</th>
-                    <th className="w-16">金额</th>
-                    <th className="w-20">支付方式</th>
-                    <th className="w-16">状态</th>
+                    <th className="w-20">金额</th>
+                    <th className="w-24">支付方式</th>
+                    <th className="w-20">状态</th>
                     <th className="w-20">创建时间</th>
-                    <th className="w-20">操作</th>
+                    <th className="w-24">操作</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -660,20 +660,20 @@ const OrdersPage = () => {
                             onChange={() => toggleOrderSelection(order._id)}
                           />
                         </td>
-                        <td className="font-mono text-sm w-28">{order.id || order._id?.slice(-8)}</td>
+                        <td className="font-mono text-sm w-26">{order.id || order._id?.slice(-8)}</td>
                         <td className="w-24">{order.customerName || order.customer || '未知客户'}</td>
-                        <td className="font-bold w-16">¥{formatAmount(order.totalAmount || order.total)}</td>
-                        <td className="w-20">
+                        <td className="font-bold w-20">¥{formatAmount(order.totalAmount || order.total)}</td>
+                        <td className="w-24">
                           <span className={`badge ${paymentMethodColors[order.paymentMethod] || 'badge-neutral'}`}>
                             {paymentMethodLabels[order.paymentMethod] || order.paymentMethod}
                           </span>
                         </td>
-                        <td className="w-16">
+                        <td>
                           <span className={`badge ${statusColors[order.status] || 'badge-neutral'}`}>
                             {statusLabels[order.status] || order.status}
                           </span>
                         </td>
-                        <td className="w-20">
+                        <td>
                           <div className="flex flex-col">
                             <span className="text-sm font-medium">{timeInfo.date}</span>
                             <span className="text-xs text-gray-500">{timeInfo.time}</span>

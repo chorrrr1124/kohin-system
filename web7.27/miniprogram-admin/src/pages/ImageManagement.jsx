@@ -191,7 +191,7 @@ const ImageManagement = ({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="table table-zebra w-full">
+            <table className="table table-zebra w-full table-fixed">
               <thead>
                 <tr>
                   <th>

@@ -6,7 +6,6 @@ const DepositsPage = () => {
   const [deposits, setDeposits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -31,14 +30,63 @@ const DepositsPage = () => {
   const [customers, setCustomers] = useState([]);
   const [showCustomerSelect, setShowCustomerSelect] = useState(false);
 
+  // 当前详情中该客户的全部预存记录
+  const [customerDeposits, setCustomerDeposits] = useState([]);
+
+  // 固定列显示（删除列显示功能）
+  const visibleCols = {
+    id: false,
+    name: true,
+    phone: true,
+    type: true,
+    product: true,
+    amountOrQty: true,
+    balance: true,
+    expire: false,
+    created: true,
+    actions: true,
+  };
+
+  // 列显示持久化功能移除
+
   const pageSize = 10;
 
-  const statusOptions = [
-    { value: '', label: '全部状态' },
-    { value: 'active', label: '有效' },
-    { value: 'used', label: '已用完' },
-    { value: 'expired', label: '已过期' }
-  ];
+  // 与库存管理页一致：本地筛选与分页
+  const filteredDeposits = React.useMemo(() => {
+    const keyword = (searchTerm || '').trim().toLowerCase();
+    const type = (typeFilter || '').trim();
+    let list = deposits || [];
+    // 类型筛选（'' 表示全部）
+    if (type) {
+      list = list.filter(item => item.type === type);
+    }
+    // 关键词筛选（姓名/电话/产品名/ID后8位）
+    if (keyword) {
+      list = list.filter((item) => {
+        const name = (item.customerName || '').toLowerCase();
+        const phone = String(item.customerPhone || '').toLowerCase();
+        const productName = (item.productName || '').toLowerCase();
+        const shortId = (item._id ? String(item._id).slice(-8) : '').toLowerCase();
+        return (
+          name.includes(keyword) ||
+          phone.includes(keyword) ||
+          productName.includes(keyword) ||
+          shortId.includes(keyword)
+        );
+      });
+    }
+    return list;
+  }, [deposits, searchTerm, typeFilter]);
+
+  const computedTotalPages = React.useMemo(() => {
+    return Math.max(1, Math.ceil((filteredDeposits.length || 0) / pageSize));
+  }, [filteredDeposits, pageSize]);
+
+  const paginatedDeposits = React.useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredDeposits.slice(start, start + pageSize);
+  }, [filteredDeposits, currentPage, pageSize]);
+
 
   const typeOptions = [
     { value: '', label: '全部类型' },
@@ -46,17 +94,7 @@ const DepositsPage = () => {
     { value: 'product', label: '产品预存' }
   ];
 
-  const statusLabels = {
-    active: '有效',
-    used: '已用完',
-    expired: '已过期'
-  };
 
-  const statusColors = {
-    active: 'badge-success',
-    used: 'badge-warning',
-    expired: 'badge-error'
-  };
 
   const typeLabels = {
     cash: '金额预存',
@@ -105,10 +143,6 @@ const DepositsPage = () => {
         ]));
       }
 
-      // 状态筛选
-      if (statusFilter) {
-        query = query.where({ status: statusFilter });
-      }
 
       // 类型筛选
       if (typeFilter) {
@@ -138,11 +172,46 @@ const DepositsPage = () => {
   useEffect(() => {
     fetchDeposits();
     fetchCustomers();
-  }, [currentPage, searchTerm, statusFilter, typeFilter]);
+  }, [currentPage, typeFilter]);
 
-  // 查看预存记录详情
-  const viewDeposit = (deposit) => {
-    setSelectedDeposit(deposit);
+  // 移除输入即搜的远程请求，输入仅做本地筛选；按回车或点击按钮再触发远程加载
+
+  // 取消输入即搜，改为仅在 Enter 或点击搜索时触发
+
+  // 查看预存记录详情（为产品型记录补全产品名称）
+  const viewDeposit = async (deposit) => {
+    let enriched = deposit;
+    try {
+      if (deposit && deposit.type === 'product' && !deposit.productName && deposit.productId) {
+        await ensureLogin();
+        const db = app.database();
+        const res = await db.collection('products').doc(deposit.productId).get();
+        const product = Array.isArray(res.data) ? res.data[0] : null;
+        const nameFromProduct = product && (product.name || product.title || product.productName);
+        enriched = { ...deposit, productName: nameFromProduct || '产品预存' };
+      }
+      // 拉取该客户的所有预存记录按时间倒序
+      if (deposit && (deposit.customerId || deposit.customerPhone || deposit.customerName)) {
+        const db = app.database();
+        let q = db.collection('prepaidRecords');
+        if (deposit.customerId) {
+          q = q.where({ customerId: deposit.customerId });
+        } else if (deposit.customerPhone) {
+          q = q.where({ customerPhone: deposit.customerPhone });
+        } else if (deposit.customerName) {
+          q = q.where({ customerName: deposit.customerName });
+        }
+        const all = await q.orderBy('createTime', 'desc').limit(100).get();
+        setCustomerDeposits(all.data || []);
+      } else {
+        setCustomerDeposits([]);
+      }
+    } catch (e) {
+      console.warn('补全产品名称失败，将使用兜底文案:', e);
+      enriched = { ...deposit, productName: deposit.productName || '产品预存' };
+      setCustomerDeposits([]);
+    }
+    setSelectedDeposit(enriched);
     setShowDepositModal(true);
   };
 
@@ -339,7 +408,16 @@ const DepositsPage = () => {
   // 格式化时间
   const formatTime = (timestamp) => {
     if (!timestamp) return '未知';
-    return new Date(timestamp).toLocaleString();
+    const d = new Date(timestamp);
+    const date = d.toLocaleDateString();
+    const time = d.toLocaleTimeString();
+    return (
+      <span className="whitespace-pre leading-tight inline-block text-left">
+        {date}
+        <br />
+        {time}
+      </span>
+    );
   };
 
   // 格式化金额
@@ -371,39 +449,36 @@ const DepositsPage = () => {
         </button>
       </div>
 
-      {/* 搜索和筛选栏 */}
+      {/* 搜索和筛选栏（采用库存页布局 + 商品页筛选样式） */}
       <div className="bg-base-100 shadow rounded-lg p-4 mb-6">
-        <form onSubmit={handleSearch} className="flex gap-4 flex-wrap">
-          <div className="form-control flex-1 min-w-64">
-            <div className="input-group">
+        <form className="flex gap-4 flex-wrap items-center" onSubmit={(e) => e.preventDefault()}>
+          {/* 搜索输入，右侧放大镜按钮 */}
+          <div className="relative flex-1 min-w-64">
               <input
                 type="text"
                 placeholder="搜索客户姓名或手机号..."
-                className="input input-bordered w-full"
+              className="input input-bordered w-full pr-12"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  setCurrentPage(1);
+                  fetchDeposits();
+                }
+              }}
               />
-              <button type="submit" className="btn btn-square">
+            <button
+              type="button"
+              className="absolute right-1 top-1/2 -translate-y-1/2 btn btn-ghost btn-square"
+              onClick={() => { setCurrentPage(1); fetchDeposits(); }}
+              aria-label="搜索"
+            >
                 <MagnifyingGlassIcon className="w-5 h-5" />
               </button>
             </div>
-          </div>
-          <div className="form-control">
-            <select
-              className="select select-bordered"
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-            >
-              {statusOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+
+          {/* 类型筛选（商品页同款样式） */}
           <div className="form-control">
             <select
               className="select select-bordered"
@@ -425,46 +500,48 @@ const DepositsPage = () => {
 
       {/* 预存记录列表 */}
       <div className="bg-base-100 shadow rounded-lg overflow-hidden">
-        {deposits.length === 0 ? (
-          <div className="text-center py-12">
-            <CreditCardIcon className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-500">暂无预存记录数据</p>
-          </div>
+        {loading ? (
+          <TableLoading />
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="table table-zebra w-full">
+              <table className="table table-zebra w-full table-fixed">
                 <thead>
                   <tr>
-                    <th>记录ID</th>
-                    <th>客户姓名</th>
-                    <th>客户电话</th>
-                    <th>类型</th>
-                    <th>数量/金额</th>
-                    <th>余额</th>
-                    <th>过期时间</th>
-                    <th>状态</th>
-                    <th>创建时间</th>
-                    <th>操作</th>
+                    {visibleCols.id && <th className="w-24">记录ID</th>}
+                    {visibleCols.name && <th className="w-24">客户姓名</th>}
+                    {visibleCols.phone && <th className="w-32">客户电话</th>}
+                    {visibleCols.type && <th className="w-20 text-sm whitespace-nowrap">类型</th>}
+                    {visibleCols.product && <th className="w-20">产品</th>}
+                    {visibleCols.amountOrQty && <th className="w-24">预存数量/金额</th>}
+                    {visibleCols.balance && <th className="w-16">剩余</th>}
+                    {visibleCols.expire && <th className="w-28">过期时间</th>}
+                    {visibleCols.created && <th className="w-16 text-left">创建时间</th>}
+                    {visibleCols.actions && <th className="w-24">操作</th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {deposits.map((deposit) => (
-                    <tr key={deposit._id}>
-                      <td className="font-mono text-sm">{deposit._id?.slice(-8)}</td>
-                      <td>{deposit.customerName || '未知客户'}</td>
-                      <td>{deposit.customerPhone || '未设置'}</td>
-                      <td>{typeLabels[deposit.type] || deposit.type}</td>
-                      <td>{deposit.type === 'cash' ? formatAmount(deposit.amount) : deposit.quantity}</td>
-                      <td className="font-bold">{deposit.balance || 0}</td>
-                      <td>{deposit.expireDate ? new Date(deposit.expireDate).toLocaleDateString() : '无期限'}</td>
-                      <td>
-                        <span className={`badge ${statusColors[deposit.status] || 'badge-neutral'}`}>
-                          {statusLabels[deposit.status] || deposit.status}
-                        </span>
+                  {filteredDeposits.length === 0 ? (
+                    <tr>
+                      <td colSpan="10" className="text-center py-12">
+                        <CreditCardIcon className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                        <p className="text-gray-500">暂无预存记录数据</p>
                       </td>
-                      <td>{formatTime(deposit.createTime)}</td>
-                      <td>
+                    </tr>
+                  ) : (
+                  paginatedDeposits.map((deposit) => (
+                    <tr key={deposit._id}>
+                      {visibleCols.id && <td className="font-mono text-sm">{deposit._id?.slice(-8)}</td>}
+                      {visibleCols.name && <td>{deposit.customerName || '未知客户'}</td>}
+                      {visibleCols.phone && <td>{deposit.customerPhone || '未设置'}</td>}
+                      {visibleCols.type && <td className="text-sm whitespace-nowrap">{typeLabels[deposit.type] || deposit.type}</td>}
+                      {visibleCols.product && <td>{deposit.type === 'product' ? (deposit.productName || '产品预存') : '-'}</td>}
+                      {visibleCols.amountOrQty && <td>{deposit.type === 'cash' ? formatAmount(deposit.amount) : deposit.quantity}</td>}
+                      {visibleCols.balance && <td className="font-bold">{deposit.type === 'cash' ? formatAmount(deposit.balance || 0) : (deposit.balance || 0)}</td>}
+                      {visibleCols.expire && <td>{deposit.expireDate ? new Date(deposit.expireDate).toLocaleDateString() : '无期限'}</td>}
+                      {visibleCols.created && <td className="w-16 text-left align-top">{formatTime(deposit.createTime)}</td>}
+                      {visibleCols.actions && (
+                        <td className="whitespace-nowrap">
                         <button
                           onClick={() => viewDeposit(deposit)}
                           className="btn btn-sm btn-ghost"
@@ -487,29 +564,31 @@ const DepositsPage = () => {
                           <TrashIcon className="w-4 h-4" />
                         </button>
                       </td>
+                      )}
                     </tr>
-                  ))}
+                  ))
+                  )}
                 </tbody>
               </table>
             </div>
 
             {/* 分页 */}
-            {totalPages > 1 && (
+            {computedTotalPages > 1 && (
               <div className="flex justify-center p-4">
                 <div className="join">
                   <button
                     className="join-item btn"
-                    disabled={currentPage === 1}
+                    disabled={loading || currentPage === 1}
                     onClick={() => setCurrentPage(currentPage - 1)}
                   >
                     上一页
                   </button>
                   <button className="join-item btn btn-active">
-                    第 {currentPage} 页，共 {totalPages} 页
+                    第 {currentPage} 页，共 {computedTotalPages} 页
                   </button>
                   <button
                     className="join-item btn"
-                    disabled={currentPage === totalPages}
+                    disabled={loading || currentPage === computedTotalPages}
                     onClick={() => setCurrentPage(currentPage + 1)}
                   >
                     下一页
@@ -532,14 +611,9 @@ const DepositsPage = () => {
             >
               <XMarkIcon className="h-5 w-5 text-gray-500" />
             </button>
-            <h3 className="font-bold text-lg mb-4 mr-8">预存记录详情</h3>
+            <h3 className="font-bold text-lg mb-4 mr-8">预存详情</h3>
             <div className="space-y-3">
-              <div>
-                <label className="label">
-                  <span className="label-text font-semibold">记录ID</span>
-                </label>
-                <p className="font-mono text-sm">{selectedDeposit._id}</p>
-              </div>
+              {/* 记录ID隐藏 */}
               <div>
                 <label className="label">
                   <span className="label-text font-semibold">客户姓名</span>
@@ -558,15 +632,23 @@ const DepositsPage = () => {
                 </label>
                 <p>{typeLabels[selectedDeposit.type] || selectedDeposit.type}</p>
               </div>
+              {selectedDeposit.type === 'product' && (
               <div>
                 <label className="label">
-                  <span className="label-text font-semibold">数量/金额</span>
+                    <span className="label-text font-semibold">产品名称</span>
+                  </label>
+                  <p>{selectedDeposit.productName || '产品预存'}</p>
+                </div>
+              )}
+              <div>
+                <label className="label">
+                  <span className="label-text font-semibold">预存数量/金额</span>
                 </label>
                 <p>{selectedDeposit.type === 'cash' ? formatAmount(selectedDeposit.amount) : selectedDeposit.quantity}</p>
               </div>
               <div>
                 <label className="label">
-                  <span className="label-text font-semibold">余额</span>
+                  <span className="label-text font-semibold">剩余</span>
                 </label>
                 <p className="text-lg font-bold">{selectedDeposit.balance || 0}</p>
               </div>
@@ -576,14 +658,7 @@ const DepositsPage = () => {
                 </label>
                 <p>{selectedDeposit.expireDate ? new Date(selectedDeposit.expireDate).toLocaleDateString() : '无期限'}</p>
               </div>
-              <div>
-                <label className="label">
-                  <span className="label-text font-semibold">状态</span>
-                </label>
-                <span className={`badge ${statusColors[selectedDeposit.status] || 'badge-neutral'}`}>
-                  {statusLabels[selectedDeposit.status] || selectedDeposit.status}
-                </span>
-              </div>
+              {/* 状态显示移除 */}
               <div>
                 <label className="label">
                   <span className="label-text font-semibold">创建时间</span>
@@ -604,6 +679,8 @@ const DepositsPage = () => {
                   <p className="p-2 bg-base-200 rounded">{selectedDeposit.description}</p>
                 </div>
               )}
+
+              {/* 客户记录列表移除 */}
             </div>
             <div className="modal-action">
               <button

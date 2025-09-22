@@ -64,12 +64,6 @@ const CustomersPage = () => {
 
   const pageSize = 10;
 
-  // 获取客户性质的显示文本
-  // 获取客户性质的显示文本
-  const getCustomerNatureDisplay = (customer) => {
-    // 直接使用数据库中的 nature 字段，因为已经通过云函数统一更新
-    return customer.nature || customer.type || "零售客户";
-  };
   // 获取客户统计数据
   const fetchCustomerStats = async () => {
     try {
@@ -150,7 +144,7 @@ const CustomersPage = () => {
     // 性质筛选
     if (natureFilter) {
       filteredCustomers = filteredCustomers.filter(customer => 
-        getCustomerNatureDisplay(customer) === natureFilter
+        customer.nature === natureFilter
       );
     }
     
@@ -209,7 +203,7 @@ const CustomersPage = () => {
         csvData.push([
           customer._id,
           customer.name || '',
-          getCustomerNatureDisplay(customer),
+          customer.nature || '',
           getCustomerPhone(customer),
           customer.source || '',
           formatTime(customer.createTime),
@@ -390,7 +384,7 @@ const CustomersPage = () => {
     
     setCustomerForm({
       name: customer.name || '',
-      nature: getCustomerNatureDisplay(customer),
+      nature: customer.nature || '',
       source: customer.source || '',
       remark: customer.remark || '',
       contacts
@@ -662,11 +656,11 @@ const CustomersPage = () => {
                       <td className="font-semibold">{customer.name}</td>
                       <td>
                         <span className={`badge ${
-                          getCustomerNatureDisplay(customer) === '金额预存客户' ? 'badge-success' :
-                          getCustomerNatureDisplay(customer) === '产品预存客户' ? 'badge-info' :
+                          customer.nature === '金额预存客户' ? 'badge-success' :
+                          customer.nature === '产品预存客户' ? 'badge-info' :
                           'badge-warning'
                         }`}>
-                          {getCustomerNatureDisplay(customer)}
+                          {customer.nature}
                         </span>
                       </td>
                       <td>{getCustomerPhone(customer)}</td>
@@ -766,7 +760,7 @@ const CustomersPage = () => {
                   </span>
                 </div>
                 <div><span className="font-semibold">创建时间：</span>{formatTime(selectedCustomer.createTime || selectedCustomer.createDate)}</div>
-                {selectedCustomer.nature && <div><span className="font-semibold">客户类型：</span>{getCustomerNatureDisplay(selectedCustomer)}</div>}
+                {selectedCustomer.nature && <div><span className="font-semibold">客户类型：</span>{selectedCustomer.nature}</div>}
                 {selectedCustomer.natureCategory && <div><span className="font-semibold">客户分类：</span>{selectedCustomer.natureCategory}</div>}
                 {selectedCustomer.remark && <div className="col-span-2"><span className="font-semibold">备注：</span>{selectedCustomer.remark}</div>}
               </div>

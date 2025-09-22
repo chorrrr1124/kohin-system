@@ -13,7 +13,8 @@ import {
   ChartBarIcon,
   CubeIcon,
   ChevronDownIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  ShoppingCartIcon
 } from '@heroicons/react/24/outline';
 
 const navLinks = [
@@ -22,6 +23,7 @@ const navLinks = [
   { to: '/orders', icon: ShoppingBagIcon, text: '订单管理' },
   { to: '/deposits', icon: ArchiveBoxIcon, text: '预存记录' },
   { to: '/shop', icon: BuildingStorefrontIcon, text: '商品管理' },
+  { to: '/shop-order', icon: ShoppingCartIcon, text: '商城下单' },
   { 
     to: '/coupons', 
     icon: TicketIcon, 

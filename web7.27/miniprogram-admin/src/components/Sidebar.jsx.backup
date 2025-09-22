@@ -32,7 +32,7 @@ const navLinks = [
     ]
   },
   { to: '/inventory', icon: CubeIcon, text: '仓库库存管理' },
-  { to: '/image-management', icon: PhotoIcon, text: '图片管理' },
+  { to: '/images', icon: PhotoIcon, text: '图片管理' },
   { 
     to: '/settings', 
     icon: Cog6ToothIcon, 
