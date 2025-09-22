@@ -501,7 +501,7 @@ Component({
     },
 
     // 处理手机号获取成功
-    handlePhoneNumberSuccess(phoneNumber) {
+    async handlePhoneNumberSuccess(phoneNumber) {
       console.log('手机号获取成功:', phoneNumber);
       
       wx.hideLoading();
@@ -515,6 +515,9 @@ Component({
         icon: 'success',
         duration: 2000
       });
+      
+      // 同步用户数据到数据库
+      await this.syncUserData(phoneNumber);
       
       // 关闭注册福利弹窗
       this.setData({
@@ -572,6 +575,99 @@ Component({
       const masked = '*'.repeat(phoneNumber.length - 7);
       
       return `${prefix}${masked}${suffix}`;
+    },
+
+    // 同步用户数据到数据库
+    async syncUserData(phoneNumber) {
+      try {
+        console.log('开始同步用户数据...');
+        
+        // 获取用户基本信息
+        const userInfo = this.data.userInfo || {};
+        
+        // 调用云函数同步用户数据
+        const result = await wx.cloud.callFunction({
+          name: 'syncUserData',
+          data: {
+            action: 'createOrUpdateUser',
+            userData: {
+              nickName: userInfo.nickName || '',
+              avatarUrl: userInfo.avatarUrl || '',
+              gender: userInfo.gender || 0,
+              city: userInfo.city || '',
+              province: userInfo.province || '',
+              country: userInfo.country || '',
+              points: 0,
+              balance: 0,
+              vipLevel: 1,
+              totalSpent: 0,
+              orderCount: 0
+            },
+            phoneNumber: phoneNumber
+          }
+        });
+
+        console.log('用户数据同步结果:', result);
+
+        if (result.result && result.result.success) {
+          console.log('用户数据同步成功:', result.result.action);
+          
+          // 同步到客户表
+          await this.syncToCustomers(phoneNumber);
+          
+          // 保存用户登录状态
+          wx.setStorageSync('userLoggedIn', true);
+          wx.setStorageSync('userData', result.result.userData);
+          
+          // 显示登录成功提示
+          wx.showToast({
+            title: '登录成功',
+            icon: 'success',
+            duration: 2000
+          });
+          
+        } else {
+          console.error('用户数据同步失败:', result.result);
+          throw new Error(result.result?.message || '用户数据同步失败');
+        }
+        
+      } catch (error) {
+        console.error('同步用户数据失败:', error);
+        wx.showToast({
+          title: '登录失败，请重试',
+          icon: 'none',
+          duration: 2000
+        });
+      }
+    },
+
+    // 同步用户数据到客户表
+    async syncToCustomers(phoneNumber) {
+      try {
+        console.log('开始同步到客户表...');
+        
+        const result = await wx.cloud.callFunction({
+          name: 'syncUserData',
+          data: {
+            action: 'syncToCustomers',
+            userData: {
+              phone: phoneNumber
+            }
+          }
+        });
+
+        console.log('客户表同步结果:', result);
+
+        if (result.result && result.result.success) {
+          console.log('客户表同步成功:', result.result.action);
+        } else {
+          console.error('客户表同步失败:', result.result);
+        }
+        
+      } catch (error) {
+        console.error('同步到客户表失败:', error);
+        // 不显示错误提示，因为这是后台同步
+      }
     },
 
 

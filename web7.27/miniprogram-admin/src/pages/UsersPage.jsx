@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { UsersIcon, MagnifyingGlassIcon, EyeIcon, PlusIcon, PencilIcon, TrashIcon, PhoneIcon, ChartBarIcon, GiftIcon, CurrencyDollarIcon, CalendarDaysIcon, DocumentArrowDownIcon, StarIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { app, ensureLogin } from '../utils/cloudbase';
 import { ContentLoading, TableLoading, CardLoading } from '../components/LoadingSpinner';
+import AddressSelector from '../components/AddressSelector';
+import AddressRecognizer from '../components/AddressRecognizer';
 
 const CustomersPage = () => {
   const [customers, setCustomers] = useState([]);
@@ -48,7 +50,17 @@ const CustomersPage = () => {
     nature: '',
     source: '',
     remark: '',
-    contacts: [{ name: '', phone: '', address: '' }]
+    contacts: [{ 
+      name: '', 
+      phone: '', 
+      address: {
+        province: '',
+        city: '',
+        district: '',
+        detail: '',
+        full: ''
+      }
+    }]
   });
   
   const natureOptions = ['金额预存客户', '产品预存客户', '零售客户'];
@@ -343,6 +355,12 @@ const CustomersPage = () => {
       alert('请填写联系人姓名和电话');
       return;
     }
+
+    // 验证手机号格式
+    if (!validatePhone(customerForm.contacts[0].phone)) {
+      alert('请输入正确的11位手机号码');
+      return;
+    }
     
     try {
       await ensureLogin();
@@ -364,7 +382,17 @@ const CustomersPage = () => {
         nature: '',
         source: '',
         remark: '',
-        contacts: [{ name: '', phone: '', address: '' }]
+        contacts: [{ 
+          name: '', 
+          phone: '', 
+          address: {
+            province: '',
+            city: '',
+            district: '',
+            detail: '',
+            full: ''
+          }
+        }]
       });
       setShowAddModal(false);
       // 搜索条件改变时会自动触发useEffect重新筛选
@@ -378,14 +406,52 @@ const CustomersPage = () => {
   // 编辑客户
   const startEditCustomer = (customer) => {
     setEditCustomer(customer);
-    let contacts = [{ name: '', phone: '', address: '' }];
+    let contacts = [{ 
+      name: '', 
+      phone: '', 
+      address: {
+        province: '',
+        city: '',
+        district: '',
+        detail: '',
+        full: ''
+      }
+    }];
+    
     try {
       if (customer.contacts) {
-        contacts = typeof customer.contacts === 'string' ? JSON.parse(customer.contacts) : customer.contacts;
-        if (!Array.isArray(contacts)) contacts = [contacts];
+        const parsedContacts = typeof customer.contacts === 'string' ? JSON.parse(customer.contacts) : customer.contacts;
+        if (Array.isArray(parsedContacts)) {
+          contacts = parsedContacts.map(contact => {
+            // 兼容旧格式的地址字段
+            if (typeof contact.address === 'string') {
+              return {
+                ...contact,
+                address: {
+                  province: '',
+                  city: '',
+                  district: '',
+                  detail: contact.address,
+                  full: contact.address
+                }
+              };
+            }
+            return contact;
+          });
+        }
       }
     } catch { 
-      contacts = [{ name: '', phone: '', address: '' }]; 
+      contacts = [{ 
+        name: '', 
+        phone: '', 
+        address: {
+          province: '',
+          city: '',
+          district: '',
+          detail: '',
+          full: ''
+        }
+      }]; 
     }
     
     setCustomerForm({
@@ -402,6 +468,12 @@ const CustomersPage = () => {
     if (!editCustomer) return;
     if (!customerForm.name || !customerForm.nature || !customerForm.source || !customerForm.contacts[0].name || !customerForm.contacts[0].phone) {
       alert('请填写所有必填项');
+      return;
+    }
+
+    // 验证手机号格式
+    if (!validatePhone(customerForm.contacts[0].phone)) {
+      alert('请输入正确的11位手机号码');
       return;
     }
     
@@ -491,7 +563,17 @@ const CustomersPage = () => {
   const addContact = () => {
     setCustomerForm({
       ...customerForm,
-      contacts: [...customerForm.contacts, { name: '', phone: '', address: '' }]
+      contacts: [...customerForm.contacts, { 
+        name: '', 
+        phone: '', 
+        address: {
+          province: '',
+          city: '',
+          district: '',
+          detail: '',
+          full: ''
+        }
+      }]
     });
   };
 
@@ -506,7 +588,83 @@ const CustomersPage = () => {
   // 更新联系人
   const updateContact = (index, field, value) => {
     const newContacts = [...customerForm.contacts];
-    newContacts[index][field] = value;
+    
+    // 如果是电话字段，添加手机号格式验证
+    if (field === 'phone') {
+      // 只允许输入数字，最多11位
+      const phoneValue = value.replace(/\D/g, '').slice(0, 11);
+      newContacts[index][field] = phoneValue;
+    } else if (field === 'address') {
+      // 处理地址字段
+      if (typeof value === 'string') {
+        // 如果是字符串，更新为新的地址格式
+        newContacts[index][field] = {
+          province: '',
+          city: '',
+          district: '',
+          detail: value,
+          full: value
+        };
+      } else {
+        // 如果是对象，直接更新
+        newContacts[index][field] = value;
+      }
+    } else {
+      newContacts[index][field] = value;
+    }
+    
+    setCustomerForm({ ...customerForm, contacts: newContacts });
+  };
+
+  // 验证手机号格式
+  const validatePhone = (phone) => {
+    const phoneRegex = /^1[3-9]\d{9}$/;
+    return phoneRegex.test(phone);
+  };
+
+  // 处理地址识别结果
+  const handleAddressRecognize = (index, recognizedData) => {
+    const newContacts = [...customerForm.contacts];
+    
+    // 更新联系人信息
+    if (recognizedData.name) {
+      newContacts[index].name = recognizedData.name;
+    }
+    if (recognizedData.phone) {
+      newContacts[index].phone = recognizedData.phone;
+    }
+    
+    // 更新地址信息
+    newContacts[index].address = {
+      province: recognizedData.province || '',
+      city: recognizedData.city || '',
+      district: recognizedData.district || '',
+      detail: recognizedData.detail || '',
+      full: recognizedData.fullAddress || recognizedData.address || ''
+    };
+    
+    setCustomerForm({ ...customerForm, contacts: newContacts });
+  };
+
+  // 处理地址选择器变化
+  const handleAddressSelect = (index, selectedAddress) => {
+    const newContacts = [...customerForm.contacts];
+    
+    // 处理数组格式的地址
+    let addressParts = [];
+    if (Array.isArray(selectedAddress)) {
+      addressParts = selectedAddress;
+    } else if (typeof selectedAddress === 'string') {
+      addressParts = selectedAddress.split(' ');
+    }
+    
+    newContacts[index].address = {
+      province: addressParts[0] || '',
+      city: addressParts[1] || '',
+      district: addressParts[2] || '',
+      detail: newContacts[index].address.detail || '',
+      full: addressParts.filter(Boolean).join(' ') + (newContacts[index].address.detail ? ' ' + newContacts[index].address.detail : '')
+    };
     setCustomerForm({ ...customerForm, contacts: newContacts });
   };
 
@@ -903,11 +1061,89 @@ const CustomersPage = () => {
               </div>
               <div className="form-control">
                 <label className="label"><span className="label-text">电话 *</span></label>
-                <input type="text" className="input input-bordered" value={customerForm.contacts[0].phone} onChange={e => updateContact(0, 'phone', e.target.value)} />
+                <input 
+                  type="tel" 
+                  className="input input-bordered" 
+                  value={customerForm.contacts[0].phone} 
+                  onChange={e => updateContact(0, 'phone', e.target.value)}
+                  placeholder="请输入11位手机号码"
+                  maxLength="11"
+                  pattern="[0-9]{11}"
+                />
+                {customerForm.contacts[0].phone && !validatePhone(customerForm.contacts[0].phone) && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">请输入正确的11位手机号码</span>
+                  </label>
+                )}
               </div>
               <div className="form-control">
                 <label className="label"><span className="label-text">地址</span></label>
-                <input type="text" className="input input-bordered" value={customerForm.contacts[0].address} onChange={e => updateContact(0, 'address', e.target.value)} />
+                
+                {/* 地址识别组件 */}
+                <AddressRecognizer 
+                  onRecognize={(data) => handleAddressRecognize(0, data)}
+                  onClear={() => {
+                    const newContacts = [...customerForm.contacts];
+                    newContacts[0].address = {
+                      province: '',
+                      city: '',
+                      district: '',
+                      detail: '',
+                      full: ''
+                    };
+                    setCustomerForm({ ...customerForm, contacts: newContacts });
+                  }}
+                />
+                
+                {/* 省市区选择器 */}
+                <div className="mt-2">
+                  <label className="label">
+                    <span className="label-text text-sm">省市区选择</span>
+                  </label>
+                  <AddressSelector
+                    value={customerForm.contacts[0].address ? 
+                      [customerForm.contacts[0].address.province, 
+                       customerForm.contacts[0].address.city, 
+                       customerForm.contacts[0].address.district].filter(Boolean) : []}
+                    onChange={(value) => handleAddressSelect(0, value)}
+                    placeholder="请选择省市区"
+                  />
+                </div>
+                
+                {/* 详细地址输入 */}
+                <div className="mt-2">
+                  <label className="label">
+                    <span className="label-text text-sm">详细地址</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    className="input input-bordered" 
+                    value={customerForm.contacts[0].address?.detail || ''} 
+                    onChange={e => {
+                      const newContacts = [...customerForm.contacts];
+                      newContacts[0].address = {
+                        ...newContacts[0].address,
+                        detail: e.target.value,
+                        full: [
+                          newContacts[0].address.province,
+                          newContacts[0].address.city,
+                          newContacts[0].address.district,
+                          e.target.value
+                        ].filter(Boolean).join(' ')
+                      };
+                      setCustomerForm({ ...customerForm, contacts: newContacts });
+                    }}
+                    placeholder="请输入详细地址（街道、门牌号等）"
+                  />
+                </div>
+                
+                {/* 完整地址预览 */}
+                {customerForm.contacts[0].address?.full && (
+                  <div className="mt-2 p-2 bg-gray-50 rounded text-sm">
+                    <span className="text-gray-600">完整地址：</span>
+                    <span className="text-gray-800">{customerForm.contacts[0].address.full}</span>
+                  </div>
+                )}
               </div>
               <button className="btn btn-sm btn-ghost" onClick={addContact}>
                 <PlusIcon className="w-4 h-4 mr-1" />添加联系人
@@ -960,14 +1196,89 @@ const CustomersPage = () => {
               {customerForm.contacts.map((contact, index) => (
                 <div key={index} className="form-control">
                   <label className="label"><span className="label-text">联系人 {index + 1}</span></label>
-                  <div className="flex gap-2">
-                    <input type="text" className="input input-bordered flex-1" value={contact.name} onChange={e => updateContact(index, 'name', e.target.value)} />
-                    <input type="text" className="input input-bordered" value={contact.phone} onChange={e => updateContact(index, 'phone', e.target.value)} />
-                    <input type="text" className="input input-bordered" value={contact.address} onChange={e => updateContact(index, 'address', e.target.value)} />
-                    <button type="button" className="btn btn-sm btn-ghost" onClick={() => removeContact(index)}>
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
-              </div>
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <input type="text" className="input input-bordered flex-1" value={contact.name} onChange={e => updateContact(index, 'name', e.target.value)} placeholder="姓名" />
+                      <input 
+                        type="tel" 
+                        className="input input-bordered" 
+                        value={contact.phone} 
+                        onChange={e => updateContact(index, 'phone', e.target.value)}
+                        placeholder="11位手机号"
+                        maxLength="11"
+                        pattern="[0-9]{11}"
+                      />
+                      <button type="button" className="btn btn-sm btn-ghost" onClick={() => removeContact(index)}>
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                    
+                    {/* 地址识别组件 */}
+                    <AddressRecognizer 
+                      onRecognize={(data) => handleAddressRecognize(index, data)}
+                      onClear={() => {
+                        const newContacts = [...customerForm.contacts];
+                        newContacts[index].address = {
+                          province: '',
+                          city: '',
+                          district: '',
+                          detail: '',
+                          full: ''
+                        };
+                        setCustomerForm({ ...customerForm, contacts: newContacts });
+                      }}
+                    />
+                    
+                    {/* 省市区选择器 */}
+                    <div>
+                      <label className="label">
+                        <span className="label-text text-sm">省市区选择</span>
+                      </label>
+                      <AddressSelector
+                        value={contact.address ? 
+                          [contact.address.province, 
+                           contact.address.city, 
+                           contact.address.district].filter(Boolean) : []}
+                        onChange={(value) => handleAddressSelect(index, value)}
+                        placeholder="请选择省市区"
+                      />
+                    </div>
+                    
+                    {/* 详细地址输入 */}
+                    <div>
+                      <label className="label">
+                        <span className="label-text text-sm">详细地址</span>
+                      </label>
+                      <input 
+                        type="text" 
+                        className="input input-bordered w-full" 
+                        value={contact.address?.detail || ''} 
+                        onChange={e => {
+                          const newContacts = [...customerForm.contacts];
+                          newContacts[index].address = {
+                            ...newContacts[index].address,
+                            detail: e.target.value,
+                            full: [
+                              newContacts[index].address.province,
+                              newContacts[index].address.city,
+                              newContacts[index].address.district,
+                              e.target.value
+                            ].filter(Boolean).join(' ')
+                          };
+                          setCustomerForm({ ...customerForm, contacts: newContacts });
+                        }}
+                        placeholder="请输入详细地址（街道、门牌号等）"
+                      />
+                    </div>
+                    
+                    {/* 完整地址预览 */}
+                    {contact.address?.full && (
+                      <div className="p-2 bg-gray-50 rounded text-sm">
+                        <span className="text-gray-600">完整地址：</span>
+                        <span className="text-gray-800">{contact.address.full}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
               <button className="btn btn-sm btn-ghost" onClick={addContact}>

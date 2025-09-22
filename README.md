@@ -82,6 +82,8 @@ kohin-system/
 - 数据统计与分析
 - 系统配置管理
 - 用户权限管理
+- 商品管理（支持云存储图片选择）
+- 云存储图片管理
 
 ## 部署指南
 
@@ -96,9 +98,11 @@ kohin-system/
 - getCosSts: 腾讯云COS临时密钥获取
 - uploadImageToCos: 图片上传到COS存储
 
-✅ **Web端后台已构建完成**
+✅ **Web端后台已部署完成**
 - 构建产物位于: `web7.27/miniprogram-admin/dist/`
 - 使用 Vite + React + Tailwind CSS
+- 🌐 **在线访问地址**: [https://cloudbase-3g4w6lls8a5ce59b-1327524326.tcloudbaseapp.com/admin/](https://cloudbase-3g4w6lls8a5ce59b-1327524326.tcloudbaseapp.com/admin/)
+- ✨ **新功能**: 商品管理支持从云存储选择图片
 
 ✅ **小程序项目已准备就绪**
 - 用户端小程序: `商城小程序/`
@@ -146,6 +150,70 @@ tcb fn deploy
 tcb hosting deploy
 ```
 
+## 功能更新
+
+### 商品管理云存储图片选择功能
+
+**新增功能**: 在商品管理的添加商品和编辑商品功能中，现在支持从云存储中选择已有的商品图片。
+
+**功能特性**:
+- 🖼️ **图片选择器**: 提供直观的图片选择界面，支持按分类筛选
+- 🔍 **搜索功能**: 支持按图片名称搜索
+- 📁 **分类管理**: 支持商品图片、轮播图、通用图片等多种分类
+- ✅ **多选支持**: 最多可选择5张图片
+- 🎯 **智能预览**: 实时预览选中的图片
+- 📊 **数量提示**: 显示已选择图片数量和限制
+
+**使用方法**:
+1. 进入商品管理页面
+2. 点击"添加商品"或编辑现有商品
+3. 在商品图片部分，点击"从云存储选择"按钮
+4. 在弹出的图片选择器中选择需要的图片
+5. 确认选择，图片将自动添加到商品中
+
+**技术实现**:
+- 使用 `ImageSelector` 组件提供图片选择界面
+- 集成现有的云存储管理系统
+- 支持图片分类筛选和搜索
+- 响应式设计，支持移动端和桌面端
+
+## 功能更新：用户数据连通与手机授权登录
+
+### 新增功能
+- **手机号授权登录**：用户端小程序支持微信手机号一键登录
+- **用户数据同步**：实现用户端小程序和管理端Web系统的用户数据连通
+- **小程序用户管理**：Web管理端新增"小程序用户"管理页面
+
+### 技术实现
+
+#### 1. 用户数据同步云函数
+- **syncUserData**：统一的用户数据同步云函数
+  - 支持创建/更新用户数据
+  - 自动同步到客户表
+  - 支持获取所有用户数据
+
+#### 2. 手机号授权登录
+- 完善了 `商城小程序/components/login-popup-system/` 组件
+- 支持微信官方 `getPhoneNumber` API
+- 自动解密手机号并同步用户数据
+- 完整的错误处理和降级方案
+
+#### 3. Web管理端用户管理
+- 新增 `MiniProgramUsersPage` 页面
+- 支持查看小程序用户详细信息
+- 支持用户数据导出
+- 支持按VIP等级筛选
+- 支持搜索用户昵称和手机号
+
+### 数据库设计
+- **users** 集合：存储小程序用户数据
+- **customers** 集合：存储客户数据（与用户数据同步）
+- 支持用户积分、余额、VIP等级等字段
+
+### 访问地址
+- **Web管理端**：[https://cloudbase-3g4w6lls8a5ce59b-1327524326.tcloudbaseapp.com/admin/](https://cloudbase-3g4w6lls8a5ce59b-1327524326.tcloudbaseapp.com/admin/)
+- **小程序用户管理**：[https://cloudbase-3g4w6lls8a5ce59b-1327524326.tcloudbaseapp.com/admin/#/mini-users](https://cloudbase-3g4w6lls8a5ce59b-1327524326.tcloudbaseapp.com/admin/#/mini-users)
+
 ## 功能更新：协议与隐私政策
 
 ### 新增内容
@@ -158,13 +226,13 @@ tcb hosting deploy
 - 数据结构：请在 `getPopupContent` 返回体的 `result.data` 中提供以下字段：
   - `userAgreementHtml`：用户协议 HTML 内容
   - `privacyPolicyHtml`：隐私政策 HTML 内容
-- 渲染：页面使用 `rich-text` 渲染协议 HTML；当字段缺失时会显示“暂未配置协议内容”的占位提示。
+- 渲染：页面使用 `rich-text` 渲染协议 HTML；当字段缺失时会显示"暂未配置协议内容"的占位提示。
 
 ### 交互说明
 - 登录弹窗中点击《用户协议》或《隐私政策》，分别跳转：
   - `/pages/agreement/index?type=user`
   - `/pages/agreement/index?type=privacy`
-- 页面标题将随 `type` 自动设置为“用户协议”或“隐私政策”。
+- 页面标题将随 `type` 自动设置为"用户协议"或"隐私政策"。
 
 ## 开发指南
 

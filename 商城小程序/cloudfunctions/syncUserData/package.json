@@ -1,7 +1,7 @@
 {
-  "name": "getUserOrders",
+  "name": "syncUserData",
   "version": "1.0.0",
-  "description": "获取用户订单云函数",
+  "description": "用户数据同步云函数",
   "main": "index.js",
   "dependencies": {
     "wx-server-sdk": "~2.6.3"

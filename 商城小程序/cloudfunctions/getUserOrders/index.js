@@ -1,34 +1,51 @@
-// 云函数入口文件
-const cloud = require('wx-server-sdk')
+// 获取用户订单云函数
+const cloud = require('wx-server-sdk');
 
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
-const db = cloud.database()
-const orders = db.collection('orders')
+cloud.init({
+  env: cloud.DYNAMIC_CURRENT_ENV
+});
 
-// 获取当前用户的订单列表
+const db = cloud.database();
+const orders = db.collection('orders');
+
 exports.main = async (event, context) => {
-  const wxContext = cloud.getWXContext()
-  const _openid = wxContext.OPENID
-
-  if (!_openid) {
-    return { ok: false, message: 'missing openid' }
-  }
-
+  console.log('=== 获取用户订单云函数开始 ===');
+  console.log('接收到的参数:', JSON.stringify(event, null, 2));
+  
   try {
-    // 只查询当前用户的订单数据
-    const { data } = await orders.where({ _openid }).orderBy('createTime', 'desc').get()
+    const { openid, limit = 20, offset = 0 } = event || {};
     
-    return {
-      ok: true,
-      data: data || [],
-      count: data ? data.length : 0
+    if (!openid) {
+      return {
+        success: false,
+        message: '缺少用户openid'
+      };
     }
+
+    // 查询用户订单
+    const result = await orders
+      .where({
+        openid: openid
+      })
+      .orderBy('createTime', 'desc')
+      .skip(offset)
+      .limit(limit)
+      .get();
+
+    console.log('查询到订单数量:', result.data.length);
+
+    return {
+      success: true,
+      orders: result.data || [],
+      total: result.data ? result.data.length : 0
+    };
+    
   } catch (error) {
-    console.error('获取用户订单失败:', error)
+    console.error('获取用户订单失败:', error);
     return {
-      ok: false,
-      message: '获取订单失败',
-      error: error.message
-    }
+      success: false,
+      message: error.message || '获取用户订单失败',
+      orders: []
+    };
   }
-}
+};

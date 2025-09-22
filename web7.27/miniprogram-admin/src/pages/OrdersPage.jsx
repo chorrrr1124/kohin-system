@@ -570,35 +570,41 @@ const OrdersPage = () => {
             </div>
           </div>
           
-          {/* 第二行：日期筛选和清除按钮 */}
+          {/* 第二行：日期范围选择器和清除按钮 */}
           <div className="flex gap-4 flex-wrap items-end">
             <div className="form-control">
               <label className="label">
-                <span className="label-text">开始日期</span>
+                <span className="label-text">日期范围</span>
               </label>
-              <input
-                type="date"
-                className="input input-bordered"
-                value={dateRange.start}
-                onChange={(e) => {
-                  setDateRange({...dateRange, start: e.target.value});
-                  setCurrentPage(1);
-                }}
-              />
-            </div>
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">结束日期</span>
-              </label>
-              <input
-                type="date"
-                className="input input-bordered"
-                value={dateRange.end}
-                onChange={(e) => {
-                  setDateRange({...dateRange, end: e.target.value});
-                  setCurrentPage(1);
-                }}
-              />
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <input
+                    type="date"
+                    className="input input-bordered pr-8"
+                    value={dateRange.start}
+                    onChange={(e) => {
+                      setDateRange({...dateRange, start: e.target.value});
+                      setCurrentPage(1);
+                    }}
+                    placeholder="开始日期"
+                  />
+                  <CalendarDaysIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+                <span className="text-gray-500 font-medium">至</span>
+                <div className="relative">
+                  <input
+                    type="date"
+                    className="input input-bordered pr-8"
+                    value={dateRange.end}
+                    onChange={(e) => {
+                      setDateRange({...dateRange, end: e.target.value});
+                      setCurrentPage(1);
+                    }}
+                    placeholder="结束日期"
+                  />
+                  <CalendarDaysIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
             </div>
             <div className="form-control">
               <button

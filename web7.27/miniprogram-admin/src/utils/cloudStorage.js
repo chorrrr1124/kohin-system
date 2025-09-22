@@ -123,7 +123,7 @@ class CloudStorageManager {
         name: 'cloudStorageManager',
         data: {
           action: 'uploadImage',
-          data: {
+        data: {
             fileData: fileData,
             fileName: file.name,
             fileType: file.type,
@@ -193,8 +193,8 @@ class CloudStorageManager {
       if (result.result && result.result.success) {
         const fileInfo = result.result.data[0];
         if (fileInfo.code === 'SUCCESS') {
-          return {
-            success: true,
+      return {
+        success: true,
             tempFileURL: fileInfo.tempFileURL
           };
         } else {
@@ -228,10 +228,10 @@ class CloudStorageManager {
       });
 
       if (result.result && result.result.success) {
-        return {
-          success: true,
+      return {
+        success: true,
           message: '文件删除成功'
-        };
+      };
       } else {
         throw new Error('文件删除失败: ' + (result.result?.error || '未知错误'));
       }

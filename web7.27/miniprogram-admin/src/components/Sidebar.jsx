@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   HomeIcon,
   UsersIcon,
+  UserCircleIcon,
   ShoppingBagIcon,
   ArchiveBoxIcon,
   BuildingStorefrontIcon,
@@ -19,7 +20,15 @@ import {
 
 const navLinks = [
   { to: '/', icon: HomeIcon, text: '仪表板' },
-  { to: '/users', icon: UsersIcon, text: '客户管理' },
+  { 
+    to: '/users', 
+    icon: UsersIcon, 
+    text: '客户管理',
+    children: [
+      { to: '/users', text: '客户管理' },
+      { to: '/mini-users', text: '小程序用户' }
+    ]
+  },
   { to: '/orders', icon: ShoppingBagIcon, text: '订单管理' },
   { to: '/deposits', icon: ArchiveBoxIcon, text: '预存记录' },
   { to: '/shop', icon: BuildingStorefrontIcon, text: '商品管理' },
@@ -41,7 +50,8 @@ const navLinks = [
     text: '系统设置',
     children: [
       { to: '/settings', text: '系统设置' },
-      { to: '/popup-content', text: '弹窗内容管理' }
+      { to: '/popup-content', text: '弹窗内容管理' },
+      { to: '/address-demo', text: '地址选择器演示' }
     ]
   },
 ];
@@ -49,7 +59,7 @@ const navLinks = [
 const Sidebar = ({ onItemClick }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [expandedItems, setExpandedItems] = useState(['/coupons', '/settings']); // 默认展开优惠券管理和系统设置
+  const [expandedItems, setExpandedItems] = useState(['/users', '/coupons', '/settings']); // 默认展开客户管理、优惠券管理和系统设置
 
   // 退出登录
   const handleLogout = () => {
@@ -75,6 +85,9 @@ const Sidebar = ({ onItemClick }) => {
   const isActive = (path) => {
     if (path === '/coupons') {
       return location.pathname === '/coupons' || location.pathname.startsWith('/coupons/');
+    }
+    if (path === '/users') {
+      return location.pathname === '/users' || location.pathname === '/mini-users';
     }
     return location.pathname === path;
   };

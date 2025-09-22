@@ -2,6 +2,7 @@ import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'reac
 import Layout from './components/Layout';
 import DashboardPage from './pages/DashboardPage';
 import UsersPage from './pages/UsersPage';
+import MiniProgramUsersPage from './pages/MiniProgramUsersPage';
 import OrdersPage from './pages/OrdersPage';
 import DepositsPage from './pages/DepositsPage';
 import ShopPage from './pages/ShopPage';
@@ -13,6 +14,7 @@ import ImageManagePage from './pages/ImageManagePage';
 import PaymentsPage from './pages/PaymentsPage';
 import SettingsPage from './pages/SettingsPage';
 import PopupContentManagePage from './pages/PopupContentManagePage';
+import AddressDemo from './pages/AddressDemo';
 import LoginPage from './pages/LoginPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import ImageManageErrorBoundary from './components/ImageManageErrorBoundary';
@@ -44,6 +46,7 @@ function App() {
             <Route path="/" element={<RequireAuth><Layout /></RequireAuth>}>
               <Route index element={<DashboardPage />} />
               <Route path="users" element={<UsersPage />} />
+              <Route path="mini-users" element={<MiniProgramUsersPage />} />
               <Route path="orders" element={<OrdersPage />} />
               <Route path="deposits" element={<DepositsPage />} />
               <Route path="shop" element={<ShopPage />} />
@@ -55,6 +58,7 @@ function App() {
               <Route path="payments" element={<PaymentsPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="popup-content" element={<PopupContentManagePage />} />
+              <Route path="address-demo" element={<AddressDemo />} />
             </Route>
           </Routes>
           <ToastContainer toasts={toasts} removeToast={removeToast} />
