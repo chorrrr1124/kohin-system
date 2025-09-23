@@ -51,7 +51,7 @@ const navLinks = [
     children: [
       { to: '/settings', text: '系统设置' },
       { to: '/popup-content', text: '弹窗内容管理' },
-      { to: '/address-demo', text: '地址选择器演示' }
+      { to: '/address-selector-demo', text: '地址选择器演示' }
     ]
   },
 ];

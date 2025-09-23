@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { addressData, districtsData, AddressUtils } from '../data/addressData';
 
 const AddressRecognizer = ({ onRecognize, onClear }) => {
   const [inputText, setInputText] = useState('');
@@ -11,6 +12,8 @@ const AddressRecognizer = ({ onRecognize, onClear }) => {
     /^([^\d\s]{2,4})[\s\n]/,  // 开头2-4个非数字非空格字符，后跟空格或换行
     /^([^\d\s]{2,4})[，,]\s*/,  // 开头2-4个非数字非空格字符，后跟逗号
     /^([^\d\s]{2,4})：/,  // 开头2-4个非数字非空格字符，后跟冒号
+    /([^\d\s]{2,4})\s*$/,  // 结尾2-4个非数字非空格字符
+    /([^\d\s]{2,4})[\s\n]/,  // 2-4个非数字非空格字符，后跟空格或换行
   ];
 
   // 电话识别正则表达式
@@ -33,13 +36,8 @@ const AddressRecognizer = ({ onRecognize, onClear }) => {
     /^(.{2,6}?[市])(.{2,6}?[区县])(.+)$/,
   ];
 
-  // 省份和城市数据
-  const provinces = [
-    '北京', '天津', '上海', '重庆', '河北', '山西', '辽宁', '吉林', '黑龙江',
-    '江苏', '浙江', '安徽', '福建', '江西', '山东', '河南', '湖北', '湖南',
-    '广东', '广西', '海南', '四川', '贵州', '云南', '西藏', '陕西', '甘肃',
-    '青海', '宁夏', '新疆', '内蒙古', '香港', '澳门', '台湾'
-  ];
+  // 使用新的地址数据
+  const provinces = addressData.provinces.map(p => p.name);
 
   // 省份简称到完整名称的映射
   const provinceNameMap = {
@@ -287,12 +285,23 @@ const AddressRecognizer = ({ onRecognize, onClear }) => {
       }
     }
 
-    // 如果还是没找到，尝试从第一行提取
-    if (!name && lines.length > 0) {
-      const firstLine = lines[0];
-      // 如果第一行不包含数字，可能是姓名
-      if (!/\d/.test(firstLine) && firstLine.length <= 6) {
-        name = firstLine;
+    // 如果还是没找到，尝试从每一行提取
+    if (!name) {
+      for (const line of lines) {
+        // 如果这一行不包含数字、省份、城市、区县关键词，且长度在2-4之间，可能是姓名
+        const isNotAddress = !provinces.some(p => line.includes(p)) && 
+                            !cities.some(c => line.includes(c)) && 
+                            !line.includes('区') && 
+                            !line.includes('县') && 
+                            !line.includes('市') &&
+                            !line.includes('省') &&
+                            !/\d/.test(line) && 
+                            line.length >= 2 && 
+                            line.length <= 4;
+        if (isNotAddress) {
+          name = line;
+          break;
+        }
       }
     }
 
@@ -395,7 +404,7 @@ const AddressRecognizer = ({ onRecognize, onClear }) => {
       city = city + '市';
     }
 
-    // 查找区县
+    // 查找区县 - 使用更精确的匹配逻辑
     const districtPatterns = [
       /(.{2,6}?[区县])/g,
       /(.{2,6}?[区])/g,
@@ -405,13 +414,34 @@ const AddressRecognizer = ({ onRecognize, onClear }) => {
     for (const pattern of districtPatterns) {
       const matches = addressText.match(pattern);
       if (matches && matches.length > 0) {
-        district = matches[0];
-        break;
+        // 过滤掉包含城市名称的区县
+        const validDistricts = matches.filter(match => {
+          // 如果区县名称包含城市名称，则跳过
+          if (city && match.includes(city.replace('市', ''))) {
+            return false;
+          }
+          // 如果区县名称包含省份名称，则跳过
+          if (province && match.includes(province.replace('省', '').replace('市', '').replace('自治区', '').replace('特别行政区', ''))) {
+            return false;
+          }
+          // 如果区县名称包含"商场"、"广场"等非区县关键词，则跳过
+          if (match.includes('商场') || match.includes('广场') || match.includes('地下') || match.includes('F区')) {
+            return false;
+          }
+          return true;
+        });
+        
+        if (validDistricts.length > 0) {
+          district = validDistricts[0];
+          break;
+        }
       }
     }
 
     // 计算详细地址
     let remainingAddress = addressText;
+    
+    // 按顺序移除省份、城市、区县，确保不重复移除
     if (province) {
       remainingAddress = remainingAddress.replace(province, '');
     }
@@ -421,7 +451,26 @@ const AddressRecognizer = ({ onRecognize, onClear }) => {
     if (district) {
       remainingAddress = remainingAddress.replace(district, '');
     }
-    detail = remainingAddress.trim();
+    
+    // 清理多余的空格和标点符号
+    detail = remainingAddress.replace(/[，,。\s]+/g, ' ').trim();
+    
+    // 如果详细地址为空，尝试从原始地址中提取
+    if (!detail && addressText) {
+      // 尝试匹配详细地址模式
+      const detailPatterns = [
+        /(.+?[广场商场大厦小区街道路号])(.+)/,
+        /(.+?[广场商场大厦小区街道路号])(.*)/,
+      ];
+      
+      for (const pattern of detailPatterns) {
+        const match = addressText.match(pattern);
+        if (match && match[2]) {
+          detail = match[2].trim();
+          break;
+        }
+      }
+    }
 
     // 如果通过关键词匹配找到了信息，直接返回
     if (province || city || district) {
@@ -468,61 +517,8 @@ const AddressRecognizer = ({ onRecognize, onClear }) => {
 
 
   const intelligentRecognize = (text) => {
-    let province = '';
-    let city = '';
-    let district = '';
-    let detail = '';
-
-    // 查找省份
-    for (const p of provinces) {
-      if (text.includes(p)) {
-        province = p;
-        break;
-      }
-    }
-
-    // 查找城市
-    for (const c of cities) {
-      if (text.includes(c) && c !== province) {
-        city = c;
-        break;
-      }
-    }
-
-    // 如果没找到城市，但找到了省份，城市可能是省份
-    if (!city && province) {
-      city = province;
-    }
-
-    // 查找区县（改进匹配）
-    const districtPatterns = [
-      /([^省市区]{2,6}[区县])/g,
-      /([^省市区]{2,6}区)/g,
-      /([^省市区]{2,6}县)/g
-    ];
-
-    for (const pattern of districtPatterns) {
-      const matches = text.match(pattern);
-      if (matches && matches.length > 0) {
-        district = matches[0];
-        break;
-      }
-    }
-
-    // 提取详细地址
-    let remainingText = text;
-    if (province) remainingText = remainingText.replace(province, '');
-    if (city) remainingText = remainingText.replace(city, '');
-    if (district) remainingText = remainingText.replace(district, '');
-    
-    detail = remainingText.trim();
-
-    return {
-      province,
-      city,
-      district,
-      detail
-    };
+    // 使用新的AddressUtils进行地址识别
+    return AddressUtils.recognizeAddress(text);
   };
 
   const handleRecognize = async () => {

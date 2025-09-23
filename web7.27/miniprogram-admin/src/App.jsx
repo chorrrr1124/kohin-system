@@ -15,6 +15,7 @@ import PaymentsPage from './pages/PaymentsPage';
 import SettingsPage from './pages/SettingsPage';
 import PopupContentManagePage from './pages/PopupContentManagePage';
 import AddressDemo from './pages/AddressDemo';
+import AddressSelectorDemo from './pages/AddressSelectorDemo';
 import LoginPage from './pages/LoginPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import ImageManageErrorBoundary from './components/ImageManageErrorBoundary';
@@ -59,6 +60,7 @@ function App() {
               <Route path="settings" element={<SettingsPage />} />
               <Route path="popup-content" element={<PopupContentManagePage />} />
               <Route path="address-demo" element={<AddressDemo />} />
+              <Route path="address-selector-demo" element={<AddressSelectorDemo />} />
             </Route>
           </Routes>
           <ToastContainer toasts={toasts} removeToast={removeToast} />

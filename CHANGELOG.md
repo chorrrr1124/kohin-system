@@ -1,5 +1,54 @@
 # 更新日志
 
+## [v2.1.0] - 2025年9月23日
+
+### ✨ 新功能 (New Features)
+- **地址选择器组件系统**：开发了完整的地址选择器组件系统
+  - 级联选择器（CascaderAddressSelector）：支持省市区三级联动选择
+  - 搜索式选择器（SearchAddressSelector）：支持快速搜索地址
+  - 标签式选择器（TagAddressSelector）：支持标签式快速选择
+  - 智能地址识别器（AddressRecognizer）：支持智能地址识别和解析
+- **库存同步云函数**：实现了库存管理到商品管理的自动同步
+  - 支持库存数据自动同步到商品管理
+  - 智能识别新增和更新商品
+  - 提供同步状态检查功能
+- **地址数据管理系统**：完善了省市区数据管理
+  - 优化了地址数据的加载和缓存机制
+  - 支持快速搜索和智能匹配
+  - 提升了地址选择的用户体验
+
+### 🏗️ 架构改进 (Architecture)
+- **组件架构优化**：重构了地址选择相关组件的架构
+- **数据流优化**：优化了地址数据的传递和处理逻辑
+- **代码质量提升**：提高了代码的可维护性和可扩展性
+
+### 📁 文件变更 (File Changes)
+- `web7.27/miniprogram-admin/src/components/CascaderAddressSelector.jsx` - 新增级联地址选择器
+- `web7.27/miniprogram-admin/src/components/SearchAddressSelector.jsx` - 新增搜索式地址选择器
+- `web7.27/miniprogram-admin/src/components/TagAddressSelector.jsx` - 新增标签式地址选择器
+- `web7.27/miniprogram-admin/src/components/AddressRecognizer.jsx` - 优化智能地址识别器
+- `web7.27/miniprogram-admin/src/components/AddressSelector.jsx` - 优化地址选择器
+- `web7.27/miniprogram-admin/src/pages/AddressSelectorDemo.jsx` - 新增地址选择器演示页面
+- `web7.27/miniprogram-admin/src/data/chinaRegionData.js` - 新增中国省市区数据
+- `cloudfunctions/inventorySync/index.js` - 新增库存同步云函数
+- `cloudfunctions/inventorySync/package.json` - 新增库存同步云函数配置
+- `地址选择器使用说明.md` - 新增地址选择器使用文档
+- `PROGRESS_UPDATE_2025-09-23.md` - 新增项目进度更新文档
+
+### 🚀 部署状态 (Deployment Status)
+- ✅ 地址选择器组件系统开发完成
+- ✅ 库存同步云函数开发完成
+- ✅ 地址数据管理系统优化完成
+- ✅ 项目文档更新完成
+
+### 🧪 测试验证 (Testing)
+- ✅ 地址选择器组件功能测试
+- ✅ 库存同步云函数逻辑测试
+- ✅ 地址数据管理系统测试
+- ✅ 组件集成测试
+
+---
+
 ## [v1.2.0] - 2025年9月12日
 
 ### 🐛 修复 (Bug Fixes)
