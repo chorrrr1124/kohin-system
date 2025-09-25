@@ -123,7 +123,7 @@ const DepositsPage = () => {
       const db = app.database();
 
       // 构建查询条件
-      let query = db.collection('prepaidRecords');
+      let query = db.collection('prepaid_records');
       
       // 搜索条件：客户姓名或手机号
       if (searchTerm) {
@@ -193,7 +193,7 @@ const DepositsPage = () => {
       // 拉取该客户的所有预存记录按时间倒序
       if (deposit && (deposit.customerId || deposit.customerPhone || deposit.customerName)) {
         const db = app.database();
-        let q = db.collection('prepaidRecords');
+        let q = db.collection('prepaid_records');
         if (deposit.customerId) {
           q = q.where({ customerId: deposit.customerId });
         } else if (deposit.customerPhone) {
@@ -274,7 +274,7 @@ const DepositsPage = () => {
         updateData.expireDate = new Date(newDeposit.expireDate);
       }
 
-      await db.collection('prepaidRecords').doc(editDeposit._id).update(updateData);
+      await db.collection('prepaid_records').doc(editDeposit._id).update(updateData);
 
       setEditDeposit(null);
       setShowEditModal(false);
@@ -307,7 +307,7 @@ const DepositsPage = () => {
     try {
       await ensureLogin();
       const db = app.database();
-      await db.collection('prepaidRecords').doc(deposit._id).remove();
+      await db.collection('prepaid_records').doc(deposit._id).remove();
       fetchDeposits();
       alert('删除成功');
     } catch (error) {
@@ -362,7 +362,7 @@ const DepositsPage = () => {
         addData.expireDate = new Date(newDeposit.expireDate);
       }
 
-      await db.collection('prepaidRecords').add(addData);
+      await db.collection('prepaid_records').add(addData);
 
       // 重置表单
       setNewDeposit({

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { UsersIcon, MagnifyingGlassIcon, EyeIcon, PhoneIcon, ChartBarIcon, GiftIcon, CurrencyDollarIcon, CalendarDaysIcon, DocumentArrowDownIcon, StarIcon, XMarkIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import { app, ensureLogin } from '../utils/cloudbase';
 import { ContentLoading, TableLoading, CardLoading } from '../components/LoadingSpinner';
@@ -33,9 +33,46 @@ const MiniProgramUsersPage = () => {
   // 每页显示数量
   const pageSize = 10;
 
+  // 防抖函数
+  const debounce = (func, wait) => {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  };
+
+  // 初始加载用户数据
   useEffect(() => {
     loadUsers();
-  }, [searchTerm, vipFilter, currentPage]);
+  }, []);
+
+  // 使用防抖的搜索函数
+  const debouncedSearch = useCallback(
+    debounce(() => {
+      setCurrentPage(1);
+      applyFilters();
+    }, 300),
+    [searchTerm, vipFilter]
+  );
+
+  // 当搜索条件改变时，应用防抖搜索
+  useEffect(() => {
+    if (allUsers.length > 0) {
+      debouncedSearch();
+    }
+  }, [searchTerm, vipFilter, debouncedSearch, allUsers.length]);
+
+  // 当页码改变时，重新应用筛选
+  useEffect(() => {
+    if (allUsers.length > 0) {
+      applyFilters();
+    }
+  }, [currentPage]);
 
   // 加载用户数据
   const loadUsers = async () => {
@@ -55,40 +92,49 @@ const MiniProgramUsersPage = () => {
         const allUsersData = result.result.users || [];
         setAllUsers(allUsersData);
         
-        // 应用筛选
-        let filteredUsers = allUsersData;
-        
-        if (searchTerm) {
-          filteredUsers = filteredUsers.filter(user => 
-            user.nickName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.phone?.includes(searchTerm)
-          );
-        }
-        
-        if (vipFilter) {
-          filteredUsers = filteredUsers.filter(user => 
-            user.vipLevel === parseInt(vipFilter)
-          );
-        }
-        
-        // 分页
-        const startIndex = (currentPage - 1) * pageSize;
-        const endIndex = startIndex + pageSize;
-        const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
-        
-        setUsers(paginatedUsers);
-        setTotalPages(Math.ceil(filteredUsers.length / pageSize));
+        // 初始加载完成后应用筛选
+        applyFilters(allUsersData);
         
       } else {
         console.error('获取用户数据失败:', result.result);
+        setAllUsers([]);
         setUsers([]);
       }
     } catch (error) {
       console.error('加载用户数据失败:', error);
+      setAllUsers([]);
       setUsers([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  // 应用筛选和分页
+  const applyFilters = (usersData = allUsers) => {
+    let filteredUsers = [...usersData];
+    
+    // 应用搜索筛选
+    if (searchTerm) {
+      filteredUsers = filteredUsers.filter(user => 
+        user.nickName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.phone?.includes(searchTerm)
+      );
+    }
+    
+    // 应用VIP等级筛选
+    if (vipFilter) {
+      filteredUsers = filteredUsers.filter(user => 
+        user.vipLevel === parseInt(vipFilter)
+      );
+    }
+    
+    // 分页
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+    
+    setUsers(paginatedUsers);
+    setTotalPages(Math.ceil(filteredUsers.length / pageSize));
   };
 
   // 查看用户详情
@@ -171,15 +217,15 @@ const MiniProgramUsersPage = () => {
     }
   };
 
-  // 计算统计数据
-  const stats = {
+  // 计算统计数据 - 使用 useMemo 优化性能
+  const stats = useMemo(() => ({
     totalUsers: allUsers.length,
     activeUsers: allUsers.filter(user => user.status === 'active').length,
     vipUsers: allUsers.filter(user => user.vipLevel > 1).length,
     totalPoints: allUsers.reduce((sum, user) => sum + (user.points || 0), 0),
     totalBalance: allUsers.reduce((sum, user) => sum + (user.balance || 0), 0),
     totalSpent: allUsers.reduce((sum, user) => sum + (user.totalSpent || 0), 0)
-  };
+  }), [allUsers]);
 
   if (loading) {
     return <ContentLoading />;
@@ -264,12 +310,10 @@ const MiniProgramUsersPage = () => {
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
-                  setCurrentPage(1);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    setCurrentPage(1);
                   }
                 }}
               />
@@ -286,7 +330,6 @@ const MiniProgramUsersPage = () => {
               value={vipFilter}
               onChange={(e) => {
                 setVipFilter(e.target.value);
-                setCurrentPage(1);
               }}
             >
               {vipFilterOptions.map(option => (

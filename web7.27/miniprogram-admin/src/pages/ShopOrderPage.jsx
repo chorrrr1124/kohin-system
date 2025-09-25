@@ -172,13 +172,117 @@ const ShopOrderPage = () => {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
-  const selectCustomer = (customer) => {
+  const selectCustomer = (c) => {
+    console.log('选择客户:', c);
+    
+    // 构建完整地址
+    let fullAddress = '';
+    if (c.address) {
+      if (typeof c.address === 'string') {
+        fullAddress = c.address;
+      } else if (c.address.fullAddress) {
+        fullAddress = c.address.fullAddress;
+      } else if (c.address.address) {
+        fullAddress = c.address.address;
+      } else if (c.address.province || c.address.city || c.address.district || c.address.detail) {
+        const parts = [
+          c.address.province,
+          c.address.city,
+          c.address.district,
+          c.address.detail
+        ].filter(Boolean);
+        fullAddress = parts.join('');
+      } else {
+        // 更多字段命名兼容：provinceName/cityName/districtName/countyName/area/areaName + detail/addressDetail/detailInfo/street
+        const provinceVal = c.address.provinceName || c.address.province || '';
+        const cityVal = c.address.cityName || c.address.city || '';
+        const districtVal = c.address.districtName || c.address.countyName || c.address.area || c.address.areaName || c.address.district || '';
+        const streetVal = c.address.streetName || c.address.street || '';
+        const detailVal = c.address.addressDetail || c.address.detailInfo || c.address.detail || '';
+        const namedParts = [provinceVal, cityVal, districtVal, streetVal, detailVal].filter(Boolean);
+        if (namedParts.length > 0) {
+          fullAddress = namedParts.join('');
+        } else if (Array.isArray(c.address.region) && c.address.region.length > 0) {
+          // region: [province, city, district]
+          fullAddress = [...c.address.region, c.address.addressDetail || c.address.detailInfo || c.address.detail || c.address.street || '']
+            .filter(Boolean)
+            .join('');
+        } else if (c.address.address_component) {
+          // 腾讯地图风格 address_component
+          const ac = c.address.address_component;
+          fullAddress = [ac.province, ac.city, ac.district, ac.street, ac.street_number, c.address.addressDetail || c.address.detail]
+            .filter(Boolean)
+            .join('');
+        }
+      }
+    }
+
+    // 回退解析 contacts 获取电话与地址
+    let firstContact = null;
+    try {
+      if (c.contacts) {
+        const contactsParsed = typeof c.contacts === 'string' ? JSON.parse(c.contacts) : c.contacts;
+        if (Array.isArray(contactsParsed) && contactsParsed.length > 0) {
+          firstContact = contactsParsed[0];
+        }
+      }
+    } catch (e) {
+      console.error('解析客户 contacts 失败:', e);
+    }
+
+    // 处理电话回退
+    const phoneValue = c.phone || (firstContact && firstContact.phone) || '';
+    // 处理地址回退
+    if (!fullAddress && firstContact) {
+      const source = (firstContact.address && typeof firstContact.address === 'object')
+        ? firstContact.address
+        : firstContact;
+
+      const provinceVal = (source && (source.provinceName || source.province)) || '';
+      const cityVal = (source && (source.cityName || source.city)) || '';
+      const districtVal = (source && (source.districtName || source.countyName || source.area || source.areaName || source.district)) || '';
+      const streetVal = (source && (source.streetName || source.street)) || '';
+      const detailVal = (source && (source.addressDetail || source.detailInfo || source.detail)) || '';
+
+      if (provinceVal || cityVal || districtVal || (Array.isArray(source.region) && source.region.length > 0) || source.address_component) {
+        // 优先结构化/region
+        if (Array.isArray(source.region) && source.region.length > 0) {
+          fullAddress = [...source.region, detailVal || streetVal || (firstContact.address && typeof firstContact.address === 'string' ? firstContact.address : '')]
+            .filter(Boolean)
+            .join('');
+        } else if (source.address_component) {
+          const ac = source.address_component;
+          fullAddress = [ac.province, ac.city, ac.district, ac.street, ac.street_number, detailVal || streetVal]
+            .filter(Boolean)
+            .join('');
+        } else {
+          fullAddress = [provinceVal, cityVal, districtVal, streetVal, detailVal]
+            .filter(Boolean)
+            .join('');
+        }
+      } else if (firstContact.address && typeof firstContact.address === 'string') {
+        // 最后才退回纯字符串
+        fullAddress = firstContact.address;
+      }
+    }
+    
+    console.log('客户地址信息:', {
+      original: c.address,
+      fromContact: firstContact && (firstContact.address || firstContact.region || firstContact.address_component),
+      fullAddress: fullAddress
+    });
+    
     setOrderForm(prev => ({
       ...prev,
-      customerId: customer._id,
-      customerName: customer.name || '',
-      customerPhone: customer.phone || '',
-      customerAddress: customer.address ? (customer.address.fullAddress || customer.address.address) : ''
+      customerId: c._id,
+      customerName: c.name || "",
+      customerPhone: phoneValue || "",
+      customerAddress: fullAddress || "",
+      // 重置预存状态
+      usePrepaid: false,
+      prepaidAmount: 0,
+      prepaidProducts: [],
+      prepaidType: 'amount'
     }));
     setShowCustomerSelector(false);
     setCustomerSearch('');
@@ -353,8 +457,8 @@ const ShopOrderPage = () => {
         paymentMethod: orderForm.paymentMethod,
         status: orderForm.paymentMethod === 'cash' || orderForm.paymentMethod === 'wechat' || orderForm.paymentMethod === 'alipay' ? 'paid' : 'pending_shipment',
         notes: orderForm.notes,
-        createdAt: now,
-        updatedAt: now
+        createTime: now,
+        updateTime: now
       };
 
       const stockUpdates = cart.map(item => 
@@ -416,6 +520,11 @@ const ShopOrderPage = () => {
       
       const paymentStatus = orderForm.paymentMethod === 'cash' || orderForm.paymentMethod === 'wechat' || orderForm.paymentMethod === 'alipay' ? '已支付' : '待发货';
       alert(`订单创建成功！订单号：${orderId}，状态：${paymentStatus}`);
+      
+      // 3秒后自动关闭页面
+      setTimeout(() => {
+        window.history.back();
+      }, 3000);
 
     } catch (error) {
     setProducts([]);
@@ -450,8 +559,8 @@ const ShopOrderPage = () => {
         paymentMethod: 'prepaid',
         status: 'pending_shipment',
         notes: orderForm.notes,
-        createdAt: now,
-        updatedAt: now
+        createTime: now,
+        updateTime: now
       };
 
       const stockUpdates = cart.map(item => 
@@ -471,8 +580,8 @@ const ShopOrderPage = () => {
         totalAmount: item.price * item.quantity,
         source: '商城下单预存',
         status: 'active',
-        createdAt: now,
-        updatedAt: now
+        createTime: now,
+        updateTime: now
       }));
 
       await Promise.all([
@@ -500,6 +609,11 @@ const ShopOrderPage = () => {
       setPrepaidProductData({ selectedProducts: [], totalAmount: 0 });
       
       alert(`预存产品订单创建成功！已为 ${orderForm.customerName} 创建了 ${cart.length} 个预存产品记录`);
+      
+      // 3秒后自动关闭页面
+      setTimeout(() => {
+        window.history.back();
+      }, 3000);
 
     } catch (error) {
     setProducts([]);
@@ -560,8 +674,8 @@ const ShopOrderPage = () => {
         paymentMethod: 'prestore',
         status: 'pending_shipment',
         notes: orderForm.notes,
-        createdAt: now,
-        updatedAt: now
+        createTime: now,
+        updateTime: now
       };
 
       const stockUpdates = cart.map(item => 
@@ -607,6 +721,11 @@ const ShopOrderPage = () => {
       setPrepaidProductData({ selectedProducts: [], totalAmount: 0 });
       
       alert(`预存扣费订单创建成功！已为 ${orderForm.customerName} 扣减预存产品`);
+      
+      // 3秒后自动关闭页面
+      setTimeout(() => {
+        window.history.back();
+      }, 3000);
 
     } catch (error) {
     setProducts([]);
@@ -627,14 +746,9 @@ const ShopOrderPage = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">商城下单</h1>
-        <button
-          className="btn btn-primary"
-          onClick={() => setShowOrderForm(true)}
-          disabled={cart.length === 0}
-        >
-          <ShoppingCartIcon className="w-5 h-5" />
-          立即下单 ({cart.length})
-        </button>
+        <div className="text-sm text-base-content/60">
+          购物车中有 {cart.length} 件商品
+        </div>
       </div>
 
       {orderSuccess && (
@@ -724,8 +838,19 @@ const ShopOrderPage = () => {
               ))}
             </div>
             <div className="divider"></div>
-            <div className="flex justify-between items-center">
-              <span className="text-lg font-bold">总计: ¥{getTotalAmount().toFixed(2)}</span>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-bold">总计: ¥{getTotalAmount().toFixed(2)}</span>
+              </div>
+              
+              <button
+                className="btn btn-primary w-full"
+                onClick={() => setShowOrderForm(true)}
+                disabled={cart.length === 0}
+              >
+                <CreditCardIcon className="w-5 h-5" />
+                立即下单
+              </button>
             </div>
           </div>
         </div>
