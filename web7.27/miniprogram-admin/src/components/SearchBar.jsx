@@ -10,6 +10,10 @@ const SearchBar = ({
   filterValue = '',
   onFilterChange = () => {},
   filterLabel = "全部类型",
+  secondFilterOptions = [],
+  secondFilterValue = '',
+  onSecondFilterChange = () => {},
+  secondFilterLabel = "全部分类",
   className = ""
 }) => {
   const handleKeyDown = (e) => {
@@ -21,9 +25,9 @@ const SearchBar = ({
 
   return (
     <div className={`bg-base-100 shadow rounded-lg p-4 mb-6 ${className}`}>
-      <form className="flex gap-4 flex-wrap items-center" onSubmit={(e) => e.preventDefault()}>
+      <form className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center" onSubmit={(e) => e.preventDefault()}>
         {/* 搜索输入，右侧放大镜按钮 */}
-        <div className="relative flex-1 min-w-64">
+        <div className="relative flex-[0.7] min-w-0">
           <input
             type="text"
             placeholder={placeholder}
@@ -44,13 +48,30 @@ const SearchBar = ({
 
         {/* 类型筛选 */}
         {filterOptions.length > 0 && (
-          <div className="form-control">
+          <div className="form-control flex-shrink-0">
             <select
-              className="select select-bordered"
+              className="select select-bordered w-full sm:w-auto min-w-32"
               value={filterValue}
               onChange={onFilterChange}
             >
               {filterOptions.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* 第二个筛选器 */}
+        {secondFilterOptions.length > 0 && (
+          <div className="form-control flex-shrink-0">
+            <select
+              className="select select-bordered w-full sm:w-auto min-w-32"
+              value={secondFilterValue}
+              onChange={onSecondFilterChange}
+            >
+              {secondFilterOptions.map(option => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>

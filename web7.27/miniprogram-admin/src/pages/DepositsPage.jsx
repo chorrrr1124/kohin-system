@@ -18,6 +18,7 @@ const DepositsPage = () => {
     customerId: '',
     customerName: '',
     customerPhone: '',
+    customerAddress: '',
     amount: '',
     quantity: '',
     productName: '',
@@ -123,7 +124,7 @@ const DepositsPage = () => {
       const db = app.database();
 
       // 构建查询条件
-      let query = db.collection('prepaid_records');
+      let query = db.collection('prepaidRecords');
       
       // 搜索条件：客户姓名或手机号
       if (searchTerm) {
@@ -174,6 +175,17 @@ const DepositsPage = () => {
     fetchCustomers();
   }, [currentPage, typeFilter]);
 
+  // 全局刷新函数，供其他页面调用
+  useEffect(() => {
+    window.refreshPrepaidRecords = () => {
+      fetchDeposits();
+    };
+    
+    return () => {
+      delete window.refreshPrepaidRecords;
+    };
+  }, []);
+
   // 移除输入即搜的远程请求，输入仅做本地筛选；按回车或点击按钮再触发远程加载
 
   // 取消输入即搜，改为仅在 Enter 或点击搜索时触发
@@ -193,7 +205,7 @@ const DepositsPage = () => {
       // 拉取该客户的所有预存记录按时间倒序
       if (deposit && (deposit.customerId || deposit.customerPhone || deposit.customerName)) {
         const db = app.database();
-        let q = db.collection('prepaid_records');
+        let q = db.collection('prepaidRecords');
         if (deposit.customerId) {
           q = q.where({ customerId: deposit.customerId });
         } else if (deposit.customerPhone) {
@@ -274,7 +286,7 @@ const DepositsPage = () => {
         updateData.expireDate = new Date(newDeposit.expireDate);
       }
 
-      await db.collection('prepaid_records').doc(editDeposit._id).update(updateData);
+      await db.collection('prepaidRecords').doc(editDeposit._id).update(updateData);
 
       setEditDeposit(null);
       setShowEditModal(false);
@@ -307,7 +319,7 @@ const DepositsPage = () => {
     try {
       await ensureLogin();
       const db = app.database();
-      await db.collection('prepaid_records').doc(deposit._id).remove();
+      await db.collection('prepaidRecords').doc(deposit._id).remove();
       fetchDeposits();
       alert('删除成功');
     } catch (error) {
@@ -324,6 +336,11 @@ const DepositsPage = () => {
         return;
       }
 
+      if (!newDeposit.customerPhone) {
+        alert('请填写客户电话');
+        return;
+      }
+
       if (newDeposit.type === 'cash' && !newDeposit.amount) {
         alert('请填写预存金额');
         return;
@@ -337,10 +354,51 @@ const DepositsPage = () => {
       await ensureLogin();
       const db = app.database();
       
+      let customerId = newDeposit.customerId;
+      
+      // 如果没有客户ID，则查找或创建客户记录
+      if (!customerId) {
+        // 先查找是否已存在相同电话的客户
+        const existingCustomers = await db.collection('customers')
+          .where({
+            $or: [
+              { phone: newDeposit.customerPhone },
+              { 'contacts.phone': newDeposit.customerPhone }
+            ]
+          })
+          .get();
+        
+        if (existingCustomers.data.length > 0) {
+          // 使用已存在的客户
+          customerId = existingCustomers.data[0]._id;
+          console.log('找到已存在客户:', existingCustomers.data[0].name);
+        } else {
+          // 创建新客户记录
+          const customerData = {
+            name: newDeposit.customerName,
+            phone: newDeposit.customerPhone,
+            address: newDeposit.customerAddress || '',
+            contacts: [{
+              name: newDeposit.customerName,
+              phone: newDeposit.customerPhone,
+              isPrimary: true
+            }],
+            createTime: new Date(),
+            updateTime: new Date(),
+            status: 'active'
+          };
+          
+          const customerResult = await db.collection('customers').add(customerData);
+          customerId = customerResult.id;
+          console.log('创建新客户记录:', newDeposit.customerName);
+        }
+      }
+      
       const addData = {
-        customerId: newDeposit.customerId || '',
+        customerId: customerId,
         customerName: newDeposit.customerName,
-        customerPhone: newDeposit.customerPhone || '',
+        customerPhone: newDeposit.customerPhone,
+        customerAddress: newDeposit.customerAddress || '',
         type: newDeposit.type,
         status: 'active',
         source: 'manual',
@@ -362,13 +420,18 @@ const DepositsPage = () => {
         addData.expireDate = new Date(newDeposit.expireDate);
       }
 
-      await db.collection('prepaid_records').add(addData);
+      if (newDeposit.description) {
+        addData.description = newDeposit.description;
+      }
+
+      await db.collection('prepaidRecords').add(addData);
 
       // 重置表单
       setNewDeposit({
         customerId: '',
         customerName: '',
         customerPhone: '',
+        customerAddress: '',
         amount: '',
         quantity: '',
         productName: '',
@@ -383,7 +446,7 @@ const DepositsPage = () => {
       alert('添加成功');
     } catch (error) {
       console.error('添加预存记录失败:', error);
-      alert('添加失败');
+      alert('添加失败: ' + error.message);
     }
   };
 
@@ -393,7 +456,8 @@ const DepositsPage = () => {
       ...newDeposit,
       customerId: customer._id,
       customerName: customer.name,
-      customerPhone: customer.phone || (customer.contacts && customer.contacts[0] ? customer.contacts[0].phone : '')
+      customerPhone: customer.phone || (customer.contacts && customer.contacts[0] ? customer.contacts[0].phone : ''),
+      customerAddress: customer.address || ''
     });
     setShowCustomerSelect(false);
   };
@@ -424,6 +488,13 @@ const DepositsPage = () => {
   const formatAmount = (amount) => {
     return typeof amount === 'number' ? amount.toFixed(2) : '0.00';
   };
+
+  // 表格加载组件
+  const TableLoading = () => (
+    <div className="flex items-center justify-center py-12">
+      <span className="loading loading-spinner loading-lg"></span>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -513,7 +584,7 @@ const DepositsPage = () => {
                     {visibleCols.phone && <th className="w-32">客户电话</th>}
                     {visibleCols.type && <th className="w-20 text-sm whitespace-nowrap">类型</th>}
                     {visibleCols.product && <th className="w-20">产品</th>}
-                    {visibleCols.amountOrQty && <th className="w-24">预存数量/金额</th>}
+                    {visibleCols.amountOrQty && <th className="w-24">预存数量</th>}
                     {visibleCols.balance && <th className="w-16">剩余</th>}
                     {visibleCols.expire && <th className="w-28">过期时间</th>}
                     {visibleCols.created && <th className="w-16 text-left">创建时间</th>}
@@ -533,10 +604,24 @@ const DepositsPage = () => {
                     <tr key={deposit._id}>
                       {visibleCols.id && <td className="font-mono text-sm">{deposit._id?.slice(-8)}</td>}
                       {visibleCols.name && <td>{deposit.customerName || '未知客户'}</td>}
-                      {visibleCols.phone && <td>{deposit.customerPhone || '未设置'}</td>}
+                      {visibleCols.phone && <td>{(() => {
+                        console.log(`记录 ${deposit.customerName} 电话数据:`, {
+                          _id: deposit._id,
+                          customerPhone: deposit.customerPhone,
+                          phone: deposit.phone,
+                          allFields: Object.keys(deposit),
+                          rawData: deposit
+                        });
+                        
+                        // 强制刷新检查
+                        const phoneValue = deposit.customerPhone || deposit.phone || '未设置';
+                        console.log(`${deposit.customerName} 最终显示电话: ${phoneValue}`);
+                        
+                        return phoneValue;
+                      })()}</td>}
                       {visibleCols.type && <td className="text-sm whitespace-nowrap">{typeLabels[deposit.type] || deposit.type}</td>}
                       {visibleCols.product && <td>{deposit.type === 'product' ? (deposit.productName || '产品预存') : '-'}</td>}
-                      {visibleCols.amountOrQty && <td>{deposit.type === 'cash' ? formatAmount(deposit.amount) : deposit.quantity}</td>}
+                      {visibleCols.amountOrQty && <td>{deposit.quantity || 0}</td>}
                       {visibleCols.balance && <td className="font-bold">{deposit.type === 'cash' ? formatAmount(deposit.balance || 0) : (deposit.balance || 0)}</td>}
                       {visibleCols.expire && <td>{deposit.expireDate ? new Date(deposit.expireDate).toLocaleDateString() : '无期限'}</td>}
                       {visibleCols.created && <td className="w-16 text-left align-top">{formatTime(deposit.createTime)}</td>}
@@ -642,9 +727,9 @@ const DepositsPage = () => {
               )}
               <div>
                 <label className="label">
-                  <span className="label-text font-semibold">预存数量/金额</span>
+                  <span className="label-text font-semibold">预存数量</span>
                 </label>
-                <p>{selectedDeposit.type === 'cash' ? formatAmount(selectedDeposit.amount) : selectedDeposit.quantity}</p>
+                <p>{selectedDeposit.quantity || 0}</p>
               </div>
               <div>
                 <label className="label">
@@ -680,7 +765,83 @@ const DepositsPage = () => {
                 </div>
               )}
 
-              {/* 客户记录列表移除 */}
+              {/* 客户所有预存记录列表 */}
+              {customerDeposits.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="font-semibold text-lg mb-3">该客户的所有预存记录</h4>
+                  {/* 产品预存记录表格 */}
+                  {customerDeposits.filter(record => record.type === 'product').length > 0 && (
+                    <div className="mb-6">
+                      <h5 className="font-medium text-md mb-2 text-primary">产品预存记录</h5>
+                      <div className="overflow-x-auto">
+                        <table className="table table-sm table-zebra w-full">
+                          <thead>
+                            <tr>
+                              <th>记录ID</th>
+                              <th>产品名称</th>
+                              <th>预存数量</th>
+                              <th>剩余数量</th>
+                              <th>预存时间</th>
+                              <th>状态</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {customerDeposits.filter(record => record.type === 'product').map((record) => (
+                              <tr key={record._id}>
+                                <td className="font-mono text-xs">{record._id?.slice(-8)}</td>
+                                <td>{record.productName || '产品预存'}</td>
+                                <td>{record.quantity || 0}</td>
+                                <td className="font-bold">{record.balance || 0}</td>
+                                <td className="text-sm">{formatTime(record.createTime)}</td>
+                                <td>
+                                  <span className={`badge ${record.status === 'active' ? 'badge-success' : 'badge-error'}`}>
+                                    {record.status === 'active' ? '有效' : '已失效'}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 金额预存记录表格 */}
+                  {customerDeposits.filter(record => record.type === 'cash').length > 0 && (
+                    <div>
+                      <h5 className="font-medium text-md mb-2 text-success">金额预存记录</h5>
+                      <div className="overflow-x-auto">
+                        <table className="table table-sm table-zebra w-full">
+                          <thead>
+                            <tr>
+                              <th>记录ID</th>
+                              <th>预存金额</th>
+                              <th>剩余金额</th>
+                              <th>预存时间</th>
+                              <th>状态</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {customerDeposits.filter(record => record.type === 'cash').map((record) => (
+                              <tr key={record._id}>
+                                <td className="font-mono text-xs">{record._id?.slice(-8)}</td>
+                                <td className="font-bold text-success">¥{formatAmount(record.amount)}</td>
+                                <td className="font-bold text-success">¥{formatAmount(record.balance || 0)}</td>
+                                <td className="text-sm">{formatTime(record.createTime)}</td>
+                                <td>
+                                  <span className={`badge ${record.status === 'active' ? 'badge-success' : 'badge-error'}`}>
+                                    {record.status === 'active' ? '有效' : '已失效'}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="modal-action">
               <button
@@ -721,28 +882,66 @@ const DepositsPage = () => {
                   />
                   <button
                     className="btn btn-sm"
-                    onClick={() => setShowCustomerSelect(true)}
-                    disabled={!newDeposit.customerName}
+                    onClick={() => setShowCustomerSelect(!showCustomerSelect)}
                   >
                     选择
                   </button>
                 </div>
                 {showCustomerSelect && (
-                  <div className="absolute z-10 bg-base-100 rounded-lg shadow-lg w-full max-h-60 overflow-y-auto">
+                  <div className="absolute z-10 bg-base-100 rounded-lg shadow-lg w-full max-h-60 overflow-y-auto border border-gray-200">
+                    <div className="p-2 text-sm text-gray-500 border-b">
+                      选择客户 ({customers.length} 个客户)
+                    </div>
                     {customers.filter(customer => 
-                      customer.name.toLowerCase().includes(newDeposit.customerName.toLowerCase())
+                      !newDeposit.customerName || customer.name.toLowerCase().includes(newDeposit.customerName.toLowerCase())
                     ).map(customer => (
                       <div
                         key={customer._id}
-                        className="p-2 cursor-pointer hover:bg-base-200"
+                        className="p-3 cursor-pointer hover:bg-base-200 border-b border-gray-100"
                         onClick={() => selectCustomer(customer)}
                       >
-                        {customer.name} ({customer.phone || '无电话'})
+                        <div className="font-medium">{customer.name}</div>
+                        <div className="text-sm text-gray-500">
+                          {customer.phone || '无电话'} 
+                          {customer.address && ` • ${customer.address}`}
+                        </div>
                       </div>
                     ))}
+                    {customers.length === 0 && (
+                      <div className="p-3 text-gray-500 text-center">
+                        暂无客户数据
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
+              
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">客户电话 <span className="text-red-500">*</span></span>
+                </label>
+                <input
+                  type="tel"
+                  placeholder="请输入客户电话"
+                  className="input input-bordered"
+                  value={newDeposit.customerPhone}
+                  onChange={(e) => setNewDeposit({...newDeposit, customerPhone: e.target.value})}
+                />
+              </div>
+              
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">客户地址</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="请输入客户地址（可选）"
+                  className="input input-bordered"
+                  value={newDeposit.customerAddress}
+                  onChange={(e) => setNewDeposit({...newDeposit, customerAddress: e.target.value})}
+                />
+              </div>
+              
               <div className="form-control">
                 <label className="label">
                   <span className="label-text">预存类型</span>
@@ -761,7 +960,7 @@ const DepositsPage = () => {
               </div>
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">预存数量/金额</span>
+                  <span className="label-text">预存数量</span>
                 </label>
                 <input
                   type="number"
@@ -867,25 +1066,36 @@ const DepositsPage = () => {
                   />
                   <button
                     className="btn btn-sm"
-                    onClick={() => setShowCustomerSelect(true)}
-                    disabled={!newDeposit.customerName}
+                    onClick={() => setShowCustomerSelect(!showCustomerSelect)}
                   >
                     选择
                   </button>
                 </div>
                 {showCustomerSelect && (
-                  <div className="absolute z-10 bg-base-100 rounded-lg shadow-lg w-full max-h-60 overflow-y-auto">
+                  <div className="absolute z-10 bg-base-100 rounded-lg shadow-lg w-full max-h-60 overflow-y-auto border border-gray-200">
+                    <div className="p-2 text-sm text-gray-500 border-b">
+                      选择客户 ({customers.length} 个客户)
+                    </div>
                     {customers.filter(customer => 
-                      customer.name.toLowerCase().includes(newDeposit.customerName.toLowerCase())
+                      !newDeposit.customerName || customer.name.toLowerCase().includes(newDeposit.customerName.toLowerCase())
                     ).map(customer => (
                       <div
                         key={customer._id}
-                        className="p-2 cursor-pointer hover:bg-base-200"
+                        className="p-3 cursor-pointer hover:bg-base-200 border-b border-gray-100"
                         onClick={() => selectCustomer(customer)}
                       >
-                        {customer.name} ({customer.phone || '无电话'})
+                        <div className="font-medium">{customer.name}</div>
+                        <div className="text-sm text-gray-500">
+                          {customer.phone || '无电话'} 
+                          {customer.address && ` • ${customer.address}`}
+                        </div>
                       </div>
                     ))}
+                    {customers.length === 0 && (
+                      <div className="p-3 text-gray-500 text-center">
+                        暂无客户数据
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -907,7 +1117,7 @@ const DepositsPage = () => {
               </div>
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">预存数量/金额</span>
+                  <span className="label-text">预存数量</span>
                 </label>
                 <input
                   type="number"

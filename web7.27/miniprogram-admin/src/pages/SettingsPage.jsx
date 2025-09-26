@@ -80,7 +80,8 @@ const SettingsPage = () => {
       console.log('开始保存到systemSettings集合...');
       const saveResult = await db.collection('systemSettings').doc('main').set({
         ...settings,
-        updateTime: new Date()
+        updateTime: new Date(),
+        lastModifiedBy: 'admin'
       });
       console.log('systemSettings保存结果:', saveResult);
       
@@ -113,17 +114,55 @@ const SettingsPage = () => {
   // 加载设置
   const loadSettings = async () => {
     try {
+      console.log('开始加载系统设置...');
+      await ensureLogin();
+      
       const db = app.database();
       const result = await db.collection('systemSettings').doc('main').get();
       
-      if (result.data) {
+      console.log('系统设置查询结果:', result);
+      
+      if (result.data && result.data.length > 0) {
+        const settingsData = result.data[0];
+        console.log('加载到的设置数据:', settingsData);
+        
         setSettings(prevSettings => ({
           ...prevSettings,
-          ...result.data
+          ...settingsData
         }));
+        
+        console.log('系统设置加载成功');
+      } else {
+        console.log('未找到系统设置，使用默认值');
+        // 使用默认设置
+        setSettings({
+          system: {
+            siteName: 'KOHIN管理系统',
+            siteDescription: '专业的茶饮店管理系统',
+            contactEmail: 'admin@example.com',
+            contactPhone: '400-123-4567',
+            timezone: 'Asia/Shanghai',
+            language: 'zh-CN'
+          },
+          notification: {
+            emailNotifications: true,
+            smsNotifications: false,
+            orderNotifications: true,
+            stockAlerts: true,
+            systemAlerts: true
+          },
+          security: {
+            sessionTimeout: 30,
+            passwordMinLength: 8,
+            requireSpecialChars: true,
+            enableTwoFactor: false,
+            loginAttempts: 5
+          }
+        });
       }
     } catch (error) {
       console.error('加载设置失败:', error);
+      addToast(`加载设置失败: ${error.message}`, 'error');
     }
   };
 

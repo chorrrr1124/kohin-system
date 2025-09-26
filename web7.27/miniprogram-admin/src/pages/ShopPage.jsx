@@ -194,6 +194,43 @@ const ShopPage = () => {
     }
   };
 
+  // 自动同步函数（静默执行，不显示加载状态）
+  const autoSyncFromInventory = async () => {
+    try {
+      // 静默执行，减少日志输出
+      await ensureLogin();
+      
+      // 调用云函数进行库存同步
+      const result = await app.callFunction({
+        name: 'inventorySync',
+        data: {
+          action: 'syncInventoryToShop'
+        }
+      });
+      
+      if (result.result.success) {
+        setLastSyncTime(new Date());
+        setSyncMessage(result.result.message);
+        setSyncStatus('success');
+        console.log('✅ 自动同步完成');
+        
+        // 静默刷新商品列表
+        fetchProducts();
+      } else {
+        // 只在控制台记录错误，不显示给用户
+        console.warn('自动同步失败:', result.result.error);
+        setSyncMessage(`自动同步失败: ${result.result.error}`);
+        setSyncStatus('error');
+      }
+      
+    } catch (error) {
+      // 只在控制台记录错误，不显示给用户
+      console.warn('自动同步失败:', error.message);
+      setSyncMessage(`自动同步失败: ${error.message}`);
+      setSyncStatus('error');
+    }
+  };
+
   // 检查同步状态
   const checkSyncStatus = async () => {
     try {
@@ -500,6 +537,8 @@ const ShopPage = () => {
     fetchCategories();
     checkLowStock();
     checkSyncStatus(); // 检查同步状态
+    // 页面加载时自动执行同步
+    autoSyncFromInventory();
   }, [stockThreshold, deletedCategories]);
 
   // 定期检查库存预警
@@ -507,6 +546,16 @@ const ShopPage = () => {
     const interval = setInterval(checkLowStock, 5 * 60 * 1000); // 每5分钟检查一次
     return () => clearInterval(interval);
   }, [stockThreshold]);
+
+  // 定期自动同步数据
+  useEffect(() => {
+    const syncInterval = setInterval(() => {
+      // 静默执行定期同步
+      autoSyncFromInventory();
+    }, 30 * 60 * 1000); // 每30分钟自动同步一次
+    
+    return () => clearInterval(syncInterval);
+  }, []);
 
   // 查看商品详情
   const viewProduct = (product) => {
@@ -843,7 +892,7 @@ const ShopPage = () => {
               }`}></div>
               <span className="text-gray-600">
                 {syncStatus === 'syncing' ? '同步中...' :
-                 syncStatus === 'success' ? '已同步' :
+                 syncStatus === 'success' ? '已同步 (自动)' :
                  syncStatus === 'error' ? '同步失败' : '未同步'}
               </span>
             </div>
@@ -869,7 +918,7 @@ const ShopPage = () => {
             className={`btn btn-outline btn-sm ${
               syncStatus === 'syncing' ? 'loading' : ''
             }`}
-            title="从仓库库存管理同步数据"
+            title="手动同步数据（系统每10分钟自动同步）"
           >
             {syncStatus === 'syncing' ? (
               <>
@@ -879,7 +928,7 @@ const ShopPage = () => {
             ) : (
               <>
                 <CloudIcon className="w-4 h-4 mr-1" />
-                同步数据
+                手动同步
               </>
             )}
           </button>
@@ -970,25 +1019,15 @@ const ShopPage = () => {
             filterValue={statusFilter}
             onFilterChange={(e) => handleFilterChange('status', e.target.value)}
             filterLabel="全部状态"
+            secondFilterOptions={[
+              { value: '', label: '全部分类' },
+              ...categories.map(category => ({ value: category, label: category }))
+            ]}
+            secondFilterValue={categoryFilter}
+            onSecondFilterChange={(e) => handleFilterChange('category', e.target.value)}
+            secondFilterLabel="全部分类"
           />
           
-          {/* 分类筛选栏 */}
-          <div className="bg-base-100 shadow rounded-lg p-4 mb-6">
-            <div className="form-control">
-              <select
-                className="select select-bordered w-full max-w-xs"
-                value={categoryFilter}
-                onChange={(e) => handleFilterChange('category', e.target.value)}
-              >
-                <option value="">全部分类</option>
-                {categories.map(category => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
 
           {/* 批量操作栏 */}
           {selectedProducts.length > 0 && (

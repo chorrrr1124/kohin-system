@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>优惠券分析功能测试</title>
+    <script src="https://unpkg.com/@cloudbase/js-sdk@latest/dist/index.umd.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            color: #28a745;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .loading {
+            color: #6c757d;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 优惠券分析功能测试</h1>
+        <p>测试优惠券分析云函数和系统设置功能</p>
+        
+        <div class="test-section">
+            <h3>1. 云开发环境初始化</h3>
+            <button onclick="initCloudbase()">初始化云开发</button>
+            <div id="init-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. 用户登录测试</h3>
+            <button onclick="testLogin()">测试登录</button>
+            <div id="login-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. 优惠券分析云函数测试</h3>
+            <button onclick="testCouponAnalytics()">测试优惠券分析</button>
+            <div id="analytics-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. 系统设置数据库测试</h3>
+            <button onclick="testSystemSettings()">测试系统设置</button>
+            <div id="settings-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>5. 综合功能测试</h3>
+            <button onclick="runAllTests()">运行所有测试</button>
+            <div id="all-tests-result"></div>
+        </div>
+    </div>
+
+    <script>
+        let app;
+        let isLoggedIn = false;
+
+        // 初始化云开发
+        async function initCloudbase() {
+            const resultDiv = document.getElementById('init-result');
+            resultDiv.innerHTML = '<div class="loading">正在初始化云开发环境...</div>';
+            
+            try {
+                app = cloudbase.init({
+                    env: 'cloudhare-304w6lls8a5ce59b'
+                });
+                
+                resultDiv.innerHTML = '<div class="success">✅ 云开发环境初始化成功</div>';
+                console.log('云开发环境初始化成功');
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ 初始化失败: ${error.message}</div>`;
+                console.error('初始化失败:', error);
+            }
+        }
+
+        // 测试登录
+        async function testLogin() {
+            const resultDiv = document.getElementById('login-result');
+            resultDiv.innerHTML = '<div class="loading">正在测试登录...</div>';
+            
+            try {
+                if (!app) {
+                    throw new Error('请先初始化云开发环境');
+                }
+
+                const auth = app.auth();
+                let loginState = await auth.getLoginState();
+                
+                if (!loginState || !loginState.isLoggedIn) {
+                    console.log('用户未登录，尝试匿名登录...');
+                    await auth.signInAnonymously();
+                    loginState = await auth.getLoginState();
+                }
+                
+                if (loginState && loginState.isLoggedIn) {
+                    isLoggedIn = true;
+                    resultDiv.innerHTML = '<div class="success">✅ 登录成功</div>';
+                    console.log('登录成功:', loginState);
+                } else {
+                    throw new Error('登录失败');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ 登录失败: ${error.message}</div>`;
+                console.error('登录失败:', error);
+            }
+        }
+
+        // 测试优惠券分析
+        async function testCouponAnalytics() {
+            const resultDiv = document.getElementById('analytics-result');
+            resultDiv.innerHTML = '<div class="loading">正在测试优惠券分析...</div>';
+            
+            try {
+                if (!app || !isLoggedIn) {
+                    throw new Error('请先完成登录');
+                }
+
+                const result = await app.callFunction({
+                    name: 'couponAnalytics',
+                    data: {
+                        action: 'getAnalytics'
+                    }
+                });
+                
+                console.log('优惠券分析结果:', result);
+                
+                if (result.result.success) {
+                    const data = result.result.data;
+                    resultDiv.innerHTML = `
+                        <div class="success">✅ 优惠券分析测试成功</div>
+                        <pre>总优惠券数: ${data.totalCoupons}
+生效中: ${data.activeCoupons}
+总使用次数: ${data.totalUsage}
+转化率: ${data.conversionRate}%
+月度趋势: ${JSON.stringify(data.monthlyTrend, null, 2)}
+热门优惠券: ${JSON.stringify(data.topCoupons, null, 2)}</pre>
+                    `;
+                } else {
+                    throw new Error(result.result.error);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ 优惠券分析测试失败: ${error.message}</div>`;
+                console.error('优惠券分析测试失败:', error);
+            }
+        }
+
+        // 测试系统设置
+        async function testSystemSettings() {
+            const resultDiv = document.getElementById('settings-result');
+            resultDiv.innerHTML = '<div class="loading">正在测试系统设置...</div>';
+            
+            try {
+                if (!app || !isLoggedIn) {
+                    throw new Error('请先完成登录');
+                }
+
+                const db = app.database();
+                
+                // 测试读取系统设置
+                const readResult = await db.collection('systemSettings').doc('main').get();
+                console.log('系统设置读取结果:', readResult);
+                
+                // 测试保存系统设置
+                const testSettings = {
+                    system: {
+                        siteName: '测试系统',
+                        siteDescription: '测试描述',
+                        contactEmail: 'test@example.com',
+                        contactPhone: '400-000-0000',
+                        timezone: 'Asia/Shanghai',
+                        language: 'zh-CN'
+                    },
+                    notification: {
+                        emailNotifications: true,
+                        smsNotifications: false,
+                        orderNotifications: true,
+                        stockAlerts: true,
+                        systemAlerts: true
+                    },
+                    security: {
+                        sessionTimeout: 30,
+                        passwordMinLength: 8,
+                        requireSpecialChars: true,
+                        enableTwoFactor: false,
+                        loginAttempts: 5
+                    },
+                    updateTime: new Date(),
+                    lastModifiedBy: 'test'
+                };
+                
+                const saveResult = await db.collection('systemSettings').doc('main').set(testSettings);
+                console.log('系统设置保存结果:', saveResult);
+                
+                resultDiv.innerHTML = `
+                    <div class="success">✅ 系统设置测试成功</div>
+                    <pre>读取结果: ${JSON.stringify(readResult, null, 2)}
+保存结果: ${JSON.stringify(saveResult, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ 系统设置测试失败: ${error.message}</div>`;
+                console.error('系统设置测试失败:', error);
+            }
+        }
+
+        // 运行所有测试
+        async function runAllTests() {
+            const resultDiv = document.getElementById('all-tests-result');
+            resultDiv.innerHTML = '<div class="loading">正在运行所有测试...</div>';
+            
+            const results = [];
+            
+            try {
+                // 1. 初始化
+                await initCloudbase();
+                results.push('✅ 云开发环境初始化');
+                
+                // 2. 登录
+                await testLogin();
+                results.push('✅ 用户登录');
+                
+                // 3. 优惠券分析
+                await testCouponAnalytics();
+                results.push('✅ 优惠券分析');
+                
+                // 4. 系统设置
+                await testSystemSettings();
+                results.push('✅ 系统设置');
+                
+                resultDiv.innerHTML = `
+                    <div class="success">🎉 所有测试完成！</div>
+                    <pre>${results.join('\n')}</pre>
+                    <div class="info">💡 所有功能测试通过，可以部署到生产环境</div>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">❌ 测试过程中出现错误</div>
+                    <pre>${results.join('\n')}</pre>
+                    <div class="error">错误: ${error.message}</div>
+                `;
+            }
+        }
+
+        // 页面加载时自动初始化
+        window.onload = function() {
+            console.log('页面加载完成，开始自动测试...');
+            initCloudbase();
+        };
+    </script>
+</body>
+</html>

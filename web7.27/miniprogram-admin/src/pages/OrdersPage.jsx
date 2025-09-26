@@ -53,6 +53,8 @@ const OrdersPage = () => {
 
   const statusLabels = {
     pending: '待付款',
+    paid: '已付款',
+    pending_payment: '待付款',
     pending_shipment: '待发货',
     shipped: '已发货',
     completed: '已完成',
@@ -61,6 +63,8 @@ const OrdersPage = () => {
 
   const statusColors = {
     pending: 'badge-warning',
+    paid: 'badge-success',
+    pending_payment: 'badge-warning',
     pending_shipment: 'badge-info',
     shipped: 'badge-primary',
     completed: 'badge-success',
@@ -315,17 +319,33 @@ const OrdersPage = () => {
   };
 
   // 获取下一个状态
-  const getNextStatus = (currentStatus) => {
+  const getNextStatus = (currentStatus, paymentMethod) => {
     const statusFlow = {
       'pending': 'pending_shipment',
       'pending_shipment': 'shipped',
       'shipped': 'completed'
     };
+    
+    // 对于预存产品订单，如果状态是pending，应该直接跳到pending_shipment
+    if (paymentMethod === 'prepaid' && currentStatus === 'pending') {
+      return 'pending_shipment';
+    }
+    
     return statusFlow[currentStatus];
   };
 
   // 获取状态按钮文本
-  const getStatusButtonText = (status) => {
+  const getStatusButtonText = (status, paymentMethod) => {
+    // 对于预存产品订单的特殊处理
+    if (paymentMethod === 'prepaid') {
+      const prepaidButtonTexts = {
+        'pending': '确认已付',
+        'pending_shipment': '发货',
+        'shipped': '完成'
+      };
+      return prepaidButtonTexts[status];
+    }
+    
     const buttonTexts = {
       'pending': '确认付款',
       'pending_shipment': '发货',
@@ -671,12 +691,26 @@ const OrdersPage = () => {
                         <td className="font-bold w-16">¥{formatAmount(order.totalAmount || order.total)}</td>
                         <td className="w-20">
                           <span className={`badge ${paymentMethodColors[order.paymentMethod] || 'badge-neutral'}`}>
-                            {paymentMethodLabels[order.paymentMethod] || order.paymentMethod}
+                            {(() => {
+                              console.log('支付方式数据:', {
+                                paymentMethod: order.paymentMethod,
+                                label: paymentMethodLabels[order.paymentMethod],
+                                orderId: order.id
+                              });
+                              return paymentMethodLabels[order.paymentMethod] || order.paymentMethod;
+                            })()}
                           </span>
                         </td>
                         <td className="w-16">
                           <span className={`badge ${statusColors[order.status] || 'badge-neutral'}`}>
-                            {statusLabels[order.status] || order.status}
+                            {(() => {
+                              console.log('订单状态数据:', {
+                                status: order.status,
+                                label: statusLabels[order.status],
+                                orderId: order.id
+                              });
+                              return statusLabels[order.status] || order.status;
+                            })()}
                           </span>
                         </td>
                         <td className="w-20">
@@ -696,15 +730,15 @@ const OrdersPage = () => {
                             </button>
                             
                             {/* 状态操作按钮 */}
-                            {getNextStatus(order.status) && (
+                            {getNextStatus(order.status, order.paymentMethod) && (
                               <button
-                                onClick={() => updateOrderStatus(order._id, getNextStatus(order.status))}
+                                onClick={() => updateOrderStatus(order._id, getNextStatus(order.status, order.paymentMethod))}
                                 className={`btn btn-sm ${
                                   order.status === 'pending' ? 'btn-info' :
                                   order.status === 'pending_shipment' ? 'btn-primary' :
                                   'btn-success'
                                 }`}
-                                title={getStatusButtonText(order.status)}
+                                title={getStatusButtonText(order.status, order.paymentMethod)}
                               >
                                 {order.status === 'pending_shipment' ? 
                                   <TruckIcon className="w-4 h-4" /> : 

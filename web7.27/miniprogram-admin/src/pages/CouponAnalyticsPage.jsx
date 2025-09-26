@@ -8,46 +8,85 @@ import {
   UsersIcon,
   CalendarIcon
 } from '@heroicons/react/24/outline';
+import { app, ensureLogin } from '../utils/cloudbase';
+import { ContentLoading } from '../components/LoadingSpinner';
+import { useToast } from '../components/Toast';
 
 const CouponAnalyticsPage = () => {
+  const [loading, setLoading] = useState(true);
   const [analyticsData, setAnalyticsData] = useState({
-      totalCoupons: 0,
-      activeCoupons: 0,
+    totalCoupons: 0,
+    activeCoupons: 0,
     totalUsage: 0,
     conversionRate: 0,
     monthlyTrend: [],
     topCoupons: []
   });
+  const { addToast } = useToast();
 
   useEffect(() => {
-    // 模拟加载分析数据
     loadAnalyticsData();
   }, []);
 
   const loadAnalyticsData = async () => {
-    // 这里可以添加真实的数据加载逻辑
-    setAnalyticsData({
-      totalCoupons: 25,
-      activeCoupons: 18,
-      totalUsage: 156,
-      conversionRate: 12.5,
-      monthlyTrend: [
-        { month: '1月', usage: 45 },
-        { month: '2月', usage: 52 },
-        { month: '3月', usage: 38 },
-        { month: '4月', usage: 61 },
-        { month: '5月', usage: 73 },
-        { month: '6月', usage: 89 }
-        ],
-      topCoupons: [
-        { name: '新用户专享券', usage: 45, conversion: 18.2 },
-        { name: '满减优惠券', usage: 38, conversion: 15.6 },
-        { name: '生日特惠券', usage: 32, conversion: 12.8 }
-        ]
-    });
+    try {
+      setLoading(true);
+      console.log('开始加载优惠券分析数据...');
+      
+      // 确保用户已登录
+      await ensureLogin();
+      
+      // 调用云函数获取分析数据
+      const result = await app.callFunction({
+        name: 'couponAnalytics',
+        data: {
+          action: 'getAnalytics'
+        }
+      });
+      
+      console.log('云函数返回结果:', result);
+      
+      if (result.result.success) {
+        setAnalyticsData(result.result.data);
+        console.log('优惠券分析数据加载成功:', result.result.data);
+      } else {
+        console.error('获取分析数据失败:', result.result.error);
+        addToast(`获取分析数据失败: ${result.result.error}`, 'error');
+        
+        // 设置默认数据
+        setAnalyticsData({
+          totalCoupons: 0,
+          activeCoupons: 0,
+          totalUsage: 0,
+          conversionRate: 0,
+          monthlyTrend: [],
+          topCoupons: []
+        });
+      }
+      
+    } catch (error) {
+      console.error('加载优惠券分析数据失败:', error);
+      addToast(`加载分析数据失败: ${error.message}`, 'error');
+      
+      // 设置默认数据
+      setAnalyticsData({
+        totalCoupons: 0,
+        activeCoupons: 0,
+        totalUsage: 0,
+        conversionRate: 0,
+        monthlyTrend: [],
+        topCoupons: []
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-    return (
+  if (loading) {
+    return <ContentLoading message="正在加载优惠券分析数据..." />;
+  }
+
+  return (
     <div className="p-6">
       {/* 面包屑导航 */}
       <div className="flex items-center gap-2 mb-6 text-sm text-gray-600">
@@ -60,9 +99,18 @@ const CouponAnalyticsPage = () => {
       </div>
 
       {/* 页面标题 */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">优惠券分析</h1>
-        <p className="text-gray-600 mt-1">分析优惠券使用情况，优化营销策略</p>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">优惠券分析</h1>
+          <p className="text-gray-600 mt-1">分析优惠券使用情况，优化营销策略</p>
+        </div>
+        <button
+          onClick={loadAnalyticsData}
+          disabled={loading}
+          className="btn btn-outline btn-sm"
+        >
+          {loading ? '刷新中...' : '刷新数据'}
+        </button>
       </div>
 
       {/* 统计卡片 */}
@@ -113,37 +161,59 @@ const CouponAnalyticsPage = () => {
         {/* 月度趋势图 */}
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">月度使用趋势</h3>
-          <div className="h-64 flex items-end justify-between gap-2">
-            {analyticsData.monthlyTrend.map((item, index) => (
-              <div key={index} className="flex-1 flex flex-col items-center">
-                <div 
-                  className="w-full bg-blue-500 rounded-t"
-                  style={{ height: `${(item.usage / 100) * 200}px` }}
-                ></div>
-                <span className="text-xs text-gray-600 mt-2">{item.month}</span>
-                <span className="text-xs font-medium">{item.usage}</span>
+          {analyticsData.monthlyTrend.length > 0 ? (
+            <div className="h-64 flex items-end justify-between gap-2">
+              {analyticsData.monthlyTrend.map((item, index) => {
+                const maxUsage = Math.max(...analyticsData.monthlyTrend.map(t => t.usage));
+                const height = maxUsage > 0 ? `${(item.usage / maxUsage) * 200}px` : '10px';
+                return (
+                  <div key={index} className="flex-1 flex flex-col items-center">
+                    <div 
+                      className="w-full bg-blue-500 rounded-t"
+                      style={{ height }}
+                    ></div>
+                    <span className="text-xs text-gray-600 mt-2">{item.month}</span>
+                    <span className="text-xs font-medium">{item.usage}</span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="h-64 flex items-center justify-center text-gray-500">
+              <div className="text-center">
+                <CalendarIcon className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p>暂无月度趋势数据</p>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* 热门优惠券 */}
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">热门优惠券</h3>
-          <div className="space-y-3">
-            {analyticsData.topCoupons.map((coupon, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900">{coupon.name}</p>
-                  <p className="text-sm text-gray-600">使用次数: {coupon.usage}</p>
+          {analyticsData.topCoupons.length > 0 ? (
+            <div className="space-y-3">
+              {analyticsData.topCoupons.map((coupon, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900">{coupon.name}</p>
+                    <p className="text-sm text-gray-600">使用次数: {coupon.usage}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-green-600">{coupon.conversion}%</p>
+                    <p className="text-xs text-gray-500">转化率</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-green-600">{coupon.conversion}%</p>
-                  <p className="text-xs text-gray-500">转化率</p>
-                </div>
-              </div>
-            ))}
+              ))}
             </div>
+          ) : (
+            <div className="h-32 flex items-center justify-center text-gray-500">
+              <div className="text-center">
+                <TicketIcon className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p>暂无优惠券数据</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

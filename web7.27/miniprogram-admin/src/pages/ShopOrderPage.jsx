@@ -108,7 +108,7 @@ const ShopOrderPage = () => {
       
       if (cart.length > 0) {
         const productIds = cart.map(item => item.productId);
-        const result = await db.collection('prepaid_records')
+        const result = await db.collection('prepaidRecords')
           .where({
             customerId: orderForm.customerId,
             type: 'product',
@@ -118,7 +118,7 @@ const ShopOrderPage = () => {
           .get();
         setPrepaidRecords(result.data || []);
       } else {
-        const result = await db.collection('prepaid_records')
+        const result = await db.collection('prepaidRecords')
           .where({
             customerId: orderForm.customerId,
             status: 'active'
@@ -380,36 +380,49 @@ const ShopOrderPage = () => {
 
     try {
       const db = app.database();
-      const productIds = cart.map(item => item.productId);
+      const totalAmount = getTotalAmount();
       
-      const result = await db.collection('prepaid_records')
+      // 检查客户的预存金额账户余额
+      const amountResult = await db.collection('prepaidRecords')
         .where({
           customerId: orderForm.customerId,
-          type: 'product',
-          productId: db.command.in(productIds),
+          type: 'amount',
           status: 'active'
         })
         .get();
       
-      if (result.data.length > 0) {
-        setOrderForm(prev => ({ 
-          ...prev, 
-          paymentMethod: 'prestore',
-          usePrepaid: false,
-          prepaidAmount: 0,
-          prepaidProducts: [],
-          prepaidType: "amount"
-        }));
-        setCreatePrepaidMode(false);
-        setPrepaidDeductionMode(true);
-        setPrepaidProductData({ selectedProducts: [], totalAmount: 0 });
-      } else {
-        alert('该客户没有可用的预存产品，无法使用预存扣费');
+      // 计算总预存金额余额
+      const totalPrepaidBalance = amountResult.data.reduce((sum, record) => sum + (record.balance || 0), 0);
+      
+      if (totalPrepaidBalance <= 0) {
+        alert('该客户没有预存金额余额，无法使用预存扣费');
+        return;
       }
+      
+      if (totalPrepaidBalance < totalAmount) {
+        alert(`预存金额余额不足！\n订单总金额：¥${totalAmount.toFixed(2)}\n可用余额：¥${totalPrepaidBalance.toFixed(2)}\n差额：¥${(totalAmount - totalPrepaidBalance).toFixed(2)}`);
+        return;
+      }
+      
+      // 余额充足，设置预存扣费模式
+      setOrderForm(prev => ({ 
+        ...prev, 
+        paymentMethod: 'prestore',
+        usePrepaid: true,
+        prepaidAmount: totalAmount, // 使用全部订单金额进行扣减
+        prepaidProducts: [],
+        prepaidType: "amount"
+      }));
+      setCreatePrepaidMode(false);
+      setPrepaidDeductionMode(true);
+      setPrepaidProductData({ selectedProducts: [], totalAmount: 0 });
+      
+      // 显示余额信息
+      alert(`预存扣费模式已启用！\n订单总金额：¥${totalAmount.toFixed(2)}\n可用余额：¥${totalPrepaidBalance.toFixed(2)}\n扣减后余额：¥${(totalPrepaidBalance - totalAmount).toFixed(2)}`);
+      
     } catch (error) {
-    setProducts([]);
-      console.error('检查预存产品失败:', error);
-      alert('检查预存产品失败，请重试');
+      console.error('检查预存金额失败:', error);
+      alert('检查预存金额失败，请重试');
     }
   };
 
@@ -455,7 +468,7 @@ const ShopOrderPage = () => {
         })),
         totalAmount: getTotalAmount(),
         paymentMethod: orderForm.paymentMethod,
-        status: orderForm.paymentMethod === 'cash' || orderForm.paymentMethod === 'wechat' || orderForm.paymentMethod === 'alipay' ? 'paid' : 'pending_shipment',
+        status: orderForm.paymentMethod === 'cash' || orderForm.paymentMethod === 'wechat' || orderForm.paymentMethod === 'alipay' ? '已付款' : '待发货',
         notes: orderForm.notes,
         createTime: now,
         updateTime: now
@@ -473,7 +486,7 @@ const ShopOrderPage = () => {
           const prepaidRecord = prepaidRecords.find(r => r.type === 'amount' && r.balance >= orderForm.prepaidAmount);
           if (prepaidRecord) {
             prepaidUpdates.push(
-              db.collection('prepaid_records').doc(prepaidRecord._id).update({
+              db.collection('prepaidRecords').doc(prepaidRecord._id).update({
                 balance: db.command.inc(-orderForm.prepaidAmount)
               })
             );
@@ -484,7 +497,7 @@ const ShopOrderPage = () => {
             if (cartItem) {
               const deductQuantity = Math.min(prepaidProduct.balance, cartItem.quantity);
               prepaidUpdates.push(
-                db.collection('prepaid_records').doc(prepaidProduct._id).update({
+                db.collection('prepaidRecords').doc(prepaidProduct._id).update({
                   balance: db.command.inc(-deductQuantity)
                 })
               );
@@ -518,13 +531,16 @@ const ShopOrderPage = () => {
       setPrepaidDeductionMode(false);
       setPrepaidProductData({ selectedProducts: [], totalAmount: 0 });
       
+      // 关闭订单弹窗
+      setShowOrderForm(false);
+      
       const paymentStatus = orderForm.paymentMethod === 'cash' || orderForm.paymentMethod === 'wechat' || orderForm.paymentMethod === 'alipay' ? '已支付' : '待发货';
       alert(`订单创建成功！订单号：${orderId}，状态：${paymentStatus}`);
       
-      // 3秒后自动关闭页面
-      setTimeout(() => {
-        window.history.back();
-      }, 3000);
+      // 刷新预存记录页面（如果存在）
+      if (window.refreshPrepaidRecords) {
+        window.refreshPrepaidRecords();
+      }
 
     } catch (error) {
     setProducts([]);
@@ -557,7 +573,7 @@ const ShopOrderPage = () => {
         })),
         totalAmount: getTotalAmount(),
         paymentMethod: 'prepaid',
-        status: 'pending_shipment',
+        status: '待发货',
         notes: orderForm.notes,
         createTime: now,
         updateTime: now
@@ -572,6 +588,7 @@ const ShopOrderPage = () => {
       const prepaidRecords = cart.map(item => ({
         customerId: orderForm.customerId,
         customerName: orderForm.customerName,
+        customerPhone: orderForm.customerPhone, // 修复：添加客户电话字段
         productId: item.productId,
         productName: item.productName,
         type: 'product',
@@ -587,7 +604,7 @@ const ShopOrderPage = () => {
       await Promise.all([
         db.collection('orders').add(orderData),
         ...stockUpdates,
-        ...prepaidRecords.map(record => db.collection('prepaid_records').add(record))
+        ...prepaidRecords.map(record => db.collection('prepaidRecords').add(record))
       ]);
       
       setOrderSuccess(true);
@@ -608,12 +625,15 @@ const ShopOrderPage = () => {
       setPrepaidDeductionMode(false);
       setPrepaidProductData({ selectedProducts: [], totalAmount: 0 });
       
+      // 关闭订单弹窗
+      setShowOrderForm(false);
+      
       alert(`预存产品订单创建成功！已为 ${orderForm.customerName} 创建了 ${cart.length} 个预存产品记录`);
       
-      // 3秒后自动关闭页面
-      setTimeout(() => {
-        window.history.back();
-      }, 3000);
+      // 刷新预存记录页面（如果存在）
+      if (window.refreshPrepaidRecords) {
+        window.refreshPrepaidRecords();
+      }
 
     } catch (error) {
     setProducts([]);
@@ -628,28 +648,23 @@ const ShopOrderPage = () => {
       await ensureLogin();
       
       const db = app.database();
-      const productIds = cart.map(item => item.productId);
+      const totalAmount = getTotalAmount();
       
-      const result = await db.collection('prepaid_records')
+      // 获取客户的预存金额记录
+      const amountResult = await db.collection('prepaidRecords')
         .where({
           customerId: orderForm.customerId,
-          type: 'product',
-          productId: db.command.in(productIds),
+          type: 'amount',
           status: 'active'
         })
+        .orderBy('createTime', 'asc') // 按创建时间升序，优先使用较早的预存记录
         .get();
       
-      const insufficientProducts = [];
-      for (const cartItem of cart) {
-        const prepaidRecord = result.data.find(r => r.productId === cartItem.productId);
-        if (!prepaidRecord || prepaidRecord.balance < cartItem.quantity) {
-          const available = prepaidRecord ? prepaidRecord.balance : 0;
-          insufficientProducts.push(`${cartItem.productName}: 需要${cartItem.quantity}个，可用${available}个`);
-        }
-      }
+      // 计算总预存金额余额
+      const totalPrepaidBalance = amountResult.data.reduce((sum, record) => sum + (record.balance || 0), 0);
       
-      if (insufficientProducts.length > 0) {
-        alert(`预存产品不足：\n${insufficientProducts.join('\n')}`);
+      if (totalPrepaidBalance < totalAmount) {
+        alert(`预存金额余额不足！\n订单总金额：¥${totalAmount.toFixed(2)}\n可用余额：¥${totalPrepaidBalance.toFixed(2)}`);
         return;
       }
 
@@ -669,10 +684,10 @@ const ShopOrderPage = () => {
           quantity: item.quantity,
           totalAmount: item.price * item.quantity
         })),
-        totalAmount: getTotalAmount(),
-        actualAmount: 0,
+        totalAmount: totalAmount,
+        actualAmount: 0, // 使用预存扣费，实付金额为0
         paymentMethod: 'prestore',
-        status: 'pending_shipment',
+        status: '待发货',
         notes: orderForm.notes,
         createTime: now,
         updateTime: now
@@ -684,15 +699,21 @@ const ShopOrderPage = () => {
         })
       );
 
+      // 按时间顺序扣减预存金额
       const prepaidUpdates = [];
-      for (const cartItem of cart) {
-        const prepaidRecord = result.data.find(r => r.productId === cartItem.productId);
-        if (prepaidRecord) {
+      let remainingAmount = totalAmount;
+      
+      for (const record of amountResult.data) {
+        if (remainingAmount <= 0) break;
+        
+        const deductAmount = Math.min(remainingAmount, record.balance);
+        if (deductAmount > 0) {
           prepaidUpdates.push(
-            db.collection('prepaid_records').doc(prepaidRecord._id).update({
-              balance: db.command.inc(-cartItem.quantity)
+            db.collection('prepaidRecords').doc(record._id).update({
+              balance: db.command.inc(-deductAmount)
             })
           );
+          remainingAmount -= deductAmount;
         }
       }
 
@@ -720,15 +741,17 @@ const ShopOrderPage = () => {
       setPrepaidDeductionMode(false);
       setPrepaidProductData({ selectedProducts: [], totalAmount: 0 });
       
-      alert(`预存扣费订单创建成功！已为 ${orderForm.customerName} 扣减预存产品`);
+      // 关闭订单弹窗
+      setShowOrderForm(false);
       
-      // 3秒后自动关闭页面
-      setTimeout(() => {
-        window.history.back();
-      }, 3000);
+      alert(`预存扣费订单创建成功！\n订单号：${orderId}\n已为 ${orderForm.customerName} 扣减预存金额 ¥${totalAmount.toFixed(2)}`);
+      
+      // 刷新预存记录页面（如果存在）
+      if (window.refreshPrepaidRecords) {
+        window.refreshPrepaidRecords();
+      }
 
     } catch (error) {
-    setProducts([]);
       console.error('提交预存扣费订单失败:', error);
       alert('提交预存扣费订单失败，请重试');
     }
@@ -1059,6 +1082,36 @@ const ShopOrderPage = () => {
                     <button 
                       className="btn btn-sm btn-ghost"
                       onClick={cancelPrepaid}
+                    >
+                      取消
+                    </button>
+                  </div>
+                )}
+
+                {/* 预存扣费模式状态显示 */}
+                {prepaidDeductionMode && (
+                  <div className="alert alert-success">
+                    <WalletIcon className="w-5 h-5" />
+                    <div className="flex-1">
+                      <div className="font-medium">预存扣费模式已启用</div>
+                      <div className="text-sm">
+                        订单总金额: ¥{getTotalAmount().toFixed(2)}<br/>
+                        将使用预存金额全额抵扣
+                      </div>
+                    </div>
+                    <button 
+                      className="btn btn-sm btn-ghost"
+                      onClick={() => {
+                        setPrepaidDeductionMode(false);
+                        setOrderForm(prev => ({ 
+                          ...prev, 
+                          paymentMethod: 'cash',
+                          usePrepaid: false,
+                          prepaidAmount: 0,
+                          prepaidProducts: [],
+                          prepaidType: "amount"
+                        }));
+                      }}
                     >
                       取消
                     </button>
